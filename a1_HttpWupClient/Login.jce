@@ -1,0 +1,87 @@
+module Base
+{
+    // 返回码
+    enum ELOGINRET
+    {
+        E_LOGIN_SUCC    = 0,
+        E_XUA_ERROR     = -1,       //xua格式错误
+        E_XUA_SN_UNCONF = -2,       //xua没有配置
+        E_BUSS_ERR      = -3,       // 透传后端服务的时候调用出错
+    };
+
+    // 服务器接入点IP类型
+    enum EIPType
+    {
+        WUPPROXY        = 1,            // wupproxy服务IP    
+		PUSHCONN		= 2,			// Push长连接
+		HQCONN          = 4,            // 行情服务器地址
+    };
+
+    // 客户端当前网络类型
+    enum ENETTYPE
+    {
+        NET_UNKNOWN     = 0,
+        NET_WIFI        = 1,
+        NET_2G          = 2,                   
+        NET_3G          = 3,                   
+        NET_4G          = 4,
+        NET_5G          = 5,
+        NET_6G          = 6,
+    };
+
+	const string	EXT_KEY_QIMEI	= "QIMEI";
+
+    struct BaseInfo
+    {
+        0 require   vector<byte>    vGUID;      
+        1 require   string          sXUA;
+        2 optional  string          sIMEI;
+        3 optional  string          sMAC;           // mac地址
+        4 optional  int             eNetType = 0;   // ENETTYPE, 是否要apn类型 ？
+        5 optional  string          sSessionId;     // 客户端session(同一个进程)
+		6  optional	vector<byte>	vToken;
+		7 optional	map<string, string> mExt;		// 扩展, key 取值 EXT_KEY_xxx
+    };
+
+    struct IPListInfo
+    {
+        0 require   int             eIpType;
+        1 require   vector<string>  vIPList;        // 可以支持多个地址，一般下发一个域名即可
+		2 optional	vector<string>	vServantList;	// 指定servant列表使用该iplist， 只对wup类型有效， 如果这里为空，则为默认缺省地址
+    };
+
+    struct LoginReq
+    {
+        0 require  BaseInfo        stBaseInfo; 
+        1 optional vector<byte>    vExtData;       
+        2 optional string          sReason;         // 客户端触发login的原因(login, iplist)
+		3 optional byte			   cLoginVer = 0;	// 客户端login协议版本			   	
+    };
+    
+    struct BussExtData
+    {
+        0 require   int             iType;
+        1 optional  vector<byte>    vData;
+    };
+
+    struct ExtDataList
+    {
+        0 optional  vector<BussExtData> vDataList;
+    };
+
+    // login回包: 客户端ip客户端是否需要服务端返回感觉没有使用场景
+    struct LoginRsp
+    {
+        0  optional vector<byte>        vGUID;      // 如果这里为空，那么表示guid不用改变，还是请求时候带上来的guid
+        1  optional vector<IPListInfo>  vInfoList;  // 目前只有wup   
+        2  optional vector<byte>        vExtData;   // 业务扩展数据，如果只是一个buff，但是业务就用一个结构序列化放进去， 后面如果需要扩展的时候不好做，所以统一封装一层BussExtData
+		3  optional	vector<byte>        vToken;		// 业务鉴权信息, 如果这里为空，那么表示token不用改变，还是请求时候带上来的token
+	};
+
+    interface Login
+    {
+        // 返回码见ELOGINRET
+        int login(LoginReq i, out LoginRsp o);	
+    };
+
+};
