@@ -9,13 +9,13 @@ FlowControlManager::FlowControlManager()
     //_index = 0;
 }
 
-bool FlowControlManager::init(TC_Config& conf)
+bool FlowControlManager::init(TC_Config &conf)
 {
     map<string, string> m = conf.getDomainMap("/main/db");
     TC_DBConf tcDBConf;
     tcDBConf.loadFromMap(m);
     _mysql.init(tcDBConf);
-    _reportObj = conf.get("/main<wup_report_obj>", "");
+    _reportObj = conf.get("/main<flow_report_obj>", "");
     _localIp = conf.get("/main<local_ip>", "");
     if (_localIp.empty())
     {
@@ -67,7 +67,7 @@ bool FlowControlManager::loadDB()
         map<string, int> flowCountTmp;
         unsigned int maxTime = 0;
         int maxFlowID = 0;
-        
+
         for (size_t i = 0; i < data.size(); i++)
         {
             if (maxFlowID == 0)
@@ -133,9 +133,9 @@ bool FlowControlManager::loadDB()
             _control.swap(controlTmp);
             TLOGDEBUG("flow:" << TC_Common::tostr(_flow) << ", new flow:" << TC_Common::tostr(flowTmp) << endl);
             _flow.swap(flowTmp);
-            TLOGDEBUG("postion:" << TC_Common::tostr(_flow) << ", new postion:" << TC_Common::tostr(flowTmp) << endl); 
+            TLOGDEBUG("postion:" << TC_Common::tostr(_flow) << ", new postion:" << TC_Common::tostr(flowTmp) << endl);
             _position.swap(positionTmp);
-            TLOGDEBUG("flowcount:" << TC_Common::tostr(_flow) << ", new flowcount:" << TC_Common::tostr(flowTmp) << endl); 
+            TLOGDEBUG("flowcount:" << TC_Common::tostr(_flow) << ", new flowcount:" << TC_Common::tostr(flowTmp) << endl);
             _flowCount.swap(flowCountTmp);
             _maxFlowID = maxFlowID;
             _latestDBUpdateTime = maxTime;
@@ -143,14 +143,14 @@ bool FlowControlManager::loadDB()
 
         return true;
     }
-    catch(const std::exception& e)
+    catch (const std::exception &e)
     {
         TLOGERROR("exception:" << e.what() << endl);
     }
     return false;
 }
 
-bool FlowControlManager::check(const string& stationId)
+bool FlowControlManager::check(const string &stationId)
 {
     TC_LockT<TC_ThreadMutex> lock(_mutex);
     if ((!_onoff) || (_flowRemain.find(stationId) == _flowRemain.end()))
@@ -168,7 +168,7 @@ bool FlowControlManager::check(const string& stationId)
     return true;
 }
 
-int FlowControlManager::report(const map<string, int>& flow, const string& ip)
+int FlowControlManager::report(const map<string, int> &flow, const string &ip)
 {
     TLOGDEBUG("ip:" << ip << ", flow:" << TC_Common::tostr(flow) << endl);
 
@@ -182,7 +182,7 @@ int FlowControlManager::report(const map<string, int>& flow, const string& ip)
     return 0;
 }
 
-void FlowControlManager::doReport(map<string, int>& flow)
+void FlowControlManager::doReport(map<string, int> &flow)
 {
     if (_reportObj.empty())
     {
@@ -201,7 +201,7 @@ void FlowControlManager::doReport(map<string, int>& flow)
             it++;
         }
     }
-    
+
     if (flow.empty())
     {
         return;
@@ -236,7 +236,7 @@ void FlowControlManager::run()
             map<string, int> flowTmp;
             {
                 TC_LockT<TC_ThreadMutex> lock(_mutex);
-                map<string, int>    flowRemain;
+                map<string, int> flowRemain;
                 for (auto it = _flow.begin(); it != _flow.end(); ++it)
                 {
                     size_t index = _position[it->first] % (it->second.size());
@@ -265,11 +265,11 @@ void FlowControlManager::run()
                 loadDB();
             }
         }
-        catch(exception &ex)
+        catch (exception &ex)
         {
             TLOGERROR("exception:" << ex.what() << endl);
         }
-        catch(...)
+        catch (...)
         {
             TLOGERROR("exception unknown error." << endl);
         }

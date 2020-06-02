@@ -1,17 +1,17 @@
-#include "WupProxyManager.h"
+#include "TupProxyManager.h"
+#include "GatewayServer.h"
 #include "servant/Application.h"
 #include "util/tc_config.h"
 #include "util/tc_mysql.h"
-#include "WupProxyServer.h"
 
-WupProxyManager::WupProxyManager()
+TupProxyManager::TupProxyManager()
 {
-    _prot_wup.responseFunc = ProxyProtocol::totalResponse; 
+    _prot_tup.responseFunc = ProxyProtocol::totalResponse;
     //_terminate              = false;
-    _autoProxy              = false;
+    _autoProxy = false;
 }
 
-// void WupProxyManager::terminate()
+// void TupProxyManager::terminate()
 // {
 //     _terminate = true;
 
@@ -19,7 +19,7 @@ WupProxyManager::WupProxyManager()
 //     notifyAll();
 // }
 
-string WupProxyManager::loadProxy(const TC_Config& conf)
+string TupProxyManager::loadProxy(const TC_Config &conf)
 {
     try
     {
@@ -31,7 +31,7 @@ string WupProxyManager::loadProxy(const TC_Config& conf)
 
         TC_LockT<TC_ThreadMutex> lock(_mutex);
 
-        if(conf.getDomainMap("/main/proxy", nameMap))
+        if (conf.getDomainMap("/main/proxy", nameMap))
         {
             _nameMap.swap(nameMap);
 
@@ -40,15 +40,15 @@ string WupProxyManager::loadProxy(const TC_Config& conf)
 
         vector<string> nameVector;
 
-        if(conf.getDomainVector("/main/proxy", nameVector))
+        if (conf.getDomainVector("/main/proxy", nameVector))
         {
-            for(size_t i = 0; i < nameVector.size(); i++)
+            for (size_t i = 0; i < nameVector.size(); i++)
             {
                 map<string, string> m;
-                if(conf.getDomainMap("/main/proxy/" + nameVector[i], m))
+                if (conf.getDomainMap("/main/proxy/" + nameVector[i], m))
                 {
                     map<string, string>::iterator it = m.begin();
-                    while(it != m.end())
+                    while (it != m.end())
                     {
                         _nameMap[nameVector[i] + "." + it->first] = it->second;
                         ++it;
@@ -69,60 +69,60 @@ string WupProxyManager::loadProxy(const TC_Config& conf)
                     k = vs[0] + ":" + funcList[i];
                     _nameMap[k] = it->second;
                     updateHashInfo(k, it->second);
-                }               
+                }
             }
             else
             {
                 updateHashInfo(k, it->second);
-            }             
+            }
         }
-        
+
         TLOGDEBUG(" allproxy:" << TC_Common::tostr(_nameMap) << endl);
 
         _lastUpdateTime = 0;
-        _lastUpdateTotalNum= 0;
+        _lastUpdateTotalNum = 0;
 
         _httpHeaderForProxy.clear();
 
         map<string, string> httpHeader;
-        if(conf.getDomainMap("/main/env_httpheader", httpHeader))
+        if (conf.getDomainMap("/main/env_httpheader", httpHeader))
         {
             _httpHeader.clear();
 
             map<string, string>::iterator it = httpHeader.begin();
-            while(it != httpHeader.end())
+            while (it != httpHeader.end())
             {
                 _httpHeader[TC_Common::upper(it->first)] = it->second;
 
                 vector<string> v = TC_Common::sepstr<string>(TC_Common::upper(it->first), ": ", false);
 
-                if(v.size() > 0)
+                if (v.size() > 0)
                 {
                     _httpHeaderForProxy.insert(v[0]);
                 }
                 else
                 {
-                    TLOGERROR("[WupProxyManager::loadHttpHeader] httpheader error:" << it->first << endl);
+                    TLOGERROR("[TupProxyManager::loadHttpHeader] httpheader error:" << it->first << endl);
                 }
 
                 ++it;
             }
 
-            TLOGDEBUG("[WupProxyManager::loadHttpHeader] " << TC_Common::tostr(_httpHeader) << endl);
+            TLOGDEBUG("[TupProxyManager::loadHttpHeader] " << TC_Common::tostr(_httpHeader) << endl);
         }
 
         return "load ok";
     }
-    catch(exception &ex)
+    catch (exception &ex)
     {
-        TLOGERROR("[WupProxyManager::loadProxy] error:" << ex.what() << endl);
+        TLOGERROR("[TupProxyManager::loadProxy] error:" << ex.what() << endl);
         return string("loadProxy config error:") + ex.what();
     }
 
     return "loadProxy error.";
 }
 
-void WupProxyManager::updateHashInfo(const string& servantName, const string& obj)
+void TupProxyManager::updateHashInfo(const string &servantName, const string &obj)
 {
     // 这里不再加锁，所以在调这个函数的地方注意要 已经加锁
     auto itp = _proxyMap.find(servantName);
@@ -130,10 +130,10 @@ void WupProxyManager::updateHashInfo(const string& servantName, const string& ob
     {
         parseHashInfo(obj, itp->second.second);
         TLOGDEBUG(servantName << "|" << obj << "|hash:" << itp->second.second.type << "-" << itp->second.second.httpHeadKey << endl);
-    }    
+    }
 }
 
-string WupProxyManager::parseHashInfo(const string& objInfo, THashInfo& hi)
+string TupProxyManager::parseHashInfo(const string &objInfo, THashInfo &hi)
 {
     string realObj;
     vector<string> vsServant = TC_Common::sepstr<string>(objInfo, "|");
@@ -172,28 +172,24 @@ string WupProxyManager::parseHashInfo(const string& objInfo, THashInfo& hi)
 }
 
 //如果没有配置servantname,则根据配置<funcname></funcname>来进行赋值。
-ServantPrx WupProxyManager::getProxy(const string& sServantName, const string& sFuncName, const TC_HttpRequest &httpRequest, THashInfo& hi)
+ServantPrx TupProxyManager::getProxy(const string &sServantName, const string &sFuncName, const TC_HttpRequest &httpRequest, THashInfo &hi)
 {
     string name = sServantName;
 
-//    string sGUID = TC_Common::lower(httpRequest.getHeader("Q-GUID"));
+    //    string sGUID = TC_Common::lower(httpRequest.getHeader("Q-GUID"));
 
     TC_LockT<TC_ThreadMutex> lock(_mutex);
 
     //先查找头部有没有特殊转发的地址
     set<string>::iterator it = _httpHeaderForProxy.begin();
-    while(it != _httpHeaderForProxy.end())
+    while (it != _httpHeaderForProxy.end())
     {
         string value = httpRequest.getHeader(*it);
 
-        if ( !value.empty()
-            && value != "00000000000000000000000000000000"
-            && value != "0000000000000000"
-            && value != "00"
-            && value != "0" )
+        if (!value.empty() && value != "00000000000000000000000000000000" && value != "0000000000000000" && value != "00" && value != "0")
         {
             map<string, string>::iterator it1 = _httpHeader.find((*it) + ":" + TC_Common::upper(value));
-            if(it1 != _httpHeader.end())
+            if (it1 != _httpHeader.end())
             {
                 name = it1->second + "." + sServantName;
                 break;
@@ -210,48 +206,47 @@ ServantPrx WupProxyManager::getProxy(const string& sServantName, const string& s
     {
         string nameFunc = name + ":" + sFuncName;
         auto itFun = _proxyMap.find(nameFunc);
-        if(itFun != _proxyMap.end())
+        if (itFun != _proxyMap.end())
         {
-            TLOGDEBUG("rpc-call---------------> " << itFun->second.first->taf_name() << " :: " << nameFunc << endl);
+            TLOGDEBUG("rpc-call---------------> " << itFun->second.first->tars_name() << " :: " << nameFunc << endl);
             hi = itFun->second.second;
             return itFun->second.first;
         }
 
         auto itName = _nameMap.find(nameFunc);
-        if(itName != _nameMap.end())//在配置里面找到了name，则找出对应的realServantname
+        if (itName != _nameMap.end()) //在配置里面找到了name，则找出对应的realServantname
         {
             realServantName = itName->second;
-            name = nameFunc;  // 
-            TLOGDEBUG("nameFunc|name:" << name << ", sServantName:" << sServantName << ", sFuncName:" << sFuncName  << ", " << realServantName << endl);
+            name = nameFunc; //
+            TLOGDEBUG("nameFunc|name:" << name << ", sServantName:" << sServantName << ", sFuncName:" << sFuncName << ", " << realServantName << endl);
         }
         else
         {
             auto it2 = _proxyMap.find(name);
-            if(it2 != _proxyMap.end())
+            if (it2 != _proxyMap.end())
             {
-                TLOGDEBUG("rpc-call---------------> " << it2->second.first->taf_name() << " :: " << name << endl);
+                TLOGDEBUG("rpc-call---------------> " << it2->second.first->tars_name() << " :: " << name << endl);
                 hi = it2->second.second;
                 return it2->second.first;
             }
         }
-        
     }
 
     //绝大部分情况下, 运行到上面就直接返回了
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    if (realServantName.empty())  
+    if (realServantName.empty())
     {
         map<string, string>::iterator it1 = _nameMap.find(name);
-        if(it1 != _nameMap.end())//在配置里面找到了name，则找出对应的realServantname
+        if (it1 != _nameMap.end()) //在配置里面找到了name，则找出对应的realServantname
         {
             realServantName = it1->second;
-            TLOGDEBUG("name:" << name << ", sServantName:" << sServantName << ", sFuncName:" << sFuncName  << ", " << realServantName << endl);
+            TLOGDEBUG("name:" << name << ", sServantName:" << sServantName << ", sFuncName:" << sFuncName << ", " << realServantName << endl);
         }
     }
 
     //没有实际的servant名称,客户端打包进去的servantname在配置文件找不到对应的真实servantname
-    if(realServantName.empty())
+    if (realServantName.empty())
     {
         if (_autoProxy)
         {
@@ -266,13 +261,13 @@ ServantPrx WupProxyManager::getProxy(const string& sServantName, const string& s
                 serverObj = TC_Common::sepstr<string>(sServantName, ".");
             }
 
-            if(serverObj.size() >= 3)
+            if (serverObj.size() >= 3)
             {
                 realServantName = sServantName;
             }
         }
 
-        if(realServantName.empty())
+        if (realServantName.empty())
         {
             TLOGERROR(sServantName << ", " << name << ", no proxy" << endl);
             return NULL;
@@ -280,22 +275,22 @@ ServantPrx WupProxyManager::getProxy(const string& sServantName, const string& s
     }
 
     realServantName = parseHashInfo(realServantName, hi);
-    
+
     proxy = Application::getCommunicator()->stringToProxy<ServantPrx>(realServantName);
 
     TLOGDEBUG("add_new_proxy, " << sServantName << ":" << sFuncName << "--->" << realServantName << ", hashtype:" << hi.type << "-" << hi.httpHeadKey << endl);
 
-    if(_realnameSet.find(realServantName) == _realnameSet.end()) 
+    if (_realnameSet.find(realServantName) == _realnameSet.end())
     {
-        proxy->taf_set_protocol(_prot_wup);
-        _realnameSet.insert(realServantName);//设置过协议解析的proxy,把对应的名字添加到set去，下次就不再设置
-    }   
-    else 
+        proxy->tars_set_protocol(_prot_tup);
+        _realnameSet.insert(realServantName); //设置过协议解析的proxy,把对应的名字添加到set去，下次就不再设置
+    }
+    else
     {
         TLOGERROR(realServantName << " has already set the protocol , no need reset." << endl);
     }
 
-    if(!name.empty())
+    if (!name.empty())
     {
         //name不为空才加到cache里面
         _proxyMap[name] = make_pair(proxy, hi);
@@ -305,19 +300,19 @@ ServantPrx WupProxyManager::getProxy(const string& sServantName, const string& s
 }
 
 /*
-void WupProxyManager::run()
+void TupProxyManager::run()
 {
     _lastUpdateTime = 0;
     _lastUpdateTotalNum= 0;
 
     while(!_terminate)
     {
-//        TLOGDEBUG("[WupProxyManager] run load proxy, time=" << _lastUpdateTime << ", _lastUpdateTotalNum:" << _lastUpdateTotalNum << endl);
+//        TLOGDEBUG("[TupProxyManager] run load proxy, time=" << _lastUpdateTime << ", _lastUpdateTotalNum:" << _lastUpdateTotalNum << endl);
 
         try
         {
             TC_Config conf;
-            //conf.parseFile(ServerConfig::BasePath + "WupProxyServer.conf");
+            //conf.parseFile(ServerConfig::BasePath + "TupProxyServer.conf");
             conf.parseFile(g_app.getConfFile());
             map<string, string> db;
 
@@ -343,7 +338,7 @@ void WupProxyManager::run()
                     //有更新了
                     if (_lastUpdateTime != t || _lastUpdateTotalNum != iCurTotalNum)
                     {
-                        TLOGDEBUG("[WupProxyManager::run] new update test guid info, size:" << data.size() << endl);
+                        TLOGDEBUG("[TupProxyManager::run] new update test guid info, size:" << data.size() << endl);
 
                         _lastUpdateTime = t;
                         _lastUpdateTotalNum = iCurTotalNum;
@@ -371,7 +366,7 @@ void WupProxyManager::run()
                     }
                     else
                     {
-                        TLOGDEBUG("[WupProxyManager::run] t = _lastUpdateTime, no update." << endl);
+                        TLOGDEBUG("[TupProxyManager::run] t = _lastUpdateTime, no update." << endl);
                     }
                 }
             }

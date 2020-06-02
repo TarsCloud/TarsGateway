@@ -1,9 +1,9 @@
-#ifndef _WUPPROXYMANAGER_H_
-#define _WUPPROXYMANAGER_H_
+#ifndef _TUPPROXYMANAGER_H_
+#define _TUPPROXYMANAGER_H_
 
-#include "util/tc_singleton.h"
-#include "util/tc_monitor.h"
 #include "servant/Application.h"
+#include "util/tc_monitor.h"
+#include "util/tc_singleton.h"
 
 using namespace std;
 using namespace tars;
@@ -31,73 +31,69 @@ struct THashInfo
 /**
  * 管理所有后端的TARS服务的代理
  */
-class WupProxyManager : public TC_Singleton<WupProxyManager>
-                      , public TC_ThreadLock
-                      // , public TC_Thread
+class TupProxyManager : public TC_Singleton<TupProxyManager>, public TC_ThreadLock
+// , public TC_Thread
 {
-public:
-    friend typename TC_Singleton<WupProxyManager>::TCreatePolicy;
-
+  public:
+    //friend typename TC_Singleton<TupProxyManager>::TCreatePolicy;
 
     /**
      * 加载配置
      * 
      * @return string 
      */
-    string loadProxy(const TC_Config& conf);
+    string loadProxy(const TC_Config &conf);
 
     /**
      * 获取代理
      * 
-     * @param wup 
+     * @param tup 
      * 
      * @return ServantPrx 
      */
-    ServantPrx getProxy(const string& sServantName, const string& sFuncName, const TC_HttpRequest &httpRequest, THashInfo& hi);
+    ServantPrx getProxy(const string &sServantName, const string &sFuncName, const TC_HttpRequest &httpRequest, THashInfo &hi);
+
+    /**
+     * 构造
+     */
+    TupProxyManager();
 
     /**
      * 结束
      */
     //void terminate();
 
-protected:
+  protected:
     //virtual void run();
-    
-    /**
-     * 构造
-     */
-    WupProxyManager();
 
-    string parseHashInfo(const string& objInfo, THashInfo& hi);
+    string parseHashInfo(const string &objInfo, THashInfo &hi);
     void updateHashInfo(const string &servantName, const string &obj);
 
   protected:
-    TC_ThreadMutex          _mutex;
+    TC_ThreadMutex _mutex;
 
-    ProxyProtocol           _prot_wup;  //wup
+    ProxyProtocol _prot_tup; //tup
 
-    map<string, string>     _nameMap;
+    map<string, string> _nameMap;
 
     //map<string, ServantPrx> _proxyMap;
     map<string, pair<ServantPrx, THashInfo>> _proxyMap;
     //map<string, ServantPrx> _jsonProxy;
 
-    set<string>             _realnameSet;
+    set<string> _realnameSet;
 
-    set<string>             _httpHeaderForProxy;
+    set<string> _httpHeaderForProxy;
 
-    map<string, string>     _httpHeader;
+    map<string, string> _httpHeader;
 
-    time_t                  _lastUpdateTime;
-    int                     _lastUpdateTotalNum;
+    time_t _lastUpdateTime;
+    int _lastUpdateTotalNum;
 
     //bool                    _terminate;
 
-    bool                    _autoProxy;
-    
+    bool _autoProxy;
 
     //string sGUID;
-
 };
 
 /////////////////////////////////////////////////////

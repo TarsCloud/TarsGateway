@@ -415,6 +415,13 @@ namespace TestApp
                         tarsAttr.get("s", s);
                         tarsAttr.getByDefault("r", r, r);
                     }
+                    else if (_current->getRequestVersion() == JSONVERSION)
+                    {
+                        tars::JsonValueObjPtr _jsonPtr = tars::JsonValueObjPtr::dynamicCast(tars::TC_Json::getValue(_current->getRequestBuffer()));
+                        tars::JsonInput::readJson(index, _jsonPtr->value["index"], true);
+                        tars::JsonInput::readJson(s, _jsonPtr->value["s"], true);
+                        tars::JsonInput::readJson(r, _jsonPtr->value["r"], false);
+                    }
                     else
                     {
                         _is.read(index, 1, true);
@@ -431,6 +438,13 @@ namespace TestApp
                             tarsAttr.put("", _ret);
                             tarsAttr.put("r", r);
                             tarsAttr.encode(_sResponseBuffer);
+                        }
+                        else if (_current->getRequestVersion() == JSONVERSION)
+                        {
+                            tars::JsonValueObjPtr _p = new tars::JsonValueObj();
+                            _p->value["r"] = tars::JsonOutput::writeJson(r);
+                            _p->value["tars_ret"] = tars::JsonOutput::writeJson(_ret);
+                            tars::TC_Json::writeValue(_p, _sResponseBuffer);
                         }
                         else
                         {
@@ -457,6 +471,12 @@ namespace TestApp
                         tarsAttr.get("sReq", sReq);
                         tarsAttr.getByDefault("sRsp", sRsp, sRsp);
                     }
+                    else if (_current->getRequestVersion() == JSONVERSION)
+                    {
+                        tars::JsonValueObjPtr _jsonPtr = tars::JsonValueObjPtr::dynamicCast(tars::TC_Json::getValue(_current->getRequestBuffer()));
+                        tars::JsonInput::readJson(sReq, _jsonPtr->value["sReq"], true);
+                        tars::JsonInput::readJson(sRsp, _jsonPtr->value["sRsp"], false);
+                    }
                     else
                     {
                         _is.read(sReq, 1, true);
@@ -472,6 +492,13 @@ namespace TestApp
                             tarsAttr.put("", _ret);
                             tarsAttr.put("sRsp", sRsp);
                             tarsAttr.encode(_sResponseBuffer);
+                        }
+                        else if (_current->getRequestVersion() == JSONVERSION)
+                        {
+                            tars::JsonValueObjPtr _p = new tars::JsonValueObj();
+                            _p->value["sRsp"] = tars::JsonOutput::writeJson(sRsp);
+                            _p->value["tars_ret"] = tars::JsonOutput::writeJson(_ret);
+                            tars::TC_Json::writeValue(_p, _sResponseBuffer);
                         }
                         else
                         {

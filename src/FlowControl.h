@@ -268,6 +268,12 @@ namespace Base
                         tarsAttr.get("flow", flow);
                         tarsAttr.get("ip", ip);
                     }
+                    else if (_current->getRequestVersion() == JSONVERSION)
+                    {
+                        tars::JsonValueObjPtr _jsonPtr = tars::JsonValueObjPtr::dynamicCast(tars::TC_Json::getValue(_current->getRequestBuffer()));
+                        tars::JsonInput::readJson(flow, _jsonPtr->value["flow"], true);
+                        tars::JsonInput::readJson(ip, _jsonPtr->value["ip"], true);
+                    }
                     else
                     {
                         _is.read(flow, 1, true);
@@ -282,6 +288,12 @@ namespace Base
                             tarsAttr.setVersion(_current->getRequestVersion());
                             tarsAttr.put("", _ret);
                             tarsAttr.encode(_sResponseBuffer);
+                        }
+                        else if (_current->getRequestVersion() == JSONVERSION)
+                        {
+                            tars::JsonValueObjPtr _p = new tars::JsonValueObj();
+                            _p->value["tars_ret"] = tars::JsonOutput::writeJson(_ret);
+                            tars::TC_Json::writeValue(_p, _sResponseBuffer);
                         }
                         else
                         {

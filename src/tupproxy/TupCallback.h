@@ -1,15 +1,15 @@
-#ifndef _WupCallback_H_
-#define _WupCallback_H_
+#ifndef _TupCallback_H_
+#define _TupCallback_H_
 
 #include "servant/Application.h"
 #include "util/tc_http.h"
-#include "WupBase.h"
+#include "TupBase.h"
 
 using namespace std;
 using namespace tars;
 
 
-struct WupCallbackParam
+struct TupCallbackParam
 {
     int64_t                     iTime;
 
@@ -46,13 +46,13 @@ struct WupCallbackParam
 /**
  * 异步回调对象
  */
-class WupCallback : public ServantProxyCallback
+class TupCallback : public ServantProxyCallback
 {
 public:
 
-    WupCallback(const string& type, 
+    TupCallback(const string& type, 
                 const TarsCurrentPtr& current,
-                const WupCallbackParam& stParam) 
+                const TupCallbackParam& stParam) 
 				:_stParam(stParam), _bKeepAlive(false), _iNewRequestId(0), _current(current)
     {
         setType(type);
@@ -61,7 +61,7 @@ public:
     /**
      * 析构
      */
-    virtual ~WupCallback();
+    virtual ~TupCallback();
 
     
 
@@ -84,9 +84,9 @@ protected:
      * 
      * @param buffer 
      */
-    void doResponse_wup(const vector<char> &buffer);
-    void doResponse_jce(shared_ptr<ResponsePacket> wup);
-    void doResponse_json(shared_ptr<ResponsePacket> wup);
+    void doResponse_tup(const vector<char> &buffer);
+    void doResponse_tars(shared_ptr<ResponsePacket> tup);
+    void doResponse_json(shared_ptr<ResponsePacket> tup);
     void doResponseException(int ret, const vector<char> &buffer);
 
     /**
@@ -98,7 +98,7 @@ protected:
     /**
      * 请求相关参数
      */
-    WupCallbackParam            _stParam;
+    TupCallbackParam            _stParam;
 
 
 
@@ -118,7 +118,7 @@ protected:
 
 };
 
-typedef TC_AutoPtr<WupCallback> WupCallbackPtr;
+typedef TC_AutoPtr<TupCallback> TupCallbackPtr;
 
 
 /////////////////////////////////////////////////////

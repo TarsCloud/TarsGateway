@@ -11,7 +11,7 @@
 using namespace std;
 using namespace tars;
 /**
- * 移植自tafrpc超时切换逻辑
+ * 移植自tarsrpc超时切换逻辑
  * 
  * 超时一定比率后进行切换
  * 设置超时检查参数

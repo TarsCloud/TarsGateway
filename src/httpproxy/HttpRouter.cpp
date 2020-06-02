@@ -165,7 +165,7 @@ RouterPath::E_PATH_TYPE RouterPath::initPath(int id, const string& path, const s
 
     if (_proxyHost.length() > 3 && strncmp(_proxyHost.c_str() + (_proxyHost.length() -3), "Obj", 3) == 0)
     {
-        // tafobj 类型，添加到定时更新地址列表
+        // tarsobj 类型，添加到定时更新地址列表
         STATIONMNG->addObjUpstream(_proxyHost);
     }
 

@@ -2,7 +2,7 @@
 #define _PROXYPARAM_H_
 #include "servant/Application.h"
 #include "ReportHelper.h"
-#include "GetwayServer.h"
+#include "GatewayServer.h"
 
 using namespace tars;
 
@@ -10,7 +10,7 @@ enum E_PROXY_TYPE
 {
     EPT_CROSSDOMAIN,
     EPT_MONITOR,
-    EPT_WUP_PROXY,
+    EPT_TUP_PROXY,
     EPT_JSON_PROXY,
     EPT_HTTP_PROXY,
 };

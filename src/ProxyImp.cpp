@@ -4,13 +4,13 @@
 #include "tup/tup.h"
 #include "util/tc_http.h"
 //#include "util/tc_atomic.h"
-#include <atomic>
-#include "util/tc_base64.h"
-#include "wupproxy/WupProxyManager.h"
-#include "proxybase/ReportHelper.h"
-#include "proxybase/ProxyUtils.h"
+#include "GatewayServer.h"
 #include "httpproxy/StationManager.h"
-#include "GetwayServer.h"
+#include "proxybase/ProxyUtils.h"
+#include "proxybase/ReportHelper.h"
+#include "tupproxy/TupProxyManager.h"
+#include "util/tc_base64.h"
+#include <atomic>
 
 //////////////////////////////////////////////////////
 using namespace std;
@@ -34,7 +34,7 @@ void ProxyImp::initialize()
     initializeBase();
     initializeHttp();
 
-    TARS_ADD_ADMIN_CMD_NORMAL("loadFilterHeader", WupBase::reloadFilterHeader);
+    TARS_ADD_ADMIN_CMD_NORMAL("loadFilterHeader", TupBase::reloadFilterHeader);
 }
 
 void ProxyImp::destroy()
@@ -44,15 +44,15 @@ void ProxyImp::destroy()
 
 //////////////////////////////////////////////////////
 
-int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char>& response)
+int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
 {
     HandleParam stParam;
     string sErrMsg;
 
     try
     {
-        const vector<char>& request = current->getRequestBuffer();
-        ReportHelper::reportProperty("WupTotalReqNum");
+        const vector<char> &request = current->getRequestBuffer();
+        ReportHelper::reportProperty("TupTotalReqNum");
 
         //string sReqContent(&request[0], request.size());
 
@@ -64,9 +64,10 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char>& response)
 
         stParam.httpRequest.decode(&request[0], request.size());
 
-        TLOGDEBUG("request header:\r\n" << stParam.httpRequest.genHeader() << endl);
+        TLOGDEBUG("request header:\r\n"
+                  << stParam.httpRequest.genHeader() << endl);
 
-        string sRemoteIp;//= stParam.httpRequest.getHeader("X-Forwarded-For-Pound");
+        string sRemoteIp; //= stParam.httpRequest.getHeader("X-Forwarded-For-Pound");
 
         // 优先从http头中获取透传的ip。
         // if (sRemoteIp.empty())
@@ -95,18 +96,18 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char>& response)
         {
             TLOGERROR(sRemoteIp << " is in Global black list, url:" << stParam.httpRequest.getRequestUrl() << endl);
             ProxyUtils::doErrorRsp(403, stParam.current, stParam.httpKeepAlive);
-            return -1; 
+            return -1;
         }
 
         stParam.sIP = sRemoteIp;
-       //stParam.filterHeader["REMOTE_IP"] = sRemoteIp;
-       //stParam.filterHeader["X-Forwarded-For-Host"] = sRemoteIp + ":" + TC_Common::tostr(current->getPort());
+        //stParam.filterHeader["REMOTE_IP"] = sRemoteIp;
+        //stParam.filterHeader["X-Forwarded-For-Host"] = sRemoteIp + ":" + TC_Common::tostr(current->getPort());
         // 相关头信息提取
         stParam.sGUID = TC_Common::lower(stParam.httpRequest.getHeader("X-GUID"));
         stParam.sXUA = stParam.httpRequest.getHeader("X-XUA");
-       //stParam.filterHeader["X-GUID"] = stParam.sGUID;
-        
-        stParam.proxyType = parseReqType(stParam.httpRequest.getRequestUrl(), stParam.httpRequest.getURL().getDomain());	
+        //stParam.filterHeader["X-GUID"] = stParam.sGUID;
+
+        stParam.proxyType = parseReqType(stParam.httpRequest.getRequestUrl(), stParam.httpRequest.getURL().getDomain());
 
         // 统一设置不自动回包
         current->setResponse(false);
@@ -121,14 +122,14 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char>& response)
         else if (EPT_HTTP_PROXY == stParam.proxyType)
         {
             shared_ptr<AccessLog> aLog(new AccessLog());
-            aLog->accessTime    = TC_Common::now2str();
-            aLog->clientIp      = sRemoteIp;
-            aLog->host          = stParam.httpRequest.getHost();
-            aLog->httpMethod    = stParam.httpRequest.getMethod();//isGET() ? "GET" : (stParam.httpRequest.isPOST() ? "POST" : (stParam.httpRequest.isOPTIONS() ? "OPTIONS" : "OTHER"));
-            aLog->referer       = stParam.httpRequest.getHeader("Referer");
+            aLog->accessTime = TC_Common::now2str();
+            aLog->clientIp = sRemoteIp;
+            aLog->host = stParam.httpRequest.getHost();
+            aLog->httpMethod = stParam.httpRequest.getMethod(); //isGET() ? "GET" : (stParam.httpRequest.isPOST() ? "POST" : (stParam.httpRequest.isOPTIONS() ? "OPTIONS" : "OTHER"));
+            aLog->referer = stParam.httpRequest.getHeader("Referer");
             //aLog->reqUrl = stParam.httpRequest.
-            aLog->reqSize       = stParam.httpRequest.getContentLength();
-            aLog->ua            = stParam.httpRequest.getHeader("User-Agent");
+            aLog->reqSize = stParam.httpRequest.getContentLength();
+            aLog->ua = stParam.httpRequest.getHeader("User-Agent");
             return handleHttpRequest(stParam, aLog);
         }
 
@@ -137,24 +138,25 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char>& response)
 
         // 从头中获取请求内容是否加密，是否压缩
         getReqEncodingFromHeader(stParam.httpRequest, stParam.iZipType, stParam.iEptType);
-		if (stParam.iEptType == 2)
-		{
-			stParam.sEncryptKey = _sEncryptKeyV2;
-		}
-		else if (stParam.iEptType == 1)
-		{
-			stParam.sEncryptKey = _sEncryptKey;
-		}
+        if (stParam.iEptType == 2)
+        {
+            stParam.sEncryptKey = _sEncryptKeyV2;
+        }
+        else if (stParam.iEptType == 1)
+        {
+            stParam.sEncryptKey = _sEncryptKey;
+        }
         else
         {
             // 设置应答时使用的压缩及加密头
             setRspEncodingToHeader(stParam.httpRequest, stParam.pairAcceptZip, stParam.pairAcceptEpt);
 
-            /// 从HTTP POST Data或者GET参数中取出Wup数据
-            vector<char> sWupData;
-            if (getDataFromHTTPRequest(stParam.httpRequest, sWupData) != 0)
+            /// 从HTTP POST Data或者GET参数中取出Tup数据
+            vector<char> sTupData;
+            if (getDataFromHTTPRequest(stParam.httpRequest, sTupData) != 0)
             {
-                TLOGERROR("getDataFromHTTPRequest failed" << ",sGUID:" << stParam.sGUID << endl);
+                TLOGERROR("getDataFromHTTPRequest failed"
+                          << ",sGUID:" << stParam.sGUID << endl);
                 //current->close();
                 current->setResponse(false);
                 ProxyUtils::doErrorRsp(400, current, stParam.httpKeepAlive);
@@ -162,22 +164,22 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char>& response)
             }
 
             /// 解压，解密数据
-            if (getRealDataByDecode(sWupData, stParam) != 0)
+            if (getRealDataByDecode(sTupData, stParam) != 0)
             {
-                TLOGERROR("getRealDataByDecode failed" << ",sGUID:" << stParam.sGUID << endl);
+                TLOGERROR("getRealDataByDecode failed"
+                          << ",sGUID:" << stParam.sGUID << endl);
                 ProxyUtils::doErrorRsp(400, stParam.current, stParam.httpKeepAlive);
                 //current->close();
                 return 0;
             }
 
-            stParam.buffer = &sWupData[0];
-            stParam.length = sWupData.size();
+            stParam.buffer = &sTupData[0];
+            stParam.length = sTupData.size();
 
-            return handleTafRequest(stParam);
+            return handleTarsRequest(stParam);
         }
-        
     }
-    catch (exception& ex)
+    catch (exception &ex)
     {
         TLOGERROR("exception: " << ex.what() << ",sGUID:" << stParam.sGUID << endl);
     }
@@ -185,24 +187,24 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char>& response)
     {
         TLOGERROR("exception: unknow exception, sGUID:" << stParam.sGUID << endl);
     }
-    	
-	ProxyUtils::doErrorRsp(500, current, stParam.httpKeepAlive);
+
+    ProxyUtils::doErrorRsp(500, current, stParam.httpKeepAlive);
     ReportHelper::reportStat(g_app.getLocalServerName(), "RequestMonitor", "Exception1Num", -1);
 
     return 0;
 }
 
-E_PROXY_TYPE ProxyImp::parseReqType(const string &reqUrl, const string& host)
+E_PROXY_TYPE ProxyImp::parseReqType(const string &reqUrl, const string &host)
 {
     E_PROXY_TYPE ret = EPT_HTTP_PROXY;
-    if (!g_app.isWupHost(host))
+    if (!g_app.isTupHost(host))
     {
         ;
     }
     else if ((reqUrl.empty() || reqUrl == "/"))
     {
-        // 兼容线上wup没有带路径的情况
-        ret = EPT_WUP_PROXY;
+        // 兼容线上tup没有带路径的情况
+        ret = EPT_TUP_PROXY;
     }
     else
     {
@@ -211,35 +213,35 @@ E_PROXY_TYPE ProxyImp::parseReqType(const string &reqUrl, const string& host)
         {
             l--;
         }
-        
-        if (l == g_app.getWupPath().length() && strncmp(g_app.getWupPath().c_str(), reqUrl.c_str(), l) == 0)
+
+        if (l == g_app.getTupPath().length() && strncmp(g_app.getTupPath().c_str(), reqUrl.c_str(), l) == 0)
         {
-            ret = EPT_WUP_PROXY;
+            ret = EPT_TUP_PROXY;
         }
         else if (l == g_app.getJsonPath().length() && strncmp(g_app.getJsonPath().c_str(), reqUrl.c_str(), l) == 0)
         {
-            ret = EPT_JSON_PROXY; 
+            ret = EPT_JSON_PROXY;
         }
         else if (l > g_app.getJsonPathEx().length() && strncmp(g_app.getJsonPathEx().c_str(), reqUrl.c_str(), g_app.getJsonPathEx().length()) == 0)
         {
-            ret = EPT_JSON_PROXY; 
+            ret = EPT_JSON_PROXY;
         }
         else if (l == g_app.getMonitorUrl().length() && strncmp(g_app.getMonitorUrl().c_str(), reqUrl.c_str(), l) == 0)
         {
-            ret = EPT_MONITOR; 
-        } 
+            ret = EPT_MONITOR;
+        }
     }
-    
+
     TLOGDEBUG(host << "|" << reqUrl << ", type:" << ret << endl);
     return ret;
 }
 
-void ProxyImp::filterMonitor(HandleParam& stParam)
+void ProxyImp::filterMonitor(HandleParam &stParam)
 {
-    if (EPT_MONITOR == stParam.proxyType)  //监控用
+    if (EPT_MONITOR == stParam.proxyType) //监控用
     {
         TC_HttpResponse response;
-        response.setResponse(200, "OK", "<html>hello WupMonitor! [version:2.0]</html>");
+        response.setResponse(200, "OK", "<html>hello TupMonitor! [version:2.0]</html>");
         response.setContentType("text/html;charset=utf-8");
         response.setConnection("close");
         string buffer = response.encode();
@@ -249,6 +251,6 @@ void ProxyImp::filterMonitor(HandleParam& stParam)
         {
             stParam.current->close();
         }
-        ReportHelper::reportProperty("WupMonitorNum");
+        ReportHelper::reportProperty("TupMonitorNum");
     }
 }

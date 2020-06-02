@@ -1,13 +1,13 @@
-#ifndef _WupBase_H_
-#define _WupBase_H_
+#ifndef _TupBase_H_
+#define _TupBase_H_
 
 //////////////////////////////////////////////////////
 #include "servant/Application.h"
 #include "util/tc_common.h"
 #include "tup/tup.h"
 #include "proxybase/ProxyParam.h"
-#include "WupCallback.h"
-#include "WupProxyManager.h"
+#include "TupCallback.h"
+#include "TupProxyManager.h"
 //#include "mtt_logger.h"
 //#include "mtt_unireporter.h"
 //////////////////////////////////////////////////////
@@ -16,18 +16,18 @@ using namespace tars;
 
 //////////////////////////////////////////////////////
 
-#define WUP_MREP_REQ_SIZE                                             "wup_req_size"                 // 请求包长度，解压后
-#define WUP_MREP_RSP_SIZE                                             "wup_rsp_size"                 // 应答包长度，压缩前
-#define WUP_MREP_REQ_TRUE_SIZE                                        "wup_reqtrue_size"             // 请求包长度，解压前
-#define WUP_MREP_RSP_RUE_SIZE                                         "WupPackSize"                  // 应答包长度，压缩后
+#define TUP_MREP_REQ_SIZE                                             "tup_req_size"                 // 请求包长度，解压后
+#define TUP_MREP_RSP_SIZE                                             "tup_rsp_size"                 // 应答包长度，压缩前
+#define TUP_MREP_REQ_TRUE_SIZE                                        "tup_reqtrue_size"             // 请求包长度，解压前
+#define TUP_MREP_RSP_RUE_SIZE                                         "TupPackSize"                  // 应答包长度，压缩后
 
-#define WUP_MREP_REQ_S_ZIP                                            "wup_req_s_zip"                // 请求内容为压缩的次数
-#define WUP_MREP_REQ_R_ZIP                                            "wup_req_r_zip"                // 可以接收压缩的次数
-#define WUP_MREP_REQ_S_CRYPT                                          "wup_req_s_crypt"              // 请求内容为加密的次数
-#define WUP_MREP_REQ_R_CRYPT                                          "wup_req_r_crypt"              // 可以接收加密的次数
+#define TUP_MREP_REQ_S_ZIP                                            "tup_req_s_zip"                // 请求内容为压缩的次数
+#define TUP_MREP_REQ_R_ZIP                                            "tup_req_r_zip"                // 可以接收压缩的次数
+#define TUP_MREP_REQ_S_CRYPT                                          "tup_req_s_crypt"              // 请求内容为加密的次数
+#define TUP_MREP_REQ_R_CRYPT                                          "tup_req_r_crypt"              // 可以接收加密的次数
 
-#define WUP_MREP_PARSE_ERR                                            "wup_parse_err"                // 解包失败
-#define WUP_MREP_PROXY_ERR                                            "wup_proxy_err"                // 路由失败
+#define TUP_MREP_PARSE_ERR                                            "tup_parse_err"                // 解包失败
+#define TUP_MREP_PROXY_ERR                                            "tup_proxy_err"                // 路由失败
 
 //////////////////////////////////////////////////////
 /**
@@ -35,11 +35,11 @@ using namespace tars;
 *  
 * 本类被回调类继续时，为减少开销可能不会初台化，要注意 
 */
-class WupBase
+class TupBase
 {
 public:
-    WupBase();
-    virtual ~WupBase();
+    TupBase();
+    virtual ~TupBase();
     virtual void initializeBase();
     virtual void destroyBase();
 
@@ -80,7 +80,7 @@ protected:
 
     void getFilter(HandleParam &stParam);
   /**
-     * 从HTTP POST Data或者GET参数中取出Wup数据
+     * 从HTTP POST Data或者GET参数中取出Tup数据
      * 
      */
   int getDataFromHTTPRequest(const TC_HttpRequest &httpRequest, vector<char> &buffer); //, size_t& iOrgReqLen );
@@ -89,51 +89,51 @@ protected:
      * 解压，解密数据
      * 
      */
-  int getRealDataByDecode(vector<char> &sRealWupData, HandleParam &stParam);
+  int getRealDataByDecode(vector<char> &sRealTupData, HandleParam &stParam);
 
   /**
-     * WUP包具体处理
+     * TUP包具体处理
      * 
      * @param stParam 
      */
-  int handleTafRequest(HandleParam &stParam);
+  int handleTarsRequest(HandleParam &stParam);
 
   /**
-     * 解析WUP包
+     * 解析TUP包
      * 
      * @param buffer 
      * @param length 
-     * @param wupRequest
+     * @param tupRequest
      * @return int
      */
-  int parseWupRequest(HandleParam &stParam, RequestPacket &wupRequest);
+  int parseTupRequest(HandleParam &stParam, RequestPacket &tupRequest);
 
   /**
      * 解析JSON包
      * 
      * @param buffer 
      * @param length 
-     * @param wupRequest
+     * @param tupRequest
      * @return int
      */
-  int parseJsonRequest(HandleParam &stParam, RequestPacket &wupRequest);
+  int parseJsonRequest(HandleParam &stParam, RequestPacket &tupRequest);
 
   /**
      * 解析所有的代理
      * 
-     * @param mWupRequest 
+     * @param mTupRequest 
      * @param map<int32_t, ServantPrx> 
      * @return int
      */
-  //ServantPrx parseWupProxy(const BasePacket &wupRequest, HandleParam &stParam);
+  //ServantPrx parseTupProxy(const BasePacket &tupRequest, HandleParam &stParam);
 
   /**
      * 异步发送
      * 
-     * @param wup 
+     * @param tup 
      * @param proxy 
      */
-  void wupAsyncCall(RequestPacket &wup, ServantPrx &proxy, const WupCallbackPtr &cb, THashInfo::E_HASH_TYPE ht, const string &sHttpHeaderValue);
+  void tupAsyncCall(RequestPacket &tup, ServantPrx &proxy, const TupCallbackPtr &cb, THashInfo::E_HASH_TYPE ht, const string &sHttpHeaderValue);
 
 protected:
     // 参数类

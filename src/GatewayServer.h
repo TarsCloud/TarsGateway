@@ -1,5 +1,5 @@
-#ifndef _GetwayServer_H_
-#define _GetwayServer_H_
+#ifndef _GatewayServer_H_
+#define _GatewayServer_H_
 
 #include <iostream>
 #include "servant/Application.h"
@@ -9,13 +9,13 @@ using namespace tars;
 /**
  *
  **/
-class GetwayServer : public Application
+class GatewayServer : public Application
 {
 public:
     /**
      *
      **/
-    virtual ~GetwayServer() {};
+    virtual ~GatewayServer() {};
 
     /**
      *
@@ -37,13 +37,13 @@ public:
         return _rspSizeLimit;
     }
 
-    // const string& getWupHost() const
+    // const string& getTupHost() const
     // {
-    //     return _wupHost;
+    //     return _tupHost;
     // }
-    const string& getWupPath() const
+    const string& getTupPath() const
     {
-        return _wupPath;
+        return _tupPath;
     }
     const string& getJsonPath() const
     {
@@ -68,14 +68,14 @@ public:
 
     void setConfFile(const string& f)
     {
-        _wupProxyConf = f;
+        _tupProxyConf = f;
     }
     const string& getConfFile() const
     {
-        return _wupProxyConf;
+        return _tupProxyConf;
     }
 
-    bool isWupHost(const string &h) const;
+    bool isTupHost(const string &h) const;
 
   protected:
     /**
@@ -93,19 +93,19 @@ public:
   private:
     string _localServerName;
     size_t _rspSizeLimit;
-    //string _wupHost;
-    set<string> _wupFullHost;
-    vector<string> _wupPreHost;
-    string _wupPath;
+    //string _tupHost;
+    set<string> _tupFullHost;
+    vector<string> _tupPreHost;
+    string _tupPath;
     string _jsonPath;
     string _jsonPathEx;
     string _monitorUrl;
     set<int> _inactiveRetCode;
     set<int> _timeoutRetCode;
-    string _wupProxyConf;
+    string _tupProxyConf;
 };
 
-extern GetwayServer g_app;
+extern GatewayServer g_app;
 
 ////////////////////////////////////////////
 #endif

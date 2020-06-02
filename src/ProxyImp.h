@@ -3,8 +3,8 @@
 
 #include "servant/Application.h"
 #include "util/tc_http.h"
-#include "wupproxy/WupBase.h"
-#include "wupproxy/WupCallback.h"
+#include "tupproxy/TupBase.h"
+#include "tupproxy/TupCallback.h"
 #include "httpproxy/HttpBase.h"
 #include "proxybase/ProxyParam.h"
 
@@ -16,7 +16,7 @@ using namespace tars;
  *
  *
  */
-class ProxyImp : public tars::Servant, public WupBase, public HttpBase
+class ProxyImp : public tars::Servant, public TupBase, public HttpBase
 {
   public:
     ProxyImp();

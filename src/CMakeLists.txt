@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(GetwayServer)
+project(GatewayServer)
 
 #link_libraries(profiler)
 
-gen_server("Base" "GetwayServer")
+gen_server("Base" "GatewayServer")
 
-target_link_libraries(GetwayServer mysqlclient)
+target_link_libraries(GatewayServer mysqlclient)

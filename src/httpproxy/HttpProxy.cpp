@@ -243,7 +243,7 @@ bool AddrProxy::doHttpMonitor(const string& url)
         
         TC_HttpRequest stHttpReq;
         stHttpReq.setCacheControl("no-cache");
-        stHttpReq.setUserAgent("Mozilla/4.0 (WupProxy Monitor Check)");
+        stHttpReq.setUserAgent("Mozilla/4.0 (TupProxy Monitor Check)");
         stHttpReq.setGetRequest(reqUrl);
         stHttpReq.setHost(host);
 

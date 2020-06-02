@@ -1,6 +1,6 @@
 #include "HttpCallBack.h"
 #include "proxybase/ProxyUtils.h"
-#include "GetwayServer.h"
+#include "GatewayServer.h"
 
 void AsyncHttpCallback::onSucc(TC_HttpResponse &stHttpResponse)
 {
