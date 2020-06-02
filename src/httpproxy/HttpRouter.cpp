@@ -311,7 +311,7 @@ bool RouterHost::initHost(const string& serverName)
         break;
     case EHT_REGMATCH:
         _host = serverName.substr(1);
-        if (!regInit(_host, regInit, _reg))
+        if (!regInit(_host, false, _reg))
         {
             TLOGERROR("init regex fail:" << serverName << "|" << _host << endl);
             return false;
@@ -390,7 +390,6 @@ bool RouterHost::matchPath(const string &p, RouterResult& result)
         return it->second->match(p, result);
     }
 
-    bool ret = false;
     for (auto t = _startWithPath.begin(); t != _startWithPath.end(); ++t)
     {
         if ((*t)->match(p, result))
@@ -505,7 +504,6 @@ bool RouterAgent::reload(const vector<RouterParam> &param)
 bool HttpRouter::parse(const string& host, const string& path, RouterResult& result)
 {
     TC_ThreadRLock r(_rwLock);
-    bool ret = false;
     // 1、全匹配
     TLOGDEBUG(host << "|" << path << endl);
     auto it = _fullHost.find(host);
