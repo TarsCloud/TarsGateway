@@ -41,7 +41,7 @@ int TupCallback::onDispatch(ReqMessagePtr msg)
         }
         else if (getType() == "json")
         {
-            if (!msg->response->sBuffer.empty())
+            //if (!msg->response->sBuffer.empty())
             {
                 ReportHelper::reportProperty("response_iVersion_json");
                 doResponse_json(msg->response);
@@ -287,10 +287,10 @@ void TupCallback::doResponseException(int ret, const vector<char> &buffer)
 
 void TupCallback::handleResponse()
 {
-    if (_rspBuffer.size() == 0)
-    {
-        return;
-    }
+    // if (_rspBuffer.size() == 0)
+    // {
+    //     return;
+    // }
     TLOGDEBUG("rsp size:" << _rspBuffer.size() << endl);
 
     bool bGzipOk = !_stParam.pairAcceptZip.first.empty();

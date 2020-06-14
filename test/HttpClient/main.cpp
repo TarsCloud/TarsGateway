@@ -54,7 +54,7 @@ void wupSyncCall(int excut_num)
 
         int ret = stHttpReq.doRequest(stHttpRsp, 3000);
 
-        //		cout << ret << ":" << recvLen << endl;
+        cout << ret << ":" << stHttpRsp.getContent().size() << endl;
 
         UniPacket<> rsp;
 
@@ -89,6 +89,7 @@ class AsyncWupHttpCallback : public TC_HttpAsync::RequestCallback
         string retStr = "";
 
         int ret = rsp.getTarsResultCode();
+        cout << "tars code:" << ret << endl;
 
         rsp.get("sRsp", retStr);
 
@@ -109,7 +110,7 @@ TC_HttpAsync ast;
 
 void wupAsyncCall(int excut_num)
 {
-    uint64_t i = TC_Common::now2ms();
+    //uint64_t i = TC_Common::now2ms();
 
     string buffer(param.buffersize, 'a');
 
@@ -175,7 +176,7 @@ class AsyncHttpCallback : public TC_HttpAsync::RequestCallback
 
 void httpAsyncCall(int excut_num)
 {
-    uint64_t i = TC_Common::now2ms();
+    //uint64_t i = TC_Common::now2ms();
 
     string buffer(param.buffersize, 'a');
 
