@@ -1,16 +1,15 @@
 #include "HttpBase.h"
-#include "RouterManager.h"
-#include "HttpCallBack.h"
-#include "proxybase/ProxyUtils.h"
 #include "FlowControlManager.h"
-#include "StationManager.h"
+#include "HttpCallBack.h"
 #include "HttpRouter.h"
+#include "StationManager.h"
+#include "proxybase/ProxyUtils.h"
 
-HttpBase::HttpBase() 
+HttpBase::HttpBase()
 {
 }
 
-HttpBase::~HttpBase ()
+HttpBase::~HttpBase()
 {
     _httpAsync.terminate();
 }
@@ -93,10 +92,10 @@ int HttpBase::handleHttpRequest(HandleParam& param, shared_ptr<AccessLog> aLog)
 }
 */
 
-int HttpBase::handleHttpRequest(HandleParam& param, shared_ptr<AccessLog> aLog)
+int HttpBase::handleHttpRequest(HandleParam &param, shared_ptr<AccessLog> aLog)
 {
-    aLog->reqUrl= param.httpRequest.getRequestUrl();
-    string& reqUrl = aLog->reqUrl;
+    aLog->reqUrl = param.httpRequest.getRequestUrl();
+    string &reqUrl = aLog->reqUrl;
 
     TLOGDEBUG("requrl:" << reqUrl << endl);
     //string &stationId = aLog->station;
@@ -122,7 +121,7 @@ int HttpBase::handleHttpRequest(HandleParam& param, shared_ptr<AccessLog> aLog)
         aLog->errorMsg = "not in station whitelist";
         aLog->status = 403;
         ProxyUtils::doErrorRsp(403, param.current, param.httpKeepAlive);
-        return -2; 
+        return -2;
     }
 
     if (STATIONMNG->isInBlackList(rr.stationId, param.sIP))
@@ -131,7 +130,7 @@ int HttpBase::handleHttpRequest(HandleParam& param, shared_ptr<AccessLog> aLog)
         aLog->errorMsg = "in station blacklist";
         aLog->status = 403;
         ProxyUtils::doErrorRsp(403, param.current, param.httpKeepAlive);
-        return -2; 
+        return -2;
     }
 
     if (!FlowControlManager::getInstance()->check(rr.stationId))
@@ -168,9 +167,9 @@ int HttpBase::handleHttpRequest(HandleParam& param, shared_ptr<AccessLog> aLog)
         {
             aLog->proxyAddr = proxy->getAddr();
             TLOGDEBUG("select addr succ:" << rr.upstream << "|" << proxy->getAddr() << "|" << reqUrl << endl);
-        }      
+        }
     }
-    
+
     param.httpRequest.setPath(rr.path.c_str());
     TC_HttpAsync::RequestCallbackPtr cb = new AsyncHttpCallback(reqUrl, param.current, proxy, aLog, param.httpKeepAlive);
     _httpAsync.doAsyncRequest(param.httpRequest, cb, aLog->proxyAddr);

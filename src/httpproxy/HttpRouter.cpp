@@ -1,25 +1,25 @@
 #include "HttpRouter.h"
 #include "StationManager.h"
 
-#define str2_cmp(m, c0, c1)                                 \
-    m[0] == c0 && m[1] == c1
+#define str2_cmp(m, c0, c1) \
+    m[0] == c0 &&m[1] == c1
 
-#define str3_cmp(m, c0, c1, c2)                         \
-    m[0] == c0 && m[1] == c1 && m[2] == c2
+#define str3_cmp(m, c0, c1, c2) \
+    m[0] == c0 &&m[1] == c1 &&m[2] == c2
 
-#define str4_cmp(m, c0, c1, c2, c3)                         \
-    m[0] == c0 && m[1] == c1 && m[2] == c2 && m[3] == c3
+#define str4_cmp(m, c0, c1, c2, c3) \
+    m[0] == c0 &&m[1] == c1 &&m[2] == c2 &&m[3] == c3
 
 static string id2str(int i)
 {
     char ss[11] = {0};
-    sprintf(ss,"%05d",i);
+    sprintf(ss, "%05d", i);
     return string(ss);
 }
 
-static bool regInit(const string& p, bool isCase, regex_t& reg)
+static bool regInit(const string &p, bool isCase, regex_t &reg)
 {
-    int ret = regcomp(&reg, p.c_str(), (isCase ? 0:REG_ICASE));
+    int ret = regcomp(&reg, p.c_str(), (!isCase ? 0 : REG_ICASE));
     if (ret != 0)
     {
         char errmsg[128] = {0};
@@ -30,14 +30,14 @@ static bool regInit(const string& p, bool isCase, regex_t& reg)
     return true;
 }
 
-static bool regMatch(const string& s, const regex_t& reg)
+static bool regMatch(const string &s, const regex_t &reg)
 {
     regmatch_t matchData[10];
 
     //return (regexec(&reg, s.c_str(), 10, matchData, 0) == 0);
     int ret = regexec(&reg, s.c_str(), 10, matchData, 0);
 
-    if( REG_NOMATCH ==  ret )
+    if (REG_NOMATCH == ret)
     {
         return false;
     }
@@ -46,7 +46,7 @@ static bool regMatch(const string& s, const regex_t& reg)
         return false;
     }
     else
-    {                                                                                                                              
+    {
         return true;
     }
     return false;
@@ -70,7 +70,7 @@ bool RouterPath::operator<(const RouterPath &rp) const
         return (k1 < k2);
 }
 
-RouterPath::E_PATH_TYPE RouterPath::initPath(int id, const string& path, const string& pp, const string& stationId)
+RouterPath::E_PATH_TYPE RouterPath::initPath(int id, const string &path, const string &pp, const string &stationId)
 {
     _orderID = id;
 
@@ -94,7 +94,7 @@ RouterPath::E_PATH_TYPE RouterPath::initPath(int id, const string& path, const s
         pos = 2;
     }
     else if (path.length() > 3 && str3_cmp(path, '~', '*', ' '))
-    {   
+    {
         // ~* 正则匹配(不区分大小写)：~* \.png$
         _type = EPT_REGSUCC;
         _isCase = false;
@@ -133,7 +133,7 @@ RouterPath::E_PATH_TYPE RouterPath::initPath(int id, const string& path, const s
 
     _path = TC_Common::trim(path.substr(pos));
 
-    if ((_type == EPT_REGSUCC || _type == EPT_REGFAIL) && (!regInit(_path, _isCase, _reg)) )
+    if ((_type == EPT_REGSUCC || _type == EPT_REGFAIL) && (!regInit(_path, _isCase, _reg)))
     {
         // 初始化正则失败
         TLOGERROR(path << ", regInit fail!" << endl);
@@ -163,67 +163,67 @@ RouterPath::E_PATH_TYPE RouterPath::initPath(int id, const string& path, const s
 
     TLOGDEBUG("parse proxy_pass succ:" << pp << "|" << _proxyHost << "|" << _proxyPath << endl);
 
-    if (_proxyHost.length() > 3 && strncmp(_proxyHost.c_str() + (_proxyHost.length() -3), "Obj", 3) == 0)
+    if (_proxyHost.length() > 3 && strncmp(_proxyHost.c_str() + (_proxyHost.length() - 3), "Obj", 3) == 0)
     {
         // tarsobj 类型，添加到定时更新地址列表
         STATIONMNG->addObjUpstream(_proxyHost);
     }
 
     FDLOG("load") << path << "|" << pp << "|result:" << _type << "|" << _path << "|" << _proxyHost << "|" << _proxyPath << endl;
-    
+
     return _type;
 }
 
-bool RouterPath::match(const string& p, RouterResult& result)
+bool RouterPath::match(const string &p, RouterResult &result)
 {
     switch (_type)
     {
-        case EPT_FULL:
-            if (p != _path)
-            {
-                TLOGERROR("match fail, path:" << p << ", config path:" << _path << endl);
-                return false;
-            }
-            break;
-        case EPT_STARTWITH:
-            if (p.length() < _path.length() || strncmp(p.c_str(), _path.c_str(), _path.length()) != 0)
-            {
-                return false;
-            }
-            break;
-        case EPT_REGSUCC:
-            if (!regMatch(p, _reg))
-            {
-                return false;
-            }
-            else
-            {
-                TLOGDEBUG("match path succ, reg:" << _path << ", path:" << p << endl);
-            }
-
-            break;
-        case EPT_REGFAIL:
-            if (regMatch(p, _reg))
-            {
-                return false;
-            }
-            break;
-        case EPT_COMMPATH:
-            if (p.length() < _path.length() || strncmp(p.c_str(), _path.c_str(), _path.length()) != 0)
-            {
-                return false;
-            }
-            break;
-        case EPT_DEFAULT:
-            break;
-        default:
+    case EPT_FULL:
+        if (p != _path)
+        {
+            TLOGERROR("match fail, path:" << p << ", config path:" << _path << endl);
             return false;
+        }
+        break;
+    case EPT_STARTWITH:
+        if (p.length() < _path.length() || strncmp(p.c_str(), _path.c_str(), _path.length()) != 0)
+        {
+            return false;
+        }
+        break;
+    case EPT_REGSUCC:
+        if (!regMatch(p, _reg))
+        {
+            return false;
+        }
+        else
+        {
+            TLOGDEBUG("match path succ, reg:" << _path << ", path:" << p << endl);
+        }
+
+        break;
+    case EPT_REGFAIL:
+        if (regMatch(p, _reg))
+        {
+            return false;
+        }
+        break;
+    case EPT_COMMPATH:
+        if (p.length() < _path.length() || strncmp(p.c_str(), _path.c_str(), _path.length()) != 0)
+        {
+            return false;
+        }
+        break;
+    case EPT_DEFAULT:
+        break;
+    default:
+        return false;
     }
 
     return genResult(p, result);
 }
 
-bool RouterPath::genResult(const string &p, RouterResult& result)
+bool RouterPath::genResult(const string &p, RouterResult &result)
 {
     // 这里先不考虑 rewrite
     size_t pos = 0;
@@ -266,10 +266,10 @@ bool RouterHost::operator<(const RouterHost &rh)
     else if (getOrderKey().length() < rh.getOrderKey().length())
         return false;
     else
-        return (getOrderKey() < rh.getOrderKey());    
+        return (getOrderKey() < rh.getOrderKey());
 }
 
-RouterHost::E_HOST_TYPE RouterHost::getHostType(const string& serverName)
+RouterHost::E_HOST_TYPE RouterHost::getHostType(const string &serverName)
 {
     RouterHost::E_HOST_TYPE type = EHT_NULL;
     if (serverName.empty())
@@ -288,14 +288,14 @@ RouterHost::E_HOST_TYPE RouterHost::getHostType(const string& serverName)
     {
         type = EHT_REGMATCH;
     }
-    else 
+    else
     {
         type = EHT_FULL;
     }
     return type;
 }
 
-bool RouterHost::initHost(const string& serverName)
+bool RouterHost::initHost(const string &serverName)
 {
     _type = getHostType(serverName);
     switch (_type)
@@ -323,11 +323,11 @@ bool RouterHost::initHost(const string& serverName)
     default:
         return false;
     }
-    
+
     return true;
 }
 
-bool RouterHost::addPath(int id, const string& location, const string& proxyPass, const string& stationId)
+bool RouterHost::addPath(int id, const string &location, const string &proxyPass, const string &stationId)
 {
     RouterPathPtr rp(new RouterPath());
     RouterPath::E_PATH_TYPE type = rp->initPath(id, location, proxyPass, stationId);
@@ -382,7 +382,7 @@ bool RouterHost::matchHost(const string &h)
     return false;
 }
 
-bool RouterHost::matchPath(const string &p, RouterResult& result)
+bool RouterHost::matchPath(const string &p, RouterResult &result)
 {
     auto it = _fullPath.find(p);
     if (it != _fullPath.end())
@@ -426,7 +426,7 @@ bool RouterHost::matchPath(const string &p, RouterResult& result)
     return false;
 }
 
-bool HttpRouter::addRouter(int id, const string& serverName, const string& location, const string& proxyPass, const string& stationId)
+bool HttpRouter::addRouter(int id, const string &serverName, const string &location, const string &proxyPass, const string &stationId)
 {
     RouterHost::E_HOST_TYPE type = RouterHost::getHostType(serverName);
     bool ret = false;
@@ -488,7 +488,7 @@ bool RouterAgent::reload(const vector<RouterParam> &param)
 
     for (size_t i = 0; i < param.size(); i++)
     {
-        if(!router->addRouter(param[i].id, param[i].serverName, param[i].location, param[i].proxyPass, param[i].stationId))
+        if (!router->addRouter(param[i].id, param[i].serverName, param[i].location, param[i].proxyPass, param[i].stationId))
         {
             TLOGERROR("reload fail!" << param[i].id << "|" << param[i].serverName << "|" << param[i].location << "|" << param[i].stationId << endl);
             return false;
@@ -501,7 +501,7 @@ bool RouterAgent::reload(const vector<RouterParam> &param)
     return true;
 }
 
-bool HttpRouter::parse(const string& host, const string& path, RouterResult& result)
+bool HttpRouter::parse(const string &host, const string &path, RouterResult &result)
 {
     TC_ThreadRLock r(_rwLock);
     // 1、全匹配
