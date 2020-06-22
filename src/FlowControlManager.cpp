@@ -15,13 +15,13 @@ bool FlowControlManager::init(TC_Config &conf)
     TC_DBConf tcDBConf;
     tcDBConf.loadFromMap(m);
     _mysql.init(tcDBConf);
-    _reportObj = conf.get("/main<flow_report_obj>", "");
-    _localIp = conf.get("/main<local_ip>", "");
+    _reportObj = conf.get("/main/<flow_report_obj>", "");
+    _localIp = conf.get("/main/<local_ip>", "");
     if (_localIp.empty())
     {
         _localIp = ServerConfig::LocalIp;
     }
-    _onoff = (conf.get("/main<flow_control_onoff>", "on") == "on" ? true : false);
+    _onoff = (conf.get("/main/<flow_control_onoff>", "on") == "on" ? true : false);
 
     if (_onoff)
     {
