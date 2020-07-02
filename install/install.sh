@@ -4,22 +4,29 @@ TARS_WEB_HOST=$1
 TARS_WEB_TOKEN=$2
 GATEWAYSERVER_IP=$3
 TARS_DB_HOST=$4
+TARS_DB_PORT=$5
+TARS_DB_USER=$6
+TARS_DB_PWD=$7
 
 WORKDIR=$(cd $(dirname $0); cd ..; pwd)
 
-if [ $# -eq 4 ]; then
+if [ $# -eq 8 ]; then
     TARS_CPP_PATH="/usr/local/tars/cpp"
-elif [ $# -eq 5 ]; then
+elif [ $# -eq 9 ]; then
     TARS_CPP_PATH=$5
 else
     echo "Usage:";
-    echo "  $0 webhost tarstoken serverip tarsdbip";
-    echo "  $0 webhost tarstoken serverip tarsdbip tarscpp";
+    echo "  $0 webhost tarstoken server_ip tars_db_ip tars_db_port tars_db_user tars_db_pwd";
+    echo "  $0 webhost tarstoken server_ip tars_db_ip tars_db_port tars_db_user tars_db_pwd tarscpp";
     echo "Description:";
     echo "  webhost: tars web admin host";
     echo "  tarstoken: can fetch from http://webhost:3001/auth.html#/token";
-    echo "  serverip: ip address of GatewayServer will be installed";
-    echo "  tarsdbip: ip address of tars-framework's db";
+    echo "  server_ip: ip address of GatewayServer will be installed";
+    echo "  tars_db_ip: ip address of tars-framework's db";
+    echo "  tars_db_port: port of tars-framework's db";
+    echo "  tars_db_user: user of tars-framework's db";
+    echo "  tars_db_pwd: password of tars-framework's db";
+
     echo "  tarscpp: the path which tarscpp has installed";
     exit 1
 fi
@@ -78,8 +85,8 @@ LOG_INFO "===<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< print envirenment finish.\
 function create_db()
 {
     cd $WORKDIR/install
-    mysql -h ${TARS_DB_HOST} -utars -ptars2015 -e "create database IF NOT EXISTS db_base"
-    mysql -h ${TARS_DB_HOST} -utars -ptars2015 db_base < db_base.sql
+    mysql -h ${TARS_DB_HOST} -P${TARS_DB_PORT} -u${TARS_DB_USER} -p${TARS_DB_PWD} -e "create database IF NOT EXISTS db_base"
+    mysql -h ${TARS_DB_HOST} -P${TARS_DB_PORT} -u${TARS_DB_USER} -p${TARS_DB_PWD} db_base < db_base.sql
 }
 
 function build_server()
@@ -97,8 +104,14 @@ function build_webconf()
     curl -s -X POST -H "Content-Type: application/json" http://${TARS_WEB_HOST}/api/deploy_server?ticket=${TARS_WEB_TOKEN} -d@install/server.json|echo
 
     LOG_INFO "===>add GatewayServer.conf:\n";
-    sed -i "s/db.tars.com/$TARS_DB_HOST/g" install/config.json
-    curl -s -X POST -H "Content-Type: application/json" http://${TARS_WEB_HOST}/api/add_config_file?ticket=${TARS_WEB_TOKEN} -d@install/config.json|echo
+    rm -f install/config-tmp.json;
+    cp install/config.json install/config-tmp.json;
+    sed -i "s/db_host/$TARS_DB_HOST/g" install/config-tmp.json
+    sed -i "s/db_port/$TARS_DB_PORT/g" install/config-tmp.json
+    sed -i "s/db_user/$TARS_DB_USER/g" install/config-tmp.json
+    sed -i "s/db_pwd/$TARS_DB_PWD/g" install/config-tmp.json
+
+    curl -s -X POST -H "Content-Type: application/json" http://${TARS_WEB_HOST}/api/add_config_file?ticket=${TARS_WEB_TOKEN} -d@install/config-tmp.json|echo
 
     LOG_INFO "====> build_webconf finish!\n";
 }
