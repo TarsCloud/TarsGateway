@@ -1,0 +1,34 @@
+{
+    "application": "tars",
+    "server_name": "GatewayServer",
+    "node_name": "host_ip",
+    "server_type": "tars_cpp",
+    "template_name": "tars.cpp.default",
+    "enable_set": false,
+    "set_name": "",
+    "set_area": "",
+    "set_group": "",
+    "adapters": [{
+            "obj_name": "ProxyObj",
+            "bind_ip": "host_ip",
+            "port": "8200",
+            "port_type": "tcp",
+            "protocol": "not_tars",
+            "thread_num": 5,
+            "max_connections": 100000,
+            "queuecap": 50000,
+            "queuetimeout": 20000
+        },
+        {
+            "obj_name": "FlowControlObj",
+            "bind_ip": "host_ip",
+            "port": "18212",
+            "port_type": "tcp",
+            "protocol": "tars",
+            "thread_num": 1,
+            "max_connections": 100000,
+            "queuecap": 50000,
+            "queuetimeout": 20000
+        }
+    ]
+}

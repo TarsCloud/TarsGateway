@@ -1,59 +1,4 @@
-
-RouterManager: 根据请求url，路由具体后端station
-1、提供接口加载数据库配置；
-2、getUpStream(reqUrl, &id);
-
-EndPointManager: 定时刷新对应http服务的endpoint信息
-1、线程，定时获取active节点信息；
-2、有更新时，反向推送给 HttpProxyManager;
-
-ProxyManager： 提供具体的代理ip和端口
-1、getProxy(id, &proxy);
-2、reportFail(id, proxy)；
-
-
-SecurityControl: ip黑名单， 流控
-1、securityFilter(id, clientIp);
-
-StatReport: 统计上报
-1、通过tafstat+tafproprty上报
-
-InnerSyncObj:
-1、多节点每秒互相同步个站点流量等信息；
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-nginx 路由规则，先匹配server_name， 匹配到 server_name 后，再匹配path， 然后根据 proxy_pass 路径进行转发
-
-server_name 匹配逻辑：
-{
-	1、查找全匹配
-	2、通配符在前匹配
-	3、通配符在后面匹配
-	4、正则匹配
-	5、如果server_name为空， 则默认都匹配
-}
-
-path匹配逻辑：
-{
-	1、= 全匹配：  /login
-	2、^~ uri以某个常规字符串开头： ^~ /static/   （一旦匹配成功， 不再往后面匹配）
-	3、~ 正则匹配(区分大小写)：  ~ \.(gif|jpg|png|js|css)$  （正则表达式匹配多个的情况下， 按最长的匹配）
-	4、~* 正则匹配(不区分大小写)：~* \.png$
-	5、!~和!~*分别为区分大小写不匹配及不区分大小写不匹配 的正则：  !~ \.xhtml$，  !~* \.xhtml$
-	6、/xxx 从头开始匹配路径（匹配长度越长优先级越高）
-	7、/ 任何请求都会匹配
-}
-
-proxy_pass:
-{
-	1、如果proxy_pass配置中没有路径（http://host/ 这个是有路径的 /），这时候 location 匹配的完整路径将直接透传给 url 
-	2、proxy_pass配置中包含路径（哪怕只有一个 / ， 也算）， 新路径 = proxypassPath + (访问路径-location路径)
-	3、当 location 中为正则时， proxy_pass 不能带路径
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
-CREATE TABLE `t_station` (
+CREATE TABLE IF NOT EXISTS `t_station` (
   `f_id` int(11) NOT NULL AUTO_INCREMENT,
   `f_station_id` varchar(64) NOT NULL COMMENT '站点英文名，唯一',
   `f_name_cn` varchar(64) NOT NULL DEFAULT '' COMMENT '站点中文名称',	
@@ -67,7 +12,7 @@ CREATE TABLE `t_station` (
   UNIQUE KEY `f_station_id` (`f_station_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 COMMENT='站点';
 
-CREATE TABLE `t_flow_control` (
+CREATE TABLE IF NOT EXISTS `t_flow_control` (
   `f_id` int(11) NOT NULL AUTO_INCREMENT,
   `f_station_id` varchar(64) NOT NULL COMMENT '站点英文名, 对于wup接口调用的taf，就是服务的obj',
   `f_duration` int(10) NOT NULL DEFAULT 60 COMMENT '时间窗口，单位秒， 默认为60秒',	
@@ -81,7 +26,7 @@ CREATE TABLE `t_flow_control` (
   UNIQUE KEY `station_id` (`f_station_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 COMMENT='流量控制';
 
-CREATE TABLE `t_blacklist` (
+CREATE TABLE IF NOT EXISTS `t_blacklist` (
   `f_id` int(11) NOT NULL AUTO_INCREMENT,
   `f_station_id` varchar(64) NOT NULL DEFAULT '' COMMENT '站点英文名，为空时表示所有站点',
   `f_ip` varchar(20) NOT NULL COMMENT 'ip, 可以为表示所有',	
@@ -94,7 +39,7 @@ CREATE TABLE `t_blacklist` (
   UNIQUE KEY `station_ip` (`f_station_id`, `f_ip`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 COMMENT='ip 黑名单';
 
-CREATE TABLE `t_whitelist` (
+CREATE TABLE IF NOT EXISTS `t_whitelist` (
   `f_id` int(11) NOT NULL AUTO_INCREMENT,
   `f_station_id` varchar(64) NOT NULL COMMENT '站点英文名,taf服务则为Obj',
   `f_ip` varchar(20) NOT NULL COMMENT 'ip, 可以为表示所有',	
@@ -107,7 +52,7 @@ CREATE TABLE `t_whitelist` (
   UNIQUE KEY `station_ip` (`f_station_id`, `f_ip`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 COMMENT='ip 黑名单';
 
-CREATE TABLE `t_http_router` (
+CREATE TABLE IF NOT EXISTS `t_http_router` (
   `f_id` int(11) NOT NULL AUTO_INCREMENT,
   `f_station_id` varchar(64) NOT NULL COMMENT '站点英文名',
   `f_server_name` varchar(64) NOT NULL DEFAULT '' COMMENT 'server_name',
@@ -122,7 +67,7 @@ CREATE TABLE `t_http_router` (
   UNIQUE KEY `station_rule` (`f_server_name`, `f_path_rule`) 
 ) ENGINE=InnoDB AUTO_INCREMENT=1000 DEFAULT CHARSET=utf8 COMMENT='路由规则';
 
-CREATE TABLE t_upstream (
+CREATE TABLE IF NOT EXISTS t_upstream (
   `f_id` int(11) NOT NULL AUTO_INCREMENT,
   `f_upstream` varchar(64) NOT NULL COMMENT '站点英文名',
   `f_addr` varchar(255) NOT NULL DEFAULT '' COMMENT 'ip:port', 
@@ -136,28 +81,3 @@ CREATE TABLE t_upstream (
   PRIMARY KEY (`f_id`),
   UNIQUE KEY `station_addr` (`f_upstream`, `f_addr`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 COMMENT='后端服务地址';
-
-
-1、全局IP黑名单判断
-
-2、不同host，path 路由类型判断
-  /wup, /json, /monitor/monitor.jsp, http
-
-3、Wup类型测试 && Json：
-  A、context 透传： 通过
-  B、hash调用测试： 通过
-  C、流控
-  D、IP黑名单
-4、Http类型测试：
-  A、路由测试
-  B、upstream测试：
-    B1、容灾屏蔽、检测恢复；
-    B2、超时屏蔽、重试恢复；
-  C、流控
-  D、IP黑名单
-
-5、其他配置项测试：
- auto_proxy: 通过
- filterheaders： 通过
- wup_report_obj： 
-

@@ -241,7 +241,7 @@ void ProxyImp::filterMonitor(HandleParam &stParam)
     if (EPT_MONITOR == stParam.proxyType) //监控用
     {
         TC_HttpResponse response;
-        response.setResponse(200, "OK", "<html>hello TupMonitor! [version:2.0]</html>");
+        response.setResponse(200, "OK", "<html>hello TupMonitor! [version:1.0]</html>");
         response.setContentType("text/html;charset=utf-8");
         response.setConnection("close");
         string buffer = response.encode();
