@@ -10,9 +10,11 @@ TARS_DB_PWD=$7
 
 WORKDIR=$(cd $(dirname $0); cd ..; pwd)
 
-if [ $# -eq 8 ]; then
+echo "params:"$#
+
+if [ $# -eq 7 ]; then
     TARS_CPP_PATH="/usr/local/tars/cpp"
-elif [ $# -eq 9 ]; then
+elif [ $# -eq 8 ]; then
     TARS_CPP_PATH=$5
 else
     echo "Usage:";
@@ -100,8 +102,10 @@ function build_webconf()
     cd $WORKDIR
 
     LOG_INFO "===>install GatewayServer server:\n";
-    sed -i "s/host_ip/$GATEWAYSERVER_IP/g" install/server.json
-    curl -s -X POST -H "Content-Type: application/json" http://${TARS_WEB_HOST}/api/deploy_server?ticket=${TARS_WEB_TOKEN} -d@install/server.json|echo
+    rm -f install/server-tmp.json;
+    cp install/server.json install/server-tmp.json;
+    sed -i "s/host_ip/$GATEWAYSERVER_IP/g" install/server-tmp.json
+    curl -s -X POST -H "Content-Type: application/json" http://${TARS_WEB_HOST}/api/deploy_server?ticket=${TARS_WEB_TOKEN} -d@install/server-tmp.json
 
     LOG_INFO "===>add GatewayServer.conf:\n";
     rm -f install/config-tmp.json;
@@ -111,7 +115,7 @@ function build_webconf()
     sed -i "s/db_user/$TARS_DB_USER/g" install/config-tmp.json
     sed -i "s/db_pwd/$TARS_DB_PWD/g" install/config-tmp.json
 
-    curl -s -X POST -H "Content-Type: application/json" http://${TARS_WEB_HOST}/api/add_config_file?ticket=${TARS_WEB_TOKEN} -d@install/config-tmp.json|echo
+    curl -s -X POST -H "Content-Type: application/json" http://${TARS_WEB_HOST}/api/add_config_file?ticket=${TARS_WEB_TOKEN} -d@install/config-tmp.json
 
     LOG_INFO "====> build_webconf finish!\n";
 }
@@ -121,7 +125,7 @@ function upload_server()
     cd $WORKDIR/build
 
     LOG_INFO "===>upload GatewayServer server:\n"
-    curl -s http://${TARS_WEB_HOST}/api/upload_and_publish?ticket=${TARS_WEB_TOKEN} -Fsuse=@GatewayServer.tgz -Fapplication=tars -Fmodule_name=GatewayServer -Fcomment=auto-upload|echo
+    curl -s http://${TARS_WEB_HOST}/api/upload_and_publish?ticket=${TARS_WEB_TOKEN} -Fsuse=@GatewayServer.tgz -Fapplication=tars -Fmodule_name=GatewayServer -Fcomment=auto-upload
     LOG_INFO "====> upload server finish!\n";
 }
 
