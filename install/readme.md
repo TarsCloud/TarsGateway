@@ -19,4 +19,4 @@
     ./install.sh 172.16.8.220:3000 036105e1ebfc13843b4db0edcd000b3d9f47b13928423f0443df54d20ca65855 172.16.8.220 172.16.8.221 3306 tars tars2015
 ```
 ## 验证安装结果：
-在浏览器打开 http://${server_ip}:8200/monitor/monitor.jsp , 如果能正常显示 hello TupMonitorxxx 就表示安装成功。
+在浏览器打开 http://${server_ip}:8200/monitor/monitor.html , 如果能正常显示 hello TupMonitorxxx 就表示安装成功。

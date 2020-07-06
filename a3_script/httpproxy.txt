@@ -141,7 +141,7 @@ CREATE TABLE t_upstream (
 1、全局IP黑名单判断
 
 2、不同host，path 路由类型判断
-  /wup, /json, /monitor/monitor.jsp, http
+  /wup, /json, /monitor/monitor.html, http
 
 3、Wup类型测试 && Json：
   A、context 透传： 通过

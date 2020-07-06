@@ -132,8 +132,8 @@ function upload_server()
 function check_result()
 {
     sleep 5
-    LOG_INFO "===>fetch http://${GATEWAYSERVER_IP}:8200/monitor/monitor.jsp to check the gateway in installed ok!\n" 
-    result=`curl -sIL -w "%{http_code}" -o /dev/null http://${GATEWAYSERVER_IP}:8200/monitor/monitor.jsp`
+    LOG_INFO "===>fetch http://${GATEWAYSERVER_IP}:8200/monitor/monitor.html to check the gateway in installed ok!\n" 
+    result=`curl -sIL -w "%{http_code}" -o /dev/null http://${GATEWAYSERVER_IP}:8200/monitor/monitor.html`
     if [ $result -eq 200 ]; then
         LOG_INFO "test result is:"$result
         LOG_INFO "install success!";

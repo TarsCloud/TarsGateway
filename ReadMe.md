@@ -26,7 +26,7 @@ TarsGateway是基于tars框架开发的一套通用api网关，请求为http协�
     ./install.sh 172.16.8.220:3000 036105e1ebfc13843b4db0edcd000b3d9f47b13928423f0443df54d20ca65855 172.16.8.220 172.16.8.221 3306 tars tars2015
 ```
 ## 验证安装结果：
-在浏览器打开 http://${server_ip}:8200/monitor/monitor.jsp , 如果能正常显示 hello TupMonitorxxx 就表示安装成功。
+在浏览器打开 http://${server_ip}:8200/monitor/monitor.html , 如果能正常显示 hello TupMonitorxxx 就表示安装成功。
 
 # 功能介绍
 ## 1. 代理类型的判断
@@ -46,7 +46,7 @@ TarsGateway 是根据请求host+url 判断当前请求是什么类型的请求�
             tup_host=prx.tup.whup.com|prx2.tup.whup.com|*.prx.upchina.com
             tup_path=/tup
             json_path=/json
-            monitor_url=/monitor/monitor.jsp
+            monitor_url=/monitor/monitor.html
         </base>
     </main>
 ```

@@ -91,7 +91,7 @@ void GatewayServer::initialize()
         _jsonPath.pop_back();
     }
     _jsonPathEx = _jsonPath + "/";
-    _monitorUrl = TC_Common::trim(conf.get("/main/base<monitor_url>", "/monitor/monitor.jsp"));
+    _monitorUrl = TC_Common::trim(conf.get("/main/base<monitor_url>", "/monitor/monitor.html"));
 
     TLOGDEBUG("_rspSizeLimit:" << _rspSizeLimit
                                << ", _localServerName:" << _localServerName
