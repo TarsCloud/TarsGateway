@@ -5,7 +5,7 @@ TarsGateway是基于tars框架开发的一套通用api网关，请求为http协�
 
 # 安装
 
-## 支持一键安装（需要先具备tarscpp编译环境）：
+## 支持一键安装（需要先具备tarscpp编译环境, 版本>=v2.4.4）：
 ```
     git clone https://github.com/TarsCloud/TarsGateway.git
     cd TarsGateway/install;
