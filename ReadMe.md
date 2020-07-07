@@ -1,7 +1,14 @@
 # TarsGateway简介
 ---
 # 简介
-TarsGateway是基于tars框架开发的一套通用api网关，请求为http协议，后端同时支持tars-tup&tars-tars协议、tars-json协议、http协议。
+TarsGateway是基于tars框架开发的一套通用api网关，请求为http协议，后端同时支持tars-tup&tars-tars协议、tars-json协议、http协议。 除了协议转发之外，还支持流量控制，黑白名单等功能。 详细使用文档参考[Tars文档](https://tarscloud.github.io/TarsDocs/)
+
+# 支持版本说明
+* TarsCpp:    >= v2.4.5
+* TarsJava:   >= v1.7.2
+* TarsGo:     >= v1.1.4
+* TarsNode:   rpc: >= v2.0.14, stream: >= v2.0.3,  tars2node: >= v20200707
+* TarsPHP:    支持中
 
 # 安装
 
