@@ -272,8 +272,24 @@ void jsonCall(int excut_num)
     cout << "jsonCall send:" << cost << "us, avg:" << 1. * cost / excut_num << "us" << endl;    
 }
 
+void testHttpUrl(const string& url)
+{
+    TC_HttpRequest stHttpReq;
+    stHttpReq.setCacheControl("no-cache");
+    stHttpReq.setGetRequest(url, true);
+    TC_HttpResponse stHttpRsp;
+    int ret = stHttpReq.doRequest(stHttpRsp, 3000);
+    
+    cout << ret << ":" << stHttpRsp.getContent() << endl;
+
+    cout << "\n\n==============================\n" << stHttpRsp.getContent().size() << endl;
+    cout << stHttpRsp.genHeader() << endl;
+}
+
 int main(int argc, char *argv[])
 {
+    testHttpUrl("http://118.89.197.217/");
+
     //ProfilerStart("HttpClient.prof");
     try
     {

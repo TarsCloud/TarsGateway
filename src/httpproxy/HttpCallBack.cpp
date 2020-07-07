@@ -5,9 +5,14 @@
 void AsyncHttpCallback::onSucc(TC_HttpResponse &stHttpResponse)
 {
     TLOGDEBUG("onSucc, content length:" << stHttpResponse.getContent().length() << endl);
+    //TLOGDEBUG(stHttpResponse.genHeader() << endl);
     _aLog->status = stHttpResponse.getStatus();
     _aLog->rspSize = stHttpResponse.getContent().length();
     _aLog->iRet = 0;
+
+    // 修复http头
+    //stHttpResponse.setContentLength(stHttpResponse.getContent().length());
+
     string rspBuff = stHttpResponse.encode();
 
     _current->sendResponse(rspBuff.c_str(), rspBuff.length());

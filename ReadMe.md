@@ -8,7 +8,7 @@ TarsGateway是基于tars框架开发的一套通用api网关，请求为http协�
 * TarsJava:   >= v1.7.2
 * TarsGo:     >= v1.1.4
 * TarsNode:   rpc: >= v2.0.14, stream: >= v2.0.3,  tars2node: >= v20200707
-* TarsPHP:    支持中
+* TarsPHP:    tars-server: >= v0.6.0
 
 # 安装
 
