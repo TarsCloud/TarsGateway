@@ -1,6 +1,6 @@
 #include "GatewayServer.h"
 #include "FlowControlImp.h"
-#include "FlowControlManager.h"
+#include "proxybase/FlowControlManager.h"
 #include "ProxyImp.h"
 #include "httpproxy/StationManager.h"
 #include "tupproxy/TupBase.h"

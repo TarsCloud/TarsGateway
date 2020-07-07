@@ -11,9 +11,9 @@ FlowControlManager::FlowControlManager()
 
 bool FlowControlManager::init(TC_Config &conf)
 {
-    map<string, string> m = conf.getDomainMap("/main/db");
+    _dbConf = conf.getDomainMap("/main/db");
     TC_DBConf tcDBConf;
-    tcDBConf.loadFromMap(m);
+    tcDBConf.loadFromMap(_dbConf);
     _mysql.init(tcDBConf);
     _reportObj = conf.get("/main<flow_report_obj>", "");
     _localIp = conf.get("/main<local_ip>", "");

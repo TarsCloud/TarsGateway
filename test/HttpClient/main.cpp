@@ -246,6 +246,30 @@ void httpCall(int excut_num)
 
 void jsonCall(int excut_num)
 {
+    string buffer(param.buffersize, 'a');
+
+    string buff = "{\"sReq\": \"" + buffer + "\"}";
+
+    string sServer("http://172.16.8.227:18080/json/hello/testHello");
+
+    TC_HttpRequest stHttpReq;
+    stHttpReq.setCacheControl("no-cache");
+    stHttpReq.setPostRequest(sServer, buff, true);
+
+    int64_t t = TC_Common::now2us();
+    for (int i = 0; i < excut_num; i++)
+    {
+        TC_HttpResponse stHttpRsp;
+
+        int ret = stHttpReq.doRequest(stHttpRsp, 3000);
+
+        cout << ret << ":" << stHttpRsp.getContent() << endl;
+
+        ++callback_count;
+    }
+
+    int64_t cost = TC_Common::now2us() - t;
+    cout << "jsonCall send:" << cost << "us, avg:" << 1. * cost / excut_num << "us" << endl;    
 }
 
 int main(int argc, char *argv[])
@@ -255,7 +279,7 @@ int main(int argc, char *argv[])
     {
         if (argc < 4)
         {
-            cout << "Usage:" << argv[0] << "--count=1000 --call=[wupsync|wupasync|http|httpasync|json] --thread=1 --flow=1000 --buffersize=1000" << endl;
+            cout << "Usage:" << argv[0] << " --count=1000 --call=[wupsync|wupasync|http|httpasync|json] --thread=1 --flow=1000 --buffersize=1000" << endl;
 
             return 0;
         }

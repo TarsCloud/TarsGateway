@@ -30,6 +30,12 @@ public:
     bool check(const string& stationId);
     int report(const map<string, int>& flow, const string& ip);
 
+    int getDBConf(map<string, string>& dbConf) const
+    {
+        dbConf = _dbConf;
+        return 0;
+    }
+
     /**
      * 结束
      */
@@ -59,6 +65,8 @@ protected:
     map<string, size_t> _position;
     map<string, int> _flowCount;  // duration-1 内的流量, 本可以不用单独count计数，可以直接根据flowRemain计算得出，但是考虑到流控限制的配置可能变化， 这里就不好算， 所以还是单独记录。
     //unsigned int _index;
+
+    map<string, string> _dbConf;
 
     // 限流配置信息
     map<string, pair<int, int>> _control;

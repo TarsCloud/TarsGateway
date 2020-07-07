@@ -7,7 +7,7 @@
 #include "util/tc_mysql.h"
 #include "util/tc_parsepara.h"
 //#include "TupProxyManager.h"
-#include "FlowControlManager.h"
+#include "proxybase/FlowControlManager.h"
 #include "GatewayServer.h"
 #include "httpproxy/StationManager.h"
 #include "proxybase/ProxyUtils.h"

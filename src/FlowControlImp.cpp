@@ -1,5 +1,5 @@
 #include "FlowControlImp.h"
-#include "FlowControlManager.h"
+#include "proxybase/FlowControlManager.h"
 
 FlowControlImp::FlowControlImp(/* args */)
 {
@@ -23,4 +23,9 @@ int FlowControlImp::report(const map<string, int>& flow, const string& ip, tars:
 {
     FlowControlManager::getInstance()->report(flow, ip);
     return 0;
+}
+
+int FlowControlImp::getGWDB(map<string, string>& dbConf, tars::TarsCurrentPtr current)
+{
+    return FlowControlManager::getInstance()->getDBConf(dbConf);
 }
