@@ -107,6 +107,14 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
         stParam.sXUA = stParam.httpRequest.getHeader("X-XUA");
         //stParam.filterHeader["X-GUID"] = stParam.sGUID;
 
+        //如果服务器返回的响应头信息中包含Expect: 100-continue，则表示 Server 愿意接受数据，这时才 POST 真正数据给 Server；
+        //因为http异步不支行长连接,所以在收到upstream返回http/1.1 100后会断开连接，upstream接收不到真正的数据。
+        //对于带了真正数据又带了Expect头的情况，去掉Expect头可以解决。
+        if(stParam.httpRequest.hasHeader("Expect"))
+        {
+            stParam.httpRequest.eraseHeader("Expect");
+        }
+
         stParam.proxyType = parseReqType(stParam.httpRequest.getRequestUrl(), stParam.httpRequest.getURL().getDomain());
 
         // 统一设置不自动回包
