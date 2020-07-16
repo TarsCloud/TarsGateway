@@ -18,6 +18,7 @@ set(TARS_WEB_HOST "172.16.8.227:3000")
 
 include_directories(/usr/local/tars/cpp/thirdparty/include)
 link_directories(/usr/local/tars/cpp/thirdparty/lib)
+link_directories(/lib/x86_64-linux-gnu)
 
 add_subdirectory(src)
 add_subdirectory(test)
