@@ -59,7 +59,7 @@ TarsGateway 是根据请求host+url 判断当前请求是什么类型的请求�
 ```
 
 ## 2. TARS-tup && TARS-tars 协议代理
-TARS-tup协议代理，必须为post请求类型，路径为/tup，body内容为BasePacket包tars序列化的内容。TarsGateway收到包后，去反序列化body的内容解析出BasePacket包，然后根据其中的sServantName在配置中查找真是的tars服务的obj。如果配置auto_proxy=1，那么客户端调用时 sServantName 可以填真实的obj地址。这里建议：直接对C外网暴露的TarsGateway，建议配置auto_proxy=0，避免内网的服务都直接对外暴露。另外，proxy的配置还可以支持 sServerName:sFuncName 的配置，会优先根据, 这种类型配置优先级高于只配置sServerName 类型的配置。 proxy配置如下：
+TARS-tup协议代理，必须为post请求类型，路径为/tup，body内容为RequestPacket包tars序列化的内容。TarsGateway收到包后，去反序列化body的内容解析出RequestPacket包，然后根据其中的sServantName在配置中查找真是的tars服务的obj。如果配置auto_proxy=1，那么客户端调用时 sServantName 可以填真实的obj地址。这里建议：直接对C外网暴露的TarsGateway，建议配置auto_proxy=0，避免内网的服务都直接对外暴露。另外，proxy的配置还可以支持 sServerName:sFuncName 的配置，会优先根据, 这种类型配置优先级高于只配置sServerName 类型的配置。 proxy配置如下：
 ```
     <proxy>
         hello = TestApp.HelloServer.HelloObj
@@ -99,7 +99,7 @@ TARS-JSON协议代理，支持两种类型的接口。
 ```
 * **相关参数都在http body中指定：**
   
-必须为post请求类型，路径为/json，body内容为json结构。其中必须有reqid, obj, func, data 四个字段，分别表示请求id、服务servant、服务接口、接口参数，对应BasePacket中的reqid:iRequestId, obj:sServantName, func:sFuncName。data内容为接口中的参数，key为参数名，value为参数内容。除了以上必选四个字段之外，context为可选字段。回包内容包括 reqid 和 data， data为接口出参内容，其中 "" 的key对应内容为函数返回值。 这里除了这里包格式不一样，其他后面的逻辑都和TARS-tup类型一样。请求参数举例如下：
+必须为post请求类型，路径为/json，body内容为json结构。其中必须有reqid, obj, func, data 四个字段，分别表示请求id、服务servant、服务接口、接口参数，对应RequestPacket中的reqid:iRequestId, obj:sServantName, func:sFuncName。data内容为接口中的参数，key为参数名，value为参数内容。除了以上必选四个字段之外，context为可选字段。回包内容包括 reqid 和 data， data为接口出参内容，其中 "" 的key对应内容为函数返回值。 这里除了这里包格式不一样，其他后面的逻辑都和TARS-tup类型一样。请求参数举例如下：
 ```
     请求包：
     {
