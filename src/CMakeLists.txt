@@ -4,6 +4,6 @@ project(GatewayServer)
 
 #link_libraries(profiler)
 
-gen_server("tars" "GatewayServer")
+gen_server("Base" "GatewayServer")
 
 target_link_libraries(GatewayServer mysqlclient dl)
