@@ -18,16 +18,16 @@ elif [ $# -eq 8 ]; then
     TARS_CPP_PATH=$5
 else
     echo "Usage:";
-    echo "  $0 webhost tarstoken server_ip tars_db_ip tars_db_port tars_db_user tars_db_pwd";
-    echo "  $0 webhost tarstoken server_ip tars_db_ip tars_db_port tars_db_user tars_db_pwd tarscpp";
+    echo "  $0 webhost token node_ip gateway_db_ip gateway_db_port gateway_db_user gateway_db_pwd";
+    echo "  $0 webhost token node_ip gateway_db_ip gateway_db_port gateway_db_user gateway_db_pwd tarscpp";
     echo "Description:";
     echo "  webhost: tars web admin host";
-    echo "  tarstoken: can fetch from http://webhost:3001/auth.html#/token";
+    echo "  token: can fetch from http://webhost/auth.html#/token";
     echo "  server_ip: ip address of GatewayServer will be installed";
-    echo "  tars_db_ip: ip address of tars-framework's db";
-    echo "  tars_db_port: port of tars-framework's db";
-    echo "  tars_db_user: user of tars-framework's db";
-    echo "  tars_db_pwd: password of tars-framework's db";
+    echo "  gateway_db_ip: ip address of gateway db";
+    echo "  gateway_db_port: port of gateway db";
+    echo "  gateway_db_user: user of gateway db";
+    echo "  gateway_db_pwd: password of gateway db";
 
     echo "  tarscpp: the path which tarscpp has installed";
     exit 1
@@ -79,7 +79,7 @@ LOG_INFO "OS:            "$OSNAME
 LOG_INFO "TarsCpp:       "$TARS_CPP_PATH
 LOG_INFO "WebHost:       "$TARS_WEB_HOST
 LOG_INFO "Token:         "$TARS_WEB_TOKEN
-LOG_INFO "Tars-DB:       "$TARS_DB_HOST
+LOG_INFO "GatewayDB:     "$TARS_DB_HOST
 LOG_INFO "===<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< print envirenment finish.\n";
 
 ################################################################################
@@ -94,7 +94,7 @@ function create_db()
 function build_server()
 {
     rm -rf $WORKDIR/build
-    mkdir $WORKDIR/build && cd $WORKDIR/build && cmake .. && make GatewayServer && make GatewayServer-tar
+    mkdir $WORKDIR/build && cd $WORKDIR/build && cmake .. -DTARS_WEB_HOST=${TARS_WEB_HOST} -DTARS_TOKEN=${TARS_WEB_TOKEN} && make GatewayServer && make GatewayServer-tar
 }
 
 function build_webconf()
@@ -116,6 +116,8 @@ function build_webconf()
     sed -i "s/db_pwd/$TARS_DB_PWD/g" install/config-tmp.json
 
     curl -s -X POST -H "Content-Type: application/json" ${TARS_WEB_HOST}/api/add_config_file?ticket=${TARS_WEB_TOKEN} -d@install/config-tmp.json
+    rm -f install/server-tmp.json;
+    rm -f install/config-tmp.json;
 
     LOG_INFO "====> build_webconf finish!\n";
 }
@@ -125,7 +127,8 @@ function upload_server()
     cd $WORKDIR/build
 
     LOG_INFO "===>upload GatewayServer server:\n"
-    curl -s ${TARS_WEB_HOST}/api/upload_and_publish?ticket=${TARS_WEB_TOKEN} -Fsuse=@GatewayServer.tgz -Fapplication=tars -Fmodule_name=GatewayServer -Fcomment=auto-upload
+
+    curl -s ${TARS_WEB_HOST}/api/upload_and_publish?ticket=${TARS_WEB_TOKEN} -Fsuse=@GatewayServer.tgz -Fapplication=Base -Fmodule_name=GatewayServer -Fcomment=auto-upload
     LOG_INFO "====> upload server finish!\n";
 }
 

@@ -1,5 +1,5 @@
 {
-    "application": "tars",
+    "application": "Base",
     "server_name": "GatewayServer",
     "node_name": "host_ip",
     "server_type": "tars_cpp",
