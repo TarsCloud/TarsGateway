@@ -6,4 +6,4 @@ project(GatewayServer)
 
 gen_server("tars" "GatewayServer")
 
-target_link_libraries(GatewayServer mysqlclient)
+target_link_libraries(GatewayServer mysqlclient dl)

@@ -105,7 +105,7 @@ function build_webconf()
     rm -f install/server-tmp.json;
     cp install/server.json install/server-tmp.json;
     sed -i "s/host_ip/$GATEWAYSERVER_IP/g" install/server-tmp.json
-    curl -s -X POST -H "Content-Type: application/json" http://${TARS_WEB_HOST}/api/deploy_server?ticket=${TARS_WEB_TOKEN} -d@install/server-tmp.json
+    curl -s -X POST -H "Content-Type: application/json" ${TARS_WEB_HOST}/api/deploy_server?ticket=${TARS_WEB_TOKEN} -d@install/server-tmp.json
 
     LOG_INFO "===>add GatewayServer.conf:\n";
     rm -f install/config-tmp.json;
@@ -115,7 +115,7 @@ function build_webconf()
     sed -i "s/db_user/$TARS_DB_USER/g" install/config-tmp.json
     sed -i "s/db_pwd/$TARS_DB_PWD/g" install/config-tmp.json
 
-    curl -s -X POST -H "Content-Type: application/json" http://${TARS_WEB_HOST}/api/add_config_file?ticket=${TARS_WEB_TOKEN} -d@install/config-tmp.json
+    curl -s -X POST -H "Content-Type: application/json" ${TARS_WEB_HOST}/api/add_config_file?ticket=${TARS_WEB_TOKEN} -d@install/config-tmp.json
 
     LOG_INFO "====> build_webconf finish!\n";
 }
@@ -125,7 +125,7 @@ function upload_server()
     cd $WORKDIR/build
 
     LOG_INFO "===>upload GatewayServer server:\n"
-    curl -s http://${TARS_WEB_HOST}/api/upload_and_publish?ticket=${TARS_WEB_TOKEN} -Fsuse=@GatewayServer.tgz -Fapplication=tars -Fmodule_name=GatewayServer -Fcomment=auto-upload
+    curl -s ${TARS_WEB_HOST}/api/upload_and_publish?ticket=${TARS_WEB_TOKEN} -Fsuse=@GatewayServer.tgz -Fapplication=tars -Fmodule_name=GatewayServer -Fcomment=auto-upload
     LOG_INFO "====> upload server finish!\n";
 }
 

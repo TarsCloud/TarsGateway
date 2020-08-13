@@ -2,12 +2,12 @@
 ```
     git clone https://github.com/TarsCloud/TarsGateway.git
     cd TarsGateway/install;
-    ./install.sh webhost token server_ip tars_db_ip tars_db_port tars_db_user tars_db_pwd
+    ./install.sh tarsweb_base token server_ip tars_db_ip tars_db_port tars_db_user tars_db_pwd
 
 ```
 ## 安装参数如下：
-* webhost                  TarsWeb管理端的host或ip:port
-* token                    TarsWeb管理端的token，可以通过管理端获取http://webhost:3001/auth.html#/token
+* tarsweb_base              TarsWeb管理端的基础地址，例如：http://172.16.8.227:3000 （注意后面不要 /）
+* token                     TarsWeb管理端的token，可以在tarsweb右上角点击用户中心-Token管理 获取
 * server_ip                GatewayServer部署的ip，目前这里只支持一个，如果需要更多，后面直接在平台上面扩容即可。
 * tars_db_ip               tarsdb 所在的数据库服务器ip。
 * tars_db_port             tarsdb 端口。
