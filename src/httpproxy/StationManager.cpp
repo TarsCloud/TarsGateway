@@ -81,6 +81,8 @@ bool StationManager::loadHttpRouterConf(vector<RouterParam> &paramList)
         for (size_t i = 0; i < stationList.size(); i++)
         {
             RouterParam rp;
+            // conf id set as 0
+            rp.id = 0;
             rp.stationId = stationList[i];
             map<string, string> m = _conf.getDomainMap("/main/http_router/" + rp.stationId);
             rp.serverName = m["server_name"];
@@ -109,7 +111,7 @@ bool StationManager::loadRouter()
     vector<RouterParam> paramList;
     try
     {
-        string sql = "select f_id, f_station_id, f_server_name, f_path_rule, f_proxy_pass, UNIX_TIMESTAMP(f_update_time) AS updatetime from t_http_router where f_valid = 1 and f_id >= 1000 order by f_id limit 100000";
+        string sql = "select f_id, f_station_id, f_server_name, f_path_rule, f_proxy_pass, UNIX_TIMESTAMP(f_update_time) AS updatetime from t_http_router where f_valid = 1 and f_id > 0 order by f_id limit 100000";
         TC_Mysql::MysqlData data = _mysql.queryRecord(sql);
         TLOGDEBUG(sql << " ===> result size=" << data.size() << endl);
         for (size_t i = 0; i < data.size(); i++)
