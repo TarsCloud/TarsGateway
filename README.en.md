@@ -1,7 +1,7 @@
 # Introduction
 TarsGateway is a general API gateway based on the TARS development framework, supporting the HTTP protocol for requests and tars-tup&tars-tars protocol, tars-json protocol, and HTTP protocol for the backend. In addition to protocol forwarding, it also supports flow control, black and white lists and other functions. For more information, please refer to [TarsDocs](https://tarscloud.github.io/TarsDocs/)
  
-# Support version description
+# Versions Supported
 * TarsCpp: >= v2.4.5
 * TarsJava: >= v1.7.2
 * TarsGo: >= v1.1.4
@@ -78,7 +78,7 @@ When calling the back-end tars service, TarsGateway defaults to tars's load bala
 ```
 <proxy>
         # servant = server_full_obj [| hash_type [| http header key] ]
-        # hash_type: 0, 轮训; 1: requestid, 2: http头, 3: client ip
+        # hash_type: 0, rotation; 1: requestid, 2: httphead, 3: client ip
         # Hello=TestApp.HelloServer.HelloObj | 1
         # Hello=TestApp.HelloServer.HelloObj | 2 | X-GUID
         # Hello=TestApp.HelloServer.HelloObj | 3
