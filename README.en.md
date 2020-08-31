@@ -1,5 +1,6 @@
+* [中文文档](https://github.com/TarsCloud/TarsGateway/blob/master/ReadMe.md)
 # Introduction
-TarsGateway is a general API gateway based on the TARS development framework, supporting the HTTP protocol for requests and tars-tup&tars-tars protocol, tars-json protocol, and HTTP protocol for the backend. In addition to protocol forwarding, it also supports flow control, black and white lists and other functions. For more information, please refer to [TarsDocs](https://tarscloud.github.io/TarsDocs/)
+TarsGateway is a general API gateway based on the TARS development framework, supporting the HTTP protocol for requests and tars-tup&tars-tars protocol, tars-json protocol, and HTTP protocol for the backend. In addition to protocol forwarding, it also supports flow control, black and white lists and other functions. For more information, please refer to [TarsDocs](https://tarscloud.github.io/TarsDocs_en/)
  
 # Versions Supported
 * TarsCpp: >= v2.4.5
@@ -199,16 +200,16 @@ TarsGateway supports the access to the backend for flow control, as well as sing
 
 **Configuration instructions:** If it is TARS-tup or TARS-JSON protocol, then the site ID of flow control is service Obj. If it is http protocol, then the site ID is the stationId in the configuration.
  
-## 6. Blacklist strategy
-The blacklist is an IP blacklist, which supports two levels: global blacklist and site blacklist.
+## 6. Blocklist strategy
+The blocklist is an IP blocklist, which supports two levels: global blocklist and site blocklist.
 
-**Blacklist format:** client IP address, which supports wildcards. Such as 192.168.2.130, 192.168.10.*
+**Blocklist format:** client IP address, which supports wildcards. Such as 192.168.2.130, 192.168.10.*
 
-**Global blacklist:** Controls all access to TarsGateway, including TARS-tup, TARS-JSON and general HTTP protocols.
+**Global blocklist:** Controls all access to TarsGateway, including TARS-tup, TARS-JSON and general HTTP protocols.
 
-**Site blacklist:** Controls only for designated sites, and other sites will not be affected.
+**Site blocklist:** Controls only for designated sites, and other sites will not be affected.
 
-**Site whitelist:** Once a site is configured with a whitelist, it can only be accessed by the designated IP, which is mainly used for internal system control of designated IP access, or for designated partners to call.
+**Site allowlist:** Once a site is configured with a allowlist, it can only be accessed by the designated IP, which is mainly used for internal system control of designated IP access, or for designated partners to call.
 
 ## 7. Configure Hot Update
  Support hot update of common configurations, including:
