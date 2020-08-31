@@ -1,6 +1,5 @@
 
-* English Version Document for TarsGateway
-* Chinese Version Document for TarsGateway
+* [In English](https://github.com/TarsCloud/TarsGateway/blob/master/README.en.md)
 
 # TarsGateway简介
 ---
