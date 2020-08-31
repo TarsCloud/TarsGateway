@@ -1,21 +1,21 @@
 
 * [In English](https://github.com/TarsCloud/TarsGateway/blob/master/README.en.md)
 
-# TarsGateway简介
----
-# 简介
+# TarsGateway
+
+## 简介
 TarsGateway是基于tars框架开发的一套通用api网关，请求为http协议，后端同时支持tars-tup&tars-tars协议、tars-json协议、http协议。 除了协议转发之外，还支持流量控制，黑白名单等功能。 详细使用文档参考[Tars文档](https://tarscloud.github.io/TarsDocs/)
 
-# 支持版本说明
+## 支持版本说明
 * TarsCpp:    >= v2.4.5
 * TarsJava:   >= v1.7.2
 * TarsGo:     >= v1.1.4
 * TarsNode:   rpc: >= v2.0.14, stream: >= v2.0.3,  tars2node: >= v20200707
 * TarsPHP:    tars-server: >= v0.6.0
 
-# 安装
+## 安装
 
-## 支持一键安装（需要先具备tarscpp编译环境, 版本>=v2.4.4）：
+### 支持一键安装（需要先具备tarscpp编译环境, 版本>=v2.4.4）：
 ```
     git clone https://github.com/TarsCloud/TarsGateway.git
     cd TarsGateway/install;
@@ -23,7 +23,7 @@ TarsGateway是基于tars框架开发的一套通用api网关，请求为http协�
     ./install.sh tarsweb_base token node_ip gateway_db_ip gateway_db_port gateway_db_user gateway_db_pwd
 
 ```
-## 安装参数如下：
+### 安装参数如下：
 * tarsweb_base             TarsWeb管理端的基础地址，例如：http://172.16.8.227:3000 （注意后面不要 /）
 * token                    TarsWeb管理端的token，可以通过管理端获取http://${webhost}/auth.html#/token
 * node_ip                  GatewayServer部署的ip，目前这里只支持一个，如果需要更多，后面直接在平台上面扩容即可。
@@ -36,15 +36,15 @@ TarsGateway是基于tars框架开发的一套通用api网关，请求为http协�
 - Gateway会依赖db, 它的sql放在install/db_base.sql, 安装时会创建该db, 注意你也需要保证web平台能访问到你的网关DB
 - 用脚本一键部署时, 默认只安装了一台节点, 有需要你在web平台上自己扩容部署即可
 
-## 例如：
+### 例如：
 ```
     ./install.sh http://172.16.8.220:3000 036105e1ebfc13843b4db0edcd000b3d9f47b13928423f0443df54d20ca65855 172.16.8.220 172.16.8.221 3306 tars tars2015
 ```
-## 验证安装结果：
+### 验证安装结果：
 在浏览器打开 http://${server_ip}:8200/monitor/monitor.html , 如果能正常显示 hello TupMonitorxxx 就表示安装成功。
 
-# 功能介绍
-## 1. 代理类型的判断
+## 功能介绍
+### 1. 代理类型的判断
 TarsGateway 是根据请求host+url 判断当前请求是什么类型的请求，具体host和url通过配置设定。配置及对应逻辑说明如下：
 
 [comment]: <***配置说明***：>
@@ -66,7 +66,7 @@ TarsGateway 是根据请求host+url 判断当前请求是什么类型的请求�
     </main>
 ```
 
-## 2. TARS-tup && TARS-tars 协议代理
+### 2. TARS-tup && TARS-tars 协议代理
 TARS-tup协议代理，必须为post请求类型，路径为/tup，body内容为RequestPacket包tars序列化的内容。TarsGateway收到包后，去反序列化body的内容解析出RequestPacket包，然后根据其中的sServantName在配置中查找真是的tars服务的obj。如果配置auto_proxy=1，那么客户端调用时 sServantName 可以填真实的obj地址。这里建议：直接对C外网暴露的TarsGateway，建议配置auto_proxy=0，避免内网的服务都直接对外暴露。另外，proxy的配置还可以支持 sServerName:sFuncName 的配置，会优先根据, 这种类型配置优先级高于只配置sServerName 类型的配置。 proxy配置如下：
 ```
     <proxy>
@@ -92,7 +92,7 @@ TARS-tup协议代理，必须为post请求类型，路径为/tup，body内容为
     
 ```
 
-## 3. TARS-JSON 协议代理
+### 3. TARS-JSON 协议代理
 TARS-JSON协议代理，支持两种类型的接口。
 * **servantName和funcName在http url路径中指定**
   
@@ -124,7 +124,7 @@ TARS-JSON协议代理，支持两种类型的接口。
 ```
 
  
-## 4. 普通HTTP协议代理
+### 4. 普通HTTP协议代理
 普通HTTP协议代理，类似nginx的反向代理功能，主要功能包括根据domain和url进行请求转发，后端负载均衡，容错容灾，黑名单屏蔽，流量控制等功能。
 
 * **路由策略**
@@ -193,7 +193,7 @@ proxy_pass:
 IP黑名单和流控策略， 同时支持TarsGateway的三种协议，所以后面统一介绍。
 
 
-## 5. 流量控制
+### 5. 流量控制
 可以支持访问TarsGateway 访问后端进行流量控制，支持单机控制，也支持多机协同控制，也可以关闭流控。
 
 **开关控制:**  配置flow_control_onoff可以对流控进行开关控制。另外如果服务servant没有配置FlowControlObj，那么就不会开启流控策略。
@@ -204,7 +204,7 @@ IP黑名单和流控策略， 同时支持TarsGateway的三种协议，所以后
 
 **配置说明:**  如果是TARS-tup或者TARS-JSON协议，那么流控的站点ID为服务Obj，如果是http协议，那么站点ID为配置中的stationId.
 
-## 6. 黑名单策略
+### 6. 黑名单策略
 黑名单为IP黑名单，支持全局黑名单和站点黑名单两个级别。
 
 **黑名单格式:** 客户端IP地址，支持通配符。如 192.168.2.130, 192.168.10.*
@@ -216,14 +216,14 @@ IP黑名单和流控策略， 同时支持TarsGateway的三种协议，所以后
 **站点白名单:** 站点一旦配置了白名单，那么就只能是指定IP才能访问，主要用于内部系统控制指定ip访问，或者开放给指定合作伙伴调用。
 
 
-## 7. 配置热更新
+### 7. 配置热更新
 支持常用配置热更新，包括：
 1. loadProxy: 通过该tars命令可以实现TARS-tup&TARS-JSON协议的servant代理配置更新；
 2. loadHttp:  通过该配置可以进行普通HTTP协议的路由策略, 后端节点配置，监控url配置等；
 3. loadComm:  通过该命令可以进行一些公共的配置加载，主要包括黑白名单加载；
 4. 流控策略自动动态加载DB。
 
-## 8. 环境切换
+### 8. 环境切换
 在作为TARS-tup或TARS-JSON协议代理时，可以通过http头中值，指定到不通的proxy子配置域中。
 默认是直接使用proxy下面的配置，如果配置了env_httpheader，且当前请求中有该http头，并且http头的value为配置中的内容，那么则优先选择proxy 下面的 env 子域对应的转发规则。比如如下配置，表示http请求头中X-GUID=12345678123456781234567812345678 的用户，则优先选用test环境中配置，即：用户请求servant为hello时，那么真实服务obj选择TestApp.HelloServer.HelloObj@tcp -h 192.168.2.101 -p 10029 , 但是如果用户请求servant为world时，由于test环境中并没有配置 world 对应的转发规则，那么还是用 proxy 下面默认的规则，及真实obj为Test.HelloworldServer.HelloworldObj，配置如下：
 
@@ -246,7 +246,7 @@ IP黑名单和流控策略， 同时支持TarsGateway的三种协议，所以后
     </env_httpheader>
 ```
 
-## 9. 返回码说明
+### 9. 返回码说明
 * 200: OK 正常响应
 * 400: Bad Request  1.解客户端请求包错误。
 * 403: Forbidden  1.客户端ip命中黑名单。
@@ -256,7 +256,7 @@ IP黑名单和流控策略， 同时支持TarsGateway的三种协议，所以后
 * 502: Bad Gateway  1.调用后端tars服务或者http服务异常；
 * 504：Gateway Timeout  1.调用后端tars服务或者http服务超时;
 
-## 10. 日志格式说明
+### 10. 日志格式说明
 TARS-tup & TARS-JSON 协议代理请求响应日志格式说明：
 
 **正常回包 response日志:**
