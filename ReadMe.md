@@ -1,6 +1,6 @@
 
-English Version Document for TarsGateway
-Chinese Version Document for TarsGateway
+* English Version Document for TarsGateway
+* Chinese Version Document for TarsGateway
 
 # TarsGateway简介
 ---
