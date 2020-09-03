@@ -326,11 +326,11 @@ void TupBase::getFilter(HandleParam &stParam)
     {
         stParam.filterHeader["X-GUID"] = stParam.sGUID;
     }
-    if (stParam.filterHeader.find("X-Forwarded-For-Host") == stParam.filterHeader.end())
-    {
-        stParam.filterHeader["X-Forwarded-For-Host"] = stParam.sIP;
-        +":" + TC_Common::tostr(stParam.current->getPort());
-    }
+    // if (stParam.filterHeader.find("X-Forwarded-For-Host") == stParam.filterHeader.end())
+    // {
+    //     stParam.filterHeader["X-Forwarded-For-Host"] = stParam.sIP;
+    //     +":" + TC_Common::tostr(stParam.current->getPort());
+    // }
 }
 
 int TupBase::handleTarsRequest(HandleParam &stParam)
@@ -434,15 +434,15 @@ int TupBase::handleTarsRequest(HandleParam &stParam)
         TupCallbackPtr cb;
         if (JSONVERSION == tupRequest.iVersion)
         {
-            cb = new TupCallback("json", stParam.current, stCbParam);
+            cb = new TupCallback("json", stParam.current, stCbParam, stParam.httpKeepAlive);
         }
         else if (TARSVERSION == tupRequest.iVersion)
         {
-            cb = new TupCallback("tars", stParam.current, stCbParam);
+            cb = new TupCallback("tars", stParam.current, stCbParam, stParam.httpKeepAlive);
         }
         else
         {
-            cb = new TupCallback("tup", stParam.current, stCbParam);
+            cb = new TupCallback("tup", stParam.current, stCbParam, stParam.httpKeepAlive);
         }
 
         //记录日志
