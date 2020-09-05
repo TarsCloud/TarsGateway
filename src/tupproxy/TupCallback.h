@@ -39,7 +39,7 @@ struct TupCallbackParam
 	string						sEncryptKey;
 	size_t						iReqBufferSize;
     bool                        httpKeepAlive;
-    bool                        isRestful;
+    E_JSON_REQUEST_TYPE         eJsonRequestType;
 };
 
 
@@ -115,7 +115,7 @@ protected:
 
     tars::Int32                  _iNewRequestId;
     tars::TarsCurrentPtr          _current;
-
+    int                         _iRspRet;
 };
 
 typedef TC_AutoPtr<TupCallback> TupCallbackPtr;

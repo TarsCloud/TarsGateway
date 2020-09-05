@@ -115,7 +115,7 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
             stParam.httpRequest.eraseHeader("Expect");
         }
 
-        stParam.proxyType = parseReqType(stParam.httpRequest.getRequestUrl(), stParam.httpRequest.getURL().getDomain());
+        stParam.proxyType = parseReqType(stParam.httpRequest.getRequestUrl(), stParam.httpRequest.getURL().getDomain(), stParam.httpRequest.getRequestParam());
 
         // 统一设置不自动回包
         current->setResponse(false);
@@ -202,12 +202,16 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
     return 0;
 }
 
-E_PROXY_TYPE ProxyImp::parseReqType(const string &reqUrl, const string &host)
+E_PROXY_TYPE ProxyImp::parseReqType(const string &reqUrl, const string &host, const string& requestParam)
 {
     E_PROXY_TYPE ret = EPT_HTTP_PROXY;
     if (!g_app.isTupHost(host))
     {
         ;
+    }
+    else if (requestParam.find("s=") != std::string::npos && requestParam.find("f=") != std::string::npos)
+    {
+        ret = EPT_JSON_PROXY;
     }
     else if ((reqUrl.empty() || reqUrl == "/"))
     {

@@ -22,6 +22,13 @@ enum E_HTTP_RESLUT
     EHR_CONNRRR = 2,
 };
 
+enum E_JSON_REQUEST_TYPE
+{
+    EJRT_DETAILED = 0,
+    EJRT_RESTFUL = 1,
+    EJRT_SIMPLE = 2,
+};
+
 struct HandleParam
 {
     tars::TarsCurrentPtr       current;
@@ -39,7 +46,7 @@ struct HandleParam
     string					 sEncryptKey;
     E_PROXY_TYPE             proxyType;
     bool                     httpKeepAlive;
-    bool                     isRestful;
+    E_JSON_REQUEST_TYPE      eJsonRequestType;
 };
 
 struct UpstreamInfo

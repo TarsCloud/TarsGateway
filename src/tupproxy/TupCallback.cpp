@@ -199,11 +199,11 @@ void TupCallback::doResponse_json(shared_ptr<ResponsePacket> tup)
             return;
         }
 
-        if (_stParam.isRestful)
+        if (_stParam.eJsonRequestType == EJRT_RESTFUL)
         {
             _rspBuffer.assign(tup->sBuffer.begin(), tup->sBuffer.end());
         }
-        else
+        else if (_stParam.eJsonRequestType == EJRT_DETAILED)
         {
             tars::JsonValueObjPtr p = new tars::JsonValueObj();
             p->value["reqid"] = tars::JsonOutput::writeJson(_stParam.iRequestId);
@@ -211,6 +211,14 @@ void TupCallback::doResponse_json(shared_ptr<ResponsePacket> tup)
             string buff = tars::TC_Json::writeValue(p);
             _rspBuffer.resize(buff.length());
             _rspBuffer.assign(buff.begin(), buff.end());
+        }
+        else if (_stParam.eJsonRequestType == EJRT_SIMPLE)
+        {
+            tars::JsonValuePtr p = tars::TC_Json::getValue(tup->sBuffer);
+            tars::JsonValueObjPtr pObj = tars::JsonValueObjPtr::dynamicCast(p);
+            string data = TC_Json::writeValue(pObj->value["rsp"]);
+            tars::JsonInput::readJson(_iRspRet, pObj->value["tars_ret"], true);
+            _rspBuffer.assign(data.begin(), data.end());
         }
 
         handleResponse();
@@ -324,6 +332,11 @@ void TupCallback::handleResponse()
     else
     {
         httpResponse.setConnection("close");
+    }
+
+    if (_stParam.eJsonRequestType == EJRT_SIMPLE)
+    {
+		httpResponse.setHeader("RET", TC_Common::tostr(_iRspRet));
     }
 
     vector<char> tmpBuffer = _rspBuffer;

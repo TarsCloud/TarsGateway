@@ -51,7 +51,7 @@ protected:
      */
     void filterMonitor(HandleParam& stParam);
 
-    E_PROXY_TYPE parseReqType(const string &reqUrl, const string& host);
+    E_PROXY_TYPE parseReqType(const string &reqUrl, const string& host, const string& requestParam);
 
   protected:
 };

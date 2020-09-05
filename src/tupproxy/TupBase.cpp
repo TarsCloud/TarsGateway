@@ -17,6 +17,7 @@
 #include "util/tc_hash_fun.h"
 #include "util/tc_parsepara.h"
 #include "util/tc_tea.h"
+#include "util/tc_cgi.h"
 #include <zlib.h>
 
 //////////////////////////////////////////////////////
@@ -429,7 +430,7 @@ int TupBase::handleTarsRequest(HandleParam &stParam)
         stCbParam.sServantName = tupRequest.sServantName;
         stCbParam.sFuncName = tupRequest.sFuncName;
         stCbParam.httpKeepAlive = stParam.httpKeepAlive;
-        stCbParam.isRestful = stParam.isRestful;
+        stCbParam.eJsonRequestType = stParam.eJsonRequestType;
 
         TupCallbackPtr cb;
         if (JSONVERSION == tupRequest.iVersion)
@@ -500,7 +501,28 @@ int TupBase::parseJsonRequest(HandleParam &stParam, RequestPacket &tupRequest)
         tupRequest.iVersion = JSONVERSION;
         tupRequest.cPacketType = tars::TARSNORMAL;
 
-        if (stParam.httpRequest.getRequestUrl().length() > 6)
+        TC_Cgi cgi;
+        cgi.parseCgi(stParam.httpRequest);
+        const string& sServant 	= cgi.getValue("s");
+        const string& sFunc    	= cgi.getValue("f");
+        
+        if (!sServant.empty() && !sFunc.empty())
+        {
+            string data = "{\"req\": " + buff + "}";
+            if (data.empty())
+            {
+                TLOGERROR("parseJsonRequest error, data is empty!!!" << endl);
+                return -1;
+            }
+
+            tupRequest.iRequestId = 99;
+            tupRequest.sServantName = sServant;
+            tupRequest.sFuncName = sFunc;
+            tupRequest.sBuffer.resize(data.length());
+            tupRequest.sBuffer.assign(data.begin(), data.end());
+            stParam.eJsonRequestType = EJRT_SIMPLE;
+        }
+        else if (stParam.httpRequest.getRequestUrl().length() > 6)
         {
             vector<string> vs = TC_Common::sepstr<string>(stParam.httpRequest.getRequestUrl(), "/");
             if (vs.size() < 3)
@@ -514,7 +536,7 @@ int TupBase::parseJsonRequest(HandleParam &stParam, RequestPacket &tupRequest)
             tupRequest.sFuncName = TC_Common::trim(vs[2]);
             tupRequest.sBuffer.resize(buff.length());
             tupRequest.sBuffer.assign(buff.begin(), buff.end());
-            stParam.isRestful = true;
+            stParam.eJsonRequestType = EJRT_RESTFUL;
         }
         else
         {
@@ -541,7 +563,7 @@ int TupBase::parseJsonRequest(HandleParam &stParam, RequestPacket &tupRequest)
             }
             tupRequest.sBuffer.resize(data.length());
             tupRequest.sBuffer.assign(data.begin(), data.end());
-            stParam.isRestful = false;
+            stParam.eJsonRequestType = EJRT_DETAILED;
         }
 
         return 0;
