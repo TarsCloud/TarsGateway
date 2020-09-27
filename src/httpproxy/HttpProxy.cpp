@@ -423,7 +423,10 @@ void AddrCheckThread::run()
             TLOGERROR("exception unknown error." << endl);
         }
 
-        TC_ThreadLock::Lock lock(*this);
-        timedWait(1000 * 60);
+        /* 不知道为何,有时候无法唤醒
+         TC_ThreadLock::Lock lock(*this);
+         timedWait(1000 * 60);
+        */
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000 * 60));
     }        
 }
