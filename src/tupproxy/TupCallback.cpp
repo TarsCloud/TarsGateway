@@ -55,8 +55,9 @@ int TupCallback::onDispatch(ReqMessagePtr msg)
     }
     else
     {
-        TLOGERROR("================ getType:" << getType() << ", reqId:" << _iNewRequestId << ", iRet:" << msg->response->iRet << endl);
-        if (getType() == "TupCallback" || getType() == "JsonCallback")
+        TLOGERROR("================ getType:" << getType() << ", reqId:" << _iNewRequestId << ", iRet:" << msg->response->iRet 
+             << ", servant:" << _stParam.sServantName << ", func:" << _stParam.sFuncName << endl);
+        if (getType() == "tup" || getType() == "json" || getType() == "tars")
         {
             vector<char> &buff = msg->response->sBuffer;
 

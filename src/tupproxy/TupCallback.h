@@ -52,8 +52,8 @@ public:
 
     TupCallback(const string& type, 
                 const TarsCurrentPtr& current,
-                const TupCallbackParam& stParam) 
-				:_stParam(stParam), _bKeepAlive(false), _iNewRequestId(0), _current(current)
+                const TupCallbackParam& stParam, bool keepAlive) 
+				:_stParam(stParam), _bKeepAlive(keepAlive), _iNewRequestId(0), _current(current)
     {
         setType(type);
     }
