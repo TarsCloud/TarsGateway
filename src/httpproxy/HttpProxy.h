@@ -201,7 +201,7 @@ class AddrCheckThread : public TC_Singleton<AddrCheckThread>
                       , public TC_Thread
 {
 public:
-    AddrCheckThread() : _index(0)
+    AddrCheckThread() :  _terminate(false), _index(0)
     {
         start();
     }
