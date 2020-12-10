@@ -209,11 +209,11 @@ E_PROXY_TYPE ProxyImp::parseReqType(const string &reqUrl, const string &host)
     {
         ;
     }
-    else if ((reqUrl.empty() || reqUrl == "/"))
-    {
-        // 兼容线上tup没有带路径的情况
-        ret = EPT_TUP_PROXY;
-    }
+    // else if ((reqUrl.empty() || reqUrl == "/"))
+    // {
+    //     // 兼容线上tup没有带路径的情况
+    //     ret = EPT_TUP_PROXY;
+    // }
     else
     {
         size_t l = reqUrl.length();
