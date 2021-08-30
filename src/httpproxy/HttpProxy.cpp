@@ -197,12 +197,14 @@ bool AddrProxy::checkConnect(const string& host, uint16_t port, int timeout)
         {
             TLOGDEBUG(host << ":" << port << " connect error:" << errno << ", " << strerror(errno) << endl);
         }
-
+	    
+        ::close(fd);
         return false;
     }
 
     TLOGDEBUG(host << ":" << port << " connect succ." << endl);
-
+	
+    ::close(fd);
     return true;    
 }
 
