@@ -1,10 +1,10 @@
-name: build-gateway-master
+name: build-gateway-tag
 
 
 on:
   push:
     branches:
-      - master
+      - v*
 
 jobs:
   build:
