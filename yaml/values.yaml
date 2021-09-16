@@ -1,0 +1,99 @@
+
+app: Base
+server: GatewayServer
+template: tars.cpp
+profile: ""
+servants:
+  - name: FlowControlObj
+    port: 10000
+    isTars: true
+    isTcp: true
+    thread: 2
+    capacity: 100000
+    connection: 10000
+    timeout: 30000
+  - name: ProxyObj
+    port: 20000
+    isTars: true
+    isTcp: true
+    thread: 5
+    capacity: 100000
+    connection: 100000
+    timeout: 60000
+replicas: 3
+hostNetwork: false
+hostIPC: false
+hostPorts: []
+repo:
+  id:
+  image: tarscloud/base.gatewayserver
+  secret: tars-image-secret
+config:
+  - name: GatewayServer.conf
+    content: |
+      <main>
+          #传到后面taf服务的http头, 多个头以,分隔
+          filterheaders = X-GUID|X-XUA|Host
+          # 是否打开通过主控发现代理，1打开， 0 关闭
+          auto_proxy=1
+          flow_report_obj=Base.TarsGatewayServer.FlowControlObj
+          <base>
+              # tup 回包大小限制
+              rspsize=5242880
+              #tup_host 如果不配置，那么所有host开头的，且没有path或者path为 / ， 也判断为 tup 请求， 例如： prx.tup.whup.com|127.0.0.1|192.168.2.123
+              tup_host=
+              tup_path=/tup
+              json_path=/json
+              monitor_url=/monitor/monitor.html
+          </base>
+          
+          <proxy>
+              # servant = server_full_obj [| hash_type [| http header key] ]
+              # hash_type: 0, 轮训; 1: requestid, 2: http头, 3: client ip
+              # Hello=TestApp.HelloServer.HelloObj | 1
+              # Hello=TestApp.HelloServer.HelloObj | 2 | X-GUID
+              #Hello=TestApp.HelloServer.HelloObj | 3
+
+              hello = TestApp.HelloServer.HelloObj
+
+              <test>
+                  v = Base.LoginServer.LoginObj
+                  hello = Test.HelloServer.HelloObj@tcp -h 127.0.0.1 -p 22346 | 2 | X-GUID
+              </test>
+
+              <dogfood>
+                  v = Base.LoginServer.LoginObj
+                  hello = Test.HelloServer.HelloObj@tcp -h 127.0.0.1 -p 22346
+              </dogfood>
+          </proxy>
+
+          #http头:值, 转到proxy某个服务
+          <httpheader>
+              Q-gUID:344bfdf1afb146ffa68b2bd69a57f193 = test
+          </httpheader>
+
+        <http_retcode>
+              # 定义哪些返回码做超时容错处理，哪些返回码做出错容灾处理
+              inactive=2|6
+              timeout=1|3
+          </http_retcode>
+
+          <http_router>
+              # 本机绑定host 来测试以下用例
+              # 192.168.2.131 x.tup.cn
+              # <station1>
+              #     server_name=127.0.0.1
+              #     location=/testhost/
+              #     proxy_pass=http://127.0.0.1:8999
+              # </station1>
+          </http_router>
+
+          <db>
+              charset=utf8mb4
+              dbhost =db.tars.com
+              dbname =db_base
+              dbpass =taf2015
+              dbport =3306
+              dbuser =tars
+          </db>
+      </main>
