@@ -78,6 +78,8 @@ public:
 
 protected:
 
+    static string genTraceID(const string& servantName, const string& funcName, const string& host, int reqID);
+
     void getFilter(HandleParam &stParam);
   /**
      * 从HTTP POST Data或者GET参数中取出Tup数据

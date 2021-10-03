@@ -13,8 +13,8 @@ else()
     include (/usr/local/tars/cpp/makefile/tars-tools.cmake)
 endif()
 
-set(TARS_WEB_SERVER "root@172.16.8.227")
-set(TARS_WEB_HOST "172.16.8.227:3000")
+#set(TARS_WEB_SERVER "root@172.16.8.227")
+#set(TARS_WEB_HOST "172.16.8.227:3000")
 
 include_directories(/usr/local/tars/cpp/thirdparty/include)
 link_directories(/usr/local/tars/cpp/thirdparty/lib)

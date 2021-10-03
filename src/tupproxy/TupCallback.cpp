@@ -66,6 +66,17 @@ int TupCallback::onDispatch(ReqMessagePtr msg)
             doResponseException(msg->response->iRet, buff);
         }
     }
+
+    if (!getTraceKey().empty())
+    {
+        string rspData = "tup-bin";
+        if (getType() == "json")
+        {
+            rspData.assign(msg->response->sBuffer.begin(), msg->response->sBuffer.end());
+        }
+        TARS_TRACE(getTraceKey(), TRACE_ANNOTATION_TE, "", "", _stParam.sFuncName, msg->response->iRet, rspData, ""); 
+    }
+
     return 0;
 }
 

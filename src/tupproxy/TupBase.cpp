@@ -18,6 +18,9 @@
 #include "util/tc_parsepara.h"
 #include "util/tc_tea.h"
 #include <zlib.h>
+#include "util/tc_md5.h"
+#include "util/tc_uuid_generator.h"
+#include "TraceControl.h"
 
 //////////////////////////////////////////////////////
 
@@ -582,15 +585,23 @@ int TupBase::parseTupRequest(HandleParam &stParam, RequestPacket &tupRequest)
         return -3;
     }
 
-    tars::TarsInputStream<BufferReader> is;
+    try
+    {
+        tars::TarsInputStream<BufferReader> is;
 
-    is.setBuffer(buffer + 4, l - 4);
+        is.setBuffer(buffer + 4, l - 4);
 
-    tupRequest.readFrom(is);
+        tupRequest.readFrom(is);
 
-    TLOGDEBUG(tupRequest.sServantName << "::" << tupRequest.sFuncName << ", requestid:" << tupRequest.iRequestId << endl);
+        TLOGDEBUG(tupRequest.sServantName << "::" << tupRequest.sFuncName << ", requestid:" << tupRequest.iRequestId << endl);
 
-    return 0;
+        return 0;
+    }
+    catch(const std::exception& e)
+    {
+        TLOGERROR("parseTupRequest:" << e.what() << ", req buffer len:" << length << ", tarslen:" << l << endl);
+    }
+    return -1;
 }
 
 // ServantPrx TupBase::parseTupProxy(const BasePacket& tupRequest, HandleParam& stParam)
@@ -633,6 +644,33 @@ void TupBase::tupAsyncCall(RequestPacket &tup, ServantPrx &proxy, const TupCallb
 
         //设置TARS服务的ServantName
         tup.sServantName = string(proxy->tars_name().substr(0, proxy->tars_name().find("@")));
+
+        //调用链追踪;
+        int traceFlag = TraceControl::getInstance()->check(cb->getServantName(), tup.sFuncName);
+        if (traceFlag >= 0 && traceFlag <= 15)
+        {
+            string traceID = genTraceID(cb->getServantName(), tup.sFuncName, ServerConfig::LocalIp, requestId);
+            stringstream ss;
+            ss << std::hex << traceFlag << "-" << traceID << "|";
+            
+            string traceKey = ss.str() + TC_UUIDGenerator::getInstance()->genID();
+            SET_MSG_TYPE(tup.iMessageType, tars::TARSMESSAGETYPETRACE);
+            tup.status[ServantProxy::STATUS_TRACE_KEY] = traceKey;
+            
+            string reqData = "tup-bin";
+            if (tup.iVersion == tars::JSONVERSION)
+            {
+                reqData.assign(tup.sBuffer.begin(), tup.sBuffer.end());
+            }
+            reqData = TC_Common::replace(reqData, "\n", " ");
+            
+            TARS_TRACE(traceKey, TRACE_ANNOTATION_TS, "TarsGateway", tup.sServantName, tup.sFuncName, 0, reqData, "");
+            TLOG_DEBUG("trace===>" << traceKey << ", " << tup.sServantName << ":" << tup.sFuncName << endl);
+
+            cb->setTraceKey(traceKey);
+        }
+        
+        /////end 调用链追踪
 
         //tup.context.insert(filterHeader.begin(), filterHeader.end());
         //newTup.context = filterHeader;
@@ -701,6 +739,13 @@ void TupBase::tupAsyncCall(RequestPacket &tup, ServantPrx &proxy, const TupCallb
     {
         TLOGERROR("tupAsyncCall error:" << ex.what() << endl);
     }
+}
+
+string TupBase::genTraceID(const string& servantName, const string& funcName, const string& host, int reqID)
+{
+    stringstream ss;
+    ss << servantName << "|" << funcName << "|" << host << "|" << reqID << "|" << TNOW;
+    return TC_MD5::md5str(ss.str());
 }
 
 //////////////////////////////////////////////////////

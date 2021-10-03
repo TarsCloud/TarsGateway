@@ -75,6 +75,21 @@ public:
         return _stParam.sReqIP;
     }
 
+    const string getServantName() const
+    {
+        return _stParam.sServantName;
+    }
+    
+    void setTraceKey(const string& k)
+    {
+        _traceKey = k;
+    }
+
+    string getTraceKey() const
+    {
+        return _traceKey;
+    }
+
     virtual int onDispatch(ReqMessagePtr msg);
 
 protected:
@@ -116,6 +131,7 @@ protected:
     tars::Int32                  _iNewRequestId;
     tars::TarsCurrentPtr          _current;
 
+    string                      _traceKey;
 };
 
 typedef TC_AutoPtr<TupCallback> TupCallbackPtr;

@@ -8,6 +8,7 @@
 #include "util/tc_http.h"
 #include "util/tc_network_buffer.h"
 //include "gperftools/profiler.h"
+#include "tupproxy/TraceControl.h"
 
 using namespace std;
 
@@ -119,6 +120,8 @@ void GatewayServer::initialize()
     TupBase::initStaticParam(conf);
     TupProxyManager::getInstance()->loadProxy(conf);
     //TupProxyManager::getInstance()->start();
+
+    TraceControl::getInstance()->init(conf);
 
     StationManager::getInstance()->init(conf);
     StationManager::getInstance()->start();
