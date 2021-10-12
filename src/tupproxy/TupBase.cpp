@@ -356,6 +356,7 @@ int TupBase::handleTarsRequest(HandleParam &stParam)
         if (ret != 0)
         {
             TLOG_ERROR("parseTupRequest error"
+                      << ", type:" << stParam.proxyType
                       << ",ret:" << ret
                       << ",length:" << stParam.length
                       << ",sGUID:" << stParam.sGUID
