@@ -35,14 +35,14 @@ void HelloImp::destroy()
 
 int HelloImp::testSHello(const std::string &sReq, std::string &sRsp, tars::TarsCurrentPtr current)
 {
-    TLOGDEBUG("HelloImp::testHellosReq:"<<sReq<<endl);
-    TLOGDEBUG("context:" << TC_Common::tostr(current->getContext()) << endl);
+    TLOG_DEBUG("HelloImp::testHellosReq:"<<sReq<<endl);
+    TLOG_DEBUG("context:" << TC_Common::tostr(current->getContext()) << endl);
     sRsp = sReq;
     return 0;
 }
 int HelloImp::testHello(int index, const std::string &s, std::string &r, tars::TarsCurrentPtr current)
 {
-    TLOGDEBUG(index << "|" << s << endl);
+    TLOG_DEBUG(index << "|" << s << endl);
     r = s;
     return 0;
 }

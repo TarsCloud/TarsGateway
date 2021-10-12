@@ -48,19 +48,19 @@ bool FlowControlManager::loadDB()
                 }
                 else
                 {
-                    TLOGDEBUG(sqlCount << ", maxID:" << maxID << ", last id:" << _maxFlowID << endl);
+                    TLOG_DEBUG(sqlCount << ", maxID:" << maxID << ", last id:" << _maxFlowID << endl);
                 }
             }
             else
             {
-                TLOGERROR(sqlCount << " ===> no result." << endl);
+                TLOG_ERROR(sqlCount << " ===> no result." << endl);
                 return false;
             }
         }
 
         string sql = "select f_id, f_station_id, f_duration, f_max_flow, UNIX_TIMESTAMP(f_update_time) AS updatetime from t_flow_control where f_valid = 1 order by f_id desc limit 10000";
         TC_Mysql::MysqlData data = _mysql.queryRecord(sql);
-        TLOGDEBUG(sql << " ===> result size=" << data.size() << endl);
+        TLOG_DEBUG(sql << " ===> result size=" << data.size() << endl);
         map<string, pair<int, int>> controlTmp;
         map<string, vector<int>> flowTmp;
         map<string, size_t> positionTmp;
@@ -81,7 +81,7 @@ bool FlowControlManager::loadDB()
             int flow = TC_Common::strto<int>(data[i]["f_max_flow"]);
             if (duration <= 0 || flow <= 0)
             {
-                TLOGERROR("error config, station:" << stationId << ", duration:" << duration << ", flow:" << flow << endl);
+                TLOG_ERROR("error config, station:" << stationId << ", duration:" << duration << ", flow:" << flow << endl);
                 continue;
             }
             controlTmp[stationId] = make_pair(duration, flow);
@@ -129,13 +129,13 @@ bool FlowControlManager::loadDB()
 
         {
             //TC_ThreadWLock w(_rwLock);
-            TLOGDEBUG("control:" << TC_Common::tostr(_control) << ", new control:" << TC_Common::tostr(controlTmp) << endl);
+            TLOG_DEBUG("control:" << TC_Common::tostr(_control) << ", new control:" << TC_Common::tostr(controlTmp) << endl);
             _control.swap(controlTmp);
-            TLOGDEBUG("flow:" << TC_Common::tostr(_flow) << ", new flow:" << TC_Common::tostr(flowTmp) << endl);
+            TLOG_DEBUG("flow:" << TC_Common::tostr(_flow) << ", new flow:" << TC_Common::tostr(flowTmp) << endl);
             _flow.swap(flowTmp);
-            TLOGDEBUG("postion:" << TC_Common::tostr(_flow) << ", new postion:" << TC_Common::tostr(flowTmp) << endl);
+            TLOG_DEBUG("postion:" << TC_Common::tostr(_flow) << ", new postion:" << TC_Common::tostr(flowTmp) << endl);
             _position.swap(positionTmp);
-            TLOGDEBUG("flowcount:" << TC_Common::tostr(_flow) << ", new flowcount:" << TC_Common::tostr(flowTmp) << endl);
+            TLOG_DEBUG("flowcount:" << TC_Common::tostr(_flow) << ", new flowcount:" << TC_Common::tostr(flowTmp) << endl);
             _flowCount.swap(flowCountTmp);
             _maxFlowID = maxFlowID;
             _latestDBUpdateTime = maxTime;
@@ -145,7 +145,7 @@ bool FlowControlManager::loadDB()
     }
     catch (const std::exception &e)
     {
-        TLOGERROR("exception:" << e.what() << endl);
+        TLOG_ERROR("exception:" << e.what() << endl);
     }
     return false;
 }
@@ -170,7 +170,7 @@ bool FlowControlManager::check(const string &stationId)
 
 int FlowControlManager::report(const map<string, int> &flow, const string &ip)
 {
-    TLOGDEBUG("ip:" << ip << ", flow:" << TC_Common::tostr(flow) << endl);
+    TLOG_DEBUG("ip:" << ip << ", flow:" << TC_Common::tostr(flow) << endl);
 
     TC_LockT<TC_ThreadMutex> lock(_mutex);
     for (auto it = flow.begin(); it != flow.end(); ++it)
@@ -245,13 +245,13 @@ void FlowControlManager::run()
                     flowRemain[it->first] = max(_control[it->first].second - _flowCount[it->first], 0);
                     if (flowRemain[it->first] == 0)
                     {
-                        TLOGDEBUG("station:" << it->first << ", index:" << index << ", flow:" << TC_Common::tostr(it->second) << endl);
+                        TLOG_DEBUG("station:" << it->first << ", index:" << index << ", flow:" << TC_Common::tostr(it->second) << endl);
                     }
                     _position[it->first] = (_position[it->first] + 1) % it->second.size();
                 }
-                //TLOGDEBUG("flowsecond:" << TC_Common::tostr(_flowSecond) << endl);
+                //TLOG_DEBUG("flowsecond:" << TC_Common::tostr(_flowSecond) << endl);
                 flowTmp.swap(_flowSecond);
-                //TLOGDEBUG("flowTmp:" << TC_Common::tostr(flowTmp) << endl);
+                //TLOG_DEBUG("flowTmp:" << TC_Common::tostr(flowTmp) << endl);
                 _flowSecond.clear();
                 _flowSecondReport.clear();
                 _flowRemain.swap(flowRemain);
@@ -267,11 +267,11 @@ void FlowControlManager::run()
         }
         catch (exception &ex)
         {
-            TLOGERROR("exception:" << ex.what() << endl);
+            TLOG_ERROR("exception:" << ex.what() << endl);
         }
         catch (...)
         {
-            TLOGERROR("exception unknown error." << endl);
+            TLOG_ERROR("exception unknown error." << endl);
         }
 
         TC_ThreadLock::Lock lock(*this);

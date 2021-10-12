@@ -53,13 +53,13 @@ void TupBase::initializeBase()
 {
     loadFilterHeader();
 
-    TLOGDEBUG("initializeBase OK!" << endl);
+    TLOG_DEBUG("initializeBase OK!" << endl);
 }
 
 void TupBase::destroyBase()
 {
 
-    TLOGDEBUG("destroyBase OK!" << endl);
+    TLOG_DEBUG("destroyBase OK!" << endl);
 }
 
 // 初始化静态配置
@@ -84,9 +84,9 @@ int TupBase::initStaticParam(const TC_Config &conf)
 
 bool TupBase::reloadFilterHeader(const string &command, const string &params, string &result)
 {
-    TLOGDEBUG("command:" << command << endl);
+    TLOG_DEBUG("command:" << command << endl);
     result = loadFilterHeader();
-    TLOGDEBUG("result:" << result << endl);
+    TLOG_DEBUG("result:" << result << endl);
     return true;
 }
 
@@ -103,13 +103,13 @@ string TupBase::loadFilterHeader()
 
         _sHttpHeader = TC_Common::upper(conf.get("/main/hash<httpheader>"));
 
-        TLOGDEBUG(TC_Common::tostr(_headers) << "|" << _hashType << "|" << _sHttpHeader << endl);
+        TLOG_DEBUG(TC_Common::tostr(_headers) << "|" << _hashType << "|" << _sHttpHeader << endl);
 
         return "reload ok";
     }
     catch (exception &ex)
     {
-        TLOGERROR("error:" << ex.what() << endl);
+        TLOG_ERROR("error:" << ex.what() << endl);
         return string("loadFilterHeader config error:") + ex.what();
     }
 
@@ -240,7 +240,7 @@ int TupBase::setRspEncodingToHeader(const TC_HttpRequest &httpRequest, pair<stri
         sHeadList += "X-S-Encrypt;";
     }
 
-    TLOGDEBUG("Zip.first:" << pairAcceptZip.first
+    TLOG_DEBUG("Zip.first:" << pairAcceptZip.first
                            << ", Zip.second:" << pairAcceptZip.second
                            << ", Ept.first:" << pairAcceptEpt.first
                            << ", Ept.second:" << pairAcceptEpt.second
@@ -262,7 +262,7 @@ int TupBase::getDataFromHTTPRequest(const TC_HttpRequest &httpRequest, vector<ch
 
     if (buffer.size() == 0)
     {
-        TLOGDEBUG("buffer result is empty" << endl);
+        TLOG_DEBUG("buffer result is empty" << endl);
         ReportHelper::reportStat(g_app.getLocalServerName(), "RequestMonitor", "TupDataEmpyErr", -1);
         return 1;
     }
@@ -289,12 +289,12 @@ int TupBase::getRealDataByDecode(vector<char> &sRealTupData, HandleParam &stPara
         bool bEpt = TC_Tea::decrypt(stParam.sEncryptKey.c_str(), &sRealTupData[0], sRealTupData.size(), sTempData);
         if (!bEpt)
         {
-            TLOGERROR("http protocol decrypt error, iOrgLen:" << iOrgLen << endl);
+            TLOG_ERROR("http protocol decrypt error, iOrgLen:" << iOrgLen << endl);
             ReportHelper::reportStat(g_app.getLocalServerName(), "RequestMonitor", "DecryptErr", -1);
             return -1;
         }
 
-        TLOGDEBUG("TeaDecrypt OK, " << iOrgLen << "->" << sRealTupData.size() << endl);
+        TLOG_DEBUG("TeaDecrypt OK, " << iOrgLen << "->" << sRealTupData.size() << endl);
 
         sTempData.swap(sRealTupData);
     }
@@ -305,13 +305,13 @@ int TupBase::getRealDataByDecode(vector<char> &sRealTupData, HandleParam &stPara
         bool bGzip = TC_GZip::uncompress(&sRealTupData[0], sRealTupData.size(), sTempData);
         if (!bGzip)
         {
-            TLOGERROR("http protocol gzip uncompress error, iOrgLen:" << iOrgLen << endl);
+            TLOG_ERROR("http protocol gzip uncompress error, iOrgLen:" << iOrgLen << endl);
             ReportHelper::reportStat(g_app.getLocalServerName(), "RequestMonitor", "UncompressErr", -1);
             return -2;
         }
 
         sRealTupData.swap(sTempData);
-        TLOGDEBUG("gzipUncompress OK, " << iOrgLen << "->" << sRealTupData.size() << endl);
+        TLOG_DEBUG("gzipUncompress OK, " << iOrgLen << "->" << sRealTupData.size() << endl);
     }
 
     return 0;
@@ -355,7 +355,7 @@ int TupBase::handleTarsRequest(HandleParam &stParam)
 
         if (ret != 0)
         {
-            TLOGERROR("parseTupRequest error"
+            TLOG_ERROR("parseTupRequest error"
                       << ",ret:" << ret
                       << ",length:" << stParam.length
                       << ",sGUID:" << stParam.sGUID
@@ -373,13 +373,13 @@ int TupBase::handleTarsRequest(HandleParam &stParam)
 
         if (!proxy)
         {
-            TLOGERROR("tup request no match proxy error, "
+            TLOG_ERROR("tup request no match proxy error, "
                       << ", sServantName:" << tupRequest.sServantName
                       << ", sFuncName:" << tupRequest.sFuncName
                       << ", sGUID:" << stParam.sGUID
                       << endl);
 
-            TLOGERROR("parseTupProxy error, sGUID:" << stParam.sGUID << endl);
+            TLOG_ERROR("parseTupProxy error, sGUID:" << stParam.sGUID << endl);
 
             ReportHelper::reportStat(g_app.getLocalServerName(), "RequestMonitor", "GetProxyErr", -1);
             ProxyUtils::doErrorRsp(404, stParam.current, stParam.httpKeepAlive);
@@ -392,19 +392,19 @@ int TupBase::handleTarsRequest(HandleParam &stParam)
 
         if (!STATIONMNG->checkWhiteList(proxy->tars_name(), stParam.sIP))
         {
-            TLOGERROR(stParam.sIP << " is not in " << proxy->tars_name() << " 's white list, obj:" << tupRequest.sServantName << ":" << tupRequest.sFuncName << endl);
+            TLOG_ERROR(stParam.sIP << " is not in " << proxy->tars_name() << " 's white list, obj:" << tupRequest.sServantName << ":" << tupRequest.sFuncName << endl);
             ProxyUtils::doErrorRsp(403, stParam.current, stParam.httpKeepAlive);
             return 0;
         }
         else if (STATIONMNG->isInBlackList(proxy->tars_name(), stParam.sIP))
         {
-            TLOGERROR(stParam.sIP << " is in " << proxy->tars_name() << " 's black list, obj:" << tupRequest.sServantName << ":" << tupRequest.sFuncName << endl);
+            TLOG_ERROR(stParam.sIP << " is in " << proxy->tars_name() << " 's black list, obj:" << tupRequest.sServantName << ":" << tupRequest.sFuncName << endl);
             ProxyUtils::doErrorRsp(403, stParam.current, stParam.httpKeepAlive);
             return 0;
         }
         else if (!FlowControlManager::getInstance()->check(proxy->tars_name()))
         {
-            TLOGERROR("tars request:" << proxy->tars_name() << " flowcontrol false!!!" << endl);
+            TLOG_ERROR("tars request:" << proxy->tars_name() << " flowcontrol false!!!" << endl);
             ProxyUtils::doErrorRsp(429, stParam.current, stParam.httpKeepAlive);
             return 0;
         }
@@ -484,7 +484,7 @@ int TupBase::handleTarsRequest(HandleParam &stParam)
 
     ProxyUtils::doErrorRsp(400, stParam.current, stParam.httpKeepAlive);
 
-    TLOGERROR("exception: " << sErrMsg << ",sGUID:" << stParam.sGUID << endl);
+    TLOG_ERROR("exception: " << sErrMsg << ",sGUID:" << stParam.sGUID << endl);
 
     ReportHelper::reportStat(g_app.getLocalServerName(), "RequestMonitor", "ReqException2Num", -1);
 
@@ -505,7 +505,7 @@ int TupBase::parseJsonRequest(HandleParam &stParam, RequestPacket &tupRequest)
             vector<string> vs = TC_Common::sepstr<string>(stParam.httpRequest.getRequestUrl(), "/");
             if (vs.size() < 3)
             {
-                TLOGERROR("parse json url fail:" << stParam.httpRequest.getRequestUrl() << endl);
+                TLOG_ERROR("parse json url fail:" << stParam.httpRequest.getRequestUrl() << endl);
                 return -1;
             }
 
@@ -519,7 +519,7 @@ int TupBase::parseJsonRequest(HandleParam &stParam, RequestPacket &tupRequest)
         else
         {
 
-            TLOGDEBUG("buff:" << buff << endl);
+            TLOG_DEBUG("buff:" << buff << endl);
 
             tars::JsonValuePtr p = tars::TC_Json::getValue(buff);
             tars::JsonValueObjPtr pObj = tars::JsonValueObjPtr::dynamicCast(p);
@@ -536,7 +536,7 @@ int TupBase::parseJsonRequest(HandleParam &stParam, RequestPacket &tupRequest)
             tars::JsonInput::readJson(data, pObj->value["data"], true);
             if (data.empty())
             {
-                TLOGERROR("parseJsonRequest error, data is empty!!!" << endl);
+                TLOG_ERROR("parseJsonRequest error, data is empty!!!" << endl);
                 return -1;
             }
             tupRequest.sBuffer.resize(data.length());
@@ -548,7 +548,7 @@ int TupBase::parseJsonRequest(HandleParam &stParam, RequestPacket &tupRequest)
     }
     catch (exception &ex)
     {
-        TLOGERROR("exception:" << ex.what() << endl);
+        TLOG_ERROR("exception:" << ex.what() << endl);
     }
 
     return -1;
@@ -561,7 +561,7 @@ int TupBase::parseTupRequest(HandleParam &stParam, RequestPacket &tupRequest)
     //长度保护
     if (length < sizeof(uint32_t))
     {
-        TLOGERROR("tup error: tup packet length < 4, length:" << length << endl);
+        TLOG_ERROR("tup error: tup packet length < 4, length:" << length << endl);
         return -1;
     }
 
@@ -572,13 +572,13 @@ int TupBase::parseTupRequest(HandleParam &stParam, RequestPacket &tupRequest)
     //长度保护
     if (l > length)
     {
-        TLOGERROR("tup error: " << l << " > " << length << endl);
+        TLOG_ERROR("tup error: " << l << " > " << length << endl);
         return -2;
     }
 
     if (l <= 4)
     {
-        TLOGERROR("tup error: l:" << l << " <= 4, length:" << length << endl);
+        TLOG_ERROR("tup error: l:" << l << " <= 4, length:" << length << endl);
         return -3;
     }
 
@@ -588,7 +588,7 @@ int TupBase::parseTupRequest(HandleParam &stParam, RequestPacket &tupRequest)
 
     tupRequest.readFrom(is);
 
-    TLOGDEBUG(tupRequest.sServantName << "::" << tupRequest.sFuncName << ", requestid:" << tupRequest.iRequestId << endl);
+    TLOG_DEBUG(tupRequest.sServantName << "::" << tupRequest.sFuncName << ", requestid:" << tupRequest.iRequestId << endl);
 
     return 0;
 }
@@ -599,7 +599,7 @@ int TupBase::parseTupRequest(HandleParam &stParam, RequestPacket &tupRequest)
 
 // 	if (!proxy)
 // 	{
-// 		TLOGERROR("tup request no match proxy error, "
+// 		TLOG_ERROR("tup request no match proxy error, "
 // 			<< ", sServantName:" << tupRequest.sServantName
 // 			<< ", sFuncName:" << tupRequest.sFuncName
 // 			<< ", sGUID:" << stParam.sGUID
@@ -652,7 +652,7 @@ void TupBase::tupAsyncCall(RequestPacket &tup, ServantPrx &proxy, const TupCallb
         cb->setNewRequestId(requestId);
 
         //异步发送出去(用requestId hash来发送)
-        TLOGDEBUG("tars_name:" << proxy->tars_name() << endl);
+        TLOG_DEBUG("tars_name:" << proxy->tars_name() << endl);
 
         string sHashType;
         if (tup.context.find(CTX_TARSHASH_KEY) != tup.context.end() && tup.context[CTX_TARSHASH_KEY].length() > 0)
@@ -686,7 +686,7 @@ void TupBase::tupAsyncCall(RequestPacket &tup, ServantPrx &proxy, const TupCallb
             proxy->rpc_call_async(requestId, tup.sFuncName, s.c_str(), s.length(), cb);
         }
 
-        TLOGDEBUG(tup.sServantName << "::" << tup.sFuncName << ", version:" << (int)tup.iVersion << ", hash:" << sHashType << ", async call succ." << endl);
+        TLOG_DEBUG(tup.sServantName << "::" << tup.sFuncName << ", version:" << (int)tup.iVersion << ", hash:" << sHashType << ", async call succ." << endl);
 
         FDLOG("call") << tup.sServantName + "::" + tup.sFuncName << "|" << sHttpHeaderValue
                       << "|iRequestId:" << tup.iRequestId
@@ -699,7 +699,7 @@ void TupBase::tupAsyncCall(RequestPacket &tup, ServantPrx &proxy, const TupCallb
     }
     catch (exception &ex)
     {
-        TLOGERROR("tupAsyncCall error:" << ex.what() << endl);
+        TLOG_ERROR("tupAsyncCall error:" << ex.what() << endl);
     }
 }
 

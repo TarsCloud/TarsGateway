@@ -84,7 +84,7 @@ public:
             current->close();
         }
 
-        TLOGDEBUG(statusCode << "|" << data << endl);
+        TLOG_DEBUG(statusCode << "|" << data << endl);
     }
 
 };

@@ -50,7 +50,7 @@ public:
 
     ~AddrProxy()
     {
-      TLOGERROR(getID() << " destroy." << endl);
+      TLOG_ERROR(getID() << " destroy." << endl);
     }
     //void finishCall(E_HTTP_RESLUT reslut);
     void doFinish(bool bFail);
