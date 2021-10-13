@@ -69,12 +69,25 @@ int TupCallback::onDispatch(ReqMessagePtr msg)
 
     if (!getTraceKey().empty())
     {
-        string rspData = "tup-bin";
-        if (getType() == "json")
+        string _trace_param_;
+        int _trace_param_flag_ = ServantProxyThreadData::needTraceParam(ServantProxyThreadData::TraceContext::EST_TE, getTraceKey(), msg->response->sBuffer.size());
+        if (ServantProxyThreadData::TraceContext::ENP_NORMAL == _trace_param_flag_)
         {
-            rspData.assign(msg->response->sBuffer.begin(), msg->response->sBuffer.end());
+            if (getType() == "json")
+            {
+                _trace_param_.assign(msg->response->sBuffer.begin(), msg->response->sBuffer.end());
+            }
+            else
+            {
+                _trace_param_ = "tup-bin";
+            }
         }
-        TARS_TRACE(getTraceKey(), TRACE_ANNOTATION_TE, "", "", _stParam.sFuncName, msg->response->iRet, rspData, ""); 
+        else if(ServantProxyThreadData::TraceContext::ENP_OVERMAXLEN == _trace_param_flag_)
+        {
+            _trace_param_ = "{\"trace_param_over_max_len\":true, \"data_len\":" + TC_Common::tostr(msg->response->sBuffer.size()) + "}";
+        }
+        
+        TARS_TRACE(getTraceKey(), TRACE_ANNOTATION_TE, ServerConfig::Application + "." + ServerConfig::ServerName, _stParam.sServantName, _stParam.sFuncName, msg->response->iRet, _trace_param_, ""); 
     }
 
     return 0;

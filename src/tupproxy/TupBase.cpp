@@ -651,20 +651,32 @@ void TupBase::tupAsyncCall(RequestPacket &tup, ServantPrx &proxy, const TupCallb
         {
             string traceID = genTraceID(cb->getServantName(), tup.sFuncName, ServerConfig::LocalIp, requestId);
             stringstream ss;
-            ss << std::hex << traceFlag << "-" << traceID << "|";
+            ss << std::hex << traceFlag << "." << TraceControl::getInstance()->getParamMaxLen() << "-" << traceID << "|";
             
-            string traceKey = ss.str() + TC_UUIDGenerator::getInstance()->genID();
+            string spanID = TC_UUIDGenerator::getInstance()->genID();
+            string traceKey = ss.str() + spanID + "|" + spanID;
             SET_MSG_TYPE(tup.iMessageType, tars::TARSMESSAGETYPETRACE);
             tup.status[ServantProxy::STATUS_TRACE_KEY] = traceKey;
             
-            string reqData = "tup-bin";
-            if (tup.iVersion == tars::JSONVERSION)
+            string _trace_param_;
+            int _trace_param_flag_ = ServantProxyThreadData::needTraceParam(ServantProxyThreadData::TraceContext::EST_TS, traceKey, tup.sBuffer.size());
+            if (ServantProxyThreadData::TraceContext::ENP_NORMAL == _trace_param_flag_)
             {
-                reqData.assign(tup.sBuffer.begin(), tup.sBuffer.end());
+                if (tup.iVersion == tars::JSONVERSION)
+                {
+                    _trace_param_.assign(tup.sBuffer.begin(), tup.sBuffer.end());
+                }
+                else
+                {
+                    _trace_param_ = "tup-bin";
+                }
             }
-            reqData = TC_Common::replace(reqData, "\n", " ");
+            else if(ServantProxyThreadData::TraceContext::ENP_OVERMAXLEN == _trace_param_flag_)
+            {
+                _trace_param_ = "{\"trace_param_over_max_len\":true, \"data_len\":" + TC_Common::tostr(tup.sBuffer.size()) + "}";
+            }
             
-            TARS_TRACE(traceKey, TRACE_ANNOTATION_TS, "TarsGateway", tup.sServantName, tup.sFuncName, 0, reqData, "");
+            TARS_TRACE(traceKey, TRACE_ANNOTATION_TS, ServerConfig::Application + "." + ServerConfig::ServerName, tup.sServantName, tup.sFuncName, 0, _trace_param_, "");
             TLOG_DEBUG("trace===>" << traceKey << ", " << tup.sServantName << ":" << tup.sFuncName << endl);
 
             cb->setTraceKey(traceKey);
