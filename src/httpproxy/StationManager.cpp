@@ -77,7 +77,7 @@ bool StationManager::loadHttpRouterConf(vector<RouterParam> &paramList)
     try
     {
         vector<string> stationList = _conf.getDomainVector("/main/http_router");
-        TLOGDEBUG("stationList:" << stationList.size() << endl);
+        TLOG_DEBUG("stationList:" << stationList.size() << endl);
         for (size_t i = 0; i < stationList.size(); i++)
         {
             RouterParam rp;
@@ -90,7 +90,7 @@ bool StationManager::loadHttpRouterConf(vector<RouterParam> &paramList)
             rp.proxyPass = m["proxy_pass"];
             if (rp.location.empty() || rp.proxyPass.empty())
             {
-                TLOGERROR("error conf:" << rp.stationId << ", " << TC_Common::tostr(m) << endl);
+                TLOG_ERROR("error conf:" << rp.stationId << ", " << TC_Common::tostr(m) << endl);
                 continue;
             }
             paramList.push_back(rp);
@@ -100,7 +100,7 @@ bool StationManager::loadHttpRouterConf(vector<RouterParam> &paramList)
     }
     catch (const std::exception &e)
     {
-        TLOGERROR(e.what() << endl);
+        TLOG_ERROR(e.what() << endl);
     }
 
     return false;
@@ -113,7 +113,7 @@ bool StationManager::loadRouter()
     {
         string sql = "select f_id, f_station_id, f_server_name, f_path_rule, f_proxy_pass, UNIX_TIMESTAMP(f_update_time) AS updatetime from t_http_router where f_valid = 1 and f_id > 0 order by f_id limit 100000";
         TC_Mysql::MysqlData data = _mysql.queryRecord(sql);
-        TLOGDEBUG(sql << " ===> result size=" << data.size() << endl);
+        TLOG_DEBUG(sql << " ===> result size=" << data.size() << endl);
         for (size_t i = 0; i < data.size(); i++)
         {
             RouterParam rp;
@@ -124,7 +124,7 @@ bool StationManager::loadRouter()
             rp.stationId = TC_Common::trim(data[i]["f_station_id"]);
             if (rp.location.empty() || rp.proxyPass.empty())
             {
-                TLOGERROR("error db conf:" << rp.id << "|" << rp.serverName << "|" << rp.location << "|" << rp.proxyPass << "|" << rp.stationId << endl);
+                TLOG_ERROR("error db conf:" << rp.id << "|" << rp.serverName << "|" << rp.location << "|" << rp.proxyPass << "|" << rp.stationId << endl);
                 continue;
             }
 
@@ -133,7 +133,7 @@ bool StationManager::loadRouter()
     }
     catch (const std::exception &e)
     {
-        TLOGERROR("exception:" << e.what() << endl);
+        TLOG_ERROR("exception:" << e.what() << endl);
     }
 
     // 合并配置文件内容
@@ -153,7 +153,7 @@ bool StationManager::loadMonitor()
     {
         string sql = "select f_station_id, f_monitor_url from t_station where f_valid = 1 limit 10000";
         TC_Mysql::MysqlData data = _mysql.queryRecord(sql);
-        TLOGDEBUG(sql << " ===> result size=" << data.size() << endl);
+        TLOG_DEBUG(sql << " ===> result size=" << data.size() << endl);
         unordered_map<string, string> monitorUrl;
         for (size_t i = 0; i < data.size(); i++)
         {
@@ -168,7 +168,7 @@ bool StationManager::loadMonitor()
     }
     catch (const std::exception &e)
     {
-        TLOGERROR("exception:" << e.what() << endl);
+        TLOG_ERROR("exception:" << e.what() << endl);
     }
 
     return false;
@@ -180,7 +180,7 @@ bool StationManager::loadBlackList()
     {
         string sql = "select f_station_id, f_ip from t_blacklist where f_valid = 1 limit 10000";
         TC_Mysql::MysqlData data = _mysql.queryRecord(sql);
-        TLOGDEBUG(sql << " ===> result size=" << data.size() << endl);
+        TLOG_DEBUG(sql << " ===> result size=" << data.size() << endl);
 
         unordered_map<string, set<string>> blackList;
         unordered_map<string, set<string>> blackListPat;
@@ -207,7 +207,7 @@ bool StationManager::loadBlackList()
     }
     catch (const std::exception &e)
     {
-        TLOGERROR("exception:" << e.what() << endl);
+        TLOG_ERROR("exception:" << e.what() << endl);
     }
 
     return false;
@@ -218,7 +218,7 @@ bool StationManager::loadWhiteList()
     {
         string sql = "select f_station_id, f_ip from t_whitelist where f_valid = 1 limit 100000";
         TC_Mysql::MysqlData data = _mysql.queryRecord(sql);
-        TLOGDEBUG(sql << " ===> result size=" << data.size() << endl);
+        TLOG_DEBUG(sql << " ===> result size=" << data.size() << endl);
         unordered_map<string, set<string>> whiteList;
         unordered_map<string, set<string>> whiteListPat;
         for (size_t i = 0; i < data.size(); i++)
@@ -244,7 +244,7 @@ bool StationManager::loadWhiteList()
     }
     catch (const std::exception &e)
     {
-        TLOGERROR("exception:" << e.what() << endl);
+        TLOG_ERROR("exception:" << e.what() << endl);
     }
 
     return false;
@@ -260,11 +260,11 @@ void StationManager::run()
         }
         catch (exception &ex)
         {
-            TLOGERROR("exception:" << ex.what() << endl);
+            TLOG_ERROR("exception:" << ex.what() << endl);
         }
         catch (...)
         {
-            TLOGERROR("exception unknown error." << endl);
+            TLOG_ERROR("exception unknown error." << endl);
         }
 
         TC_ThreadLock::Lock lock(*this);
@@ -354,7 +354,7 @@ void StationManager::flushObj()
                 }
             }
 
-            TLOGDEBUG(*it << ", addList:" << TC_Common::tostr(epList) << endl);
+            TLOG_DEBUG(*it << ", addList:" << TC_Common::tostr(epList) << endl);
             {
                 TC_ThreadWLock w(_rwLock);
                 _ObjProxy[*it].addrList = addrList;
@@ -365,7 +365,7 @@ void StationManager::flushObj()
         }
         else
         {
-            TLOGERROR(*it << ", has no valid tars enpoint." << endl);
+            TLOG_ERROR(*it << ", has no valid tars enpoint." << endl);
         }
     }
 }
@@ -435,7 +435,7 @@ bool StationManager::loadUpstream()
     {
         string sql = "select f_id, f_upstream, f_addr, f_weight, f_fusing_onoff, UNIX_TIMESTAMP(f_update_time) AS updatetime from t_upstream where f_valid = 1 order by f_id desc limit 100000";
         TC_Mysql::MysqlData data = _mysql.queryRecord(sql);
-        TLOGDEBUG(sql << " ===> result size=" << data.size() << endl);
+        TLOG_DEBUG(sql << " ===> result size=" << data.size() << endl);
         unordered_map<string, ProxyAddrInfo> proxy;
 
         for (size_t i = 0; i < data.size(); i++)
@@ -458,7 +458,7 @@ bool StationManager::loadUpstream()
     }
     catch (const std::exception &e)
     {
-        TLOGERROR("exception:" << e.what() << endl);
+        TLOG_ERROR("exception:" << e.what() << endl);
     }
 
     return false;

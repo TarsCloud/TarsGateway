@@ -87,7 +87,7 @@ void AddrProxy::doFinish(bool bFail)
         if (_frequenceFailInvoke >= frequenceFailInvoke && t >= _frequenceFailTime)
         {
             setTimeout(true);
-            TLOGERROR( _upstream << "," << _addr
+            TLOG_ERROR( _upstream << "," << _addr
                       << ",disable frequenceFail,freqtimeout:" << _frequenceFailInvoke
                       << ",timeout:" << _timeoutInvoke
                       << ",total:" << _totalInvoke << "] " << endl);
@@ -108,7 +108,7 @@ void AddrProxy::doFinish(bool bFail)
         if (bFail && _timeoutInvoke >= minTimeoutInvoke && _timeoutInvoke*100 >= radio_100 * _totalInvoke)
         {
             setTimeout(true);
-            TLOGERROR( _upstream << "," << _addr
+            TLOG_ERROR( _upstream << "," << _addr
                       << ",disable radioFail,freqtimeout:" << _frequenceFailInvoke
                       << ",timeout:" << _timeoutInvoke
                       << ",total:" << _totalInvoke << "] " << endl);
@@ -133,7 +133,7 @@ bool AddrProxy::check()
         }
     }
 
-    TLOGDEBUG(getID() << endl);
+    TLOG_DEBUG(getID() << endl);
     time_t t = TNOW;
     if (t < _nextCheckTime)
     {
@@ -191,18 +191,18 @@ bool AddrProxy::checkConnect(const string& host, uint16_t port, int timeout)
     {
         if (errno == EINPROGRESS) 
         {
-            TLOGDEBUG("connect " << host << ":" << port << " timeout." << endl);
+            TLOG_DEBUG("connect " << host << ":" << port << " timeout." << endl);
         }
         else
         {
-            TLOGDEBUG(host << ":" << port << " connect error:" << errno << ", " << strerror(errno) << endl);
+            TLOG_DEBUG(host << ":" << port << " connect error:" << errno << ", " << strerror(errno) << endl);
         }
 	    
         ::close(fd);
         return false;
     }
 
-    TLOGDEBUG(host << ":" << port << " connect succ." << endl);
+    TLOG_DEBUG(host << ":" << port << " connect succ." << endl);
 	
     ::close(fd);
     return true;    
@@ -236,7 +236,7 @@ bool AddrProxy::doHttpMonitor(const string& url)
         string::size_type pos2 = url.find("/", pos1);
         if (pos2 == string::npos)
         {
-            TLOGERROR("parse monitor url error:" << url << endl);
+            TLOG_ERROR("parse monitor url error:" << url << endl);
             return doTcpMonitor(_addr);
         }
 
@@ -253,18 +253,18 @@ bool AddrProxy::doHttpMonitor(const string& url)
         int iRet = stHttpReq.doRequest(stHttpRsp, 3000);
         if(iRet == 0 && stHttpRsp.getStatus() == 200)
         {
-            TLOGDEBUG(_upstream << "|" << reqUrl << " do monitor succ." << endl);
+            TLOG_DEBUG(_upstream << "|" << reqUrl << " do monitor succ." << endl);
             return true;
         }
         else
         {
-            TLOGDEBUG(_upstream << "|" << reqUrl << "|" << iRet << "|" << stHttpRsp.getStatus() << endl);
+            TLOG_DEBUG(_upstream << "|" << reqUrl << "|" << iRet << "|" << stHttpRsp.getStatus() << endl);
             return false;
         }
     }
     catch(const std::exception& e)
     {
-        TLOGERROR(url << ", exception:" << e.what() << endl);
+        TLOG_ERROR(url << ", exception:" << e.what() << endl);
     }
     return false;
 }
@@ -286,12 +286,12 @@ HttpProxy::~HttpProxy()
     {
         it->second->destroy();
     }
-    TLOGERROR(_upstream << " HttpProxy destroy." << endl);
+    TLOG_ERROR(_upstream << " HttpProxy destroy." << endl);
 }
 
 void HttpProxy::setAddr(const vector<UpstreamInfo>& vs, const string& ver)
 {
-    TLOGDEBUG(vs.size() << "|" << ver << "|" << _addrVer << endl);
+    TLOG_DEBUG(vs.size() << "|" << ver << "|" << _addrVer << endl);
     if (ver == _addrVer)
     {
         return;
@@ -340,7 +340,7 @@ AddrPrx HttpProxy::getProxy()
     size_t total = _addrPrxList.size();
     if (total == 1)
     {
-        TLOGDEBUG("only one addr proxy, just return!" << endl);
+        TLOG_DEBUG("only one addr proxy, just return!" << endl);
         return _addrPrxList.begin()->second;
     }
 
@@ -353,7 +353,7 @@ AddrPrx HttpProxy::getProxy()
         }
 
         AddrProxy::E_ADDR_STATUS x = _prxIterator->second->available();
-        TLOGDEBUG("select_proxy[" << i << "/" << total << "]" << _prxIterator->second->getID() << "|" << x << endl);
+        TLOG_DEBUG("select_proxy[" << i << "/" << total << "]" << _prxIterator->second->getID() << "|" << x << endl);
         if (AddrProxy::EAS_SUCC == x)
         {
             prx = _prxIterator->second;
@@ -371,7 +371,7 @@ AddrPrx HttpProxy::getProxy()
     if (prx)
     {
         prx->incCount();
-        TLOGDEBUG("select_proxy return proxy:" << prx->getID() << endl);
+        TLOG_DEBUG("select_proxy return proxy:" << prx->getID() << endl);
     }
 
     return prx;
@@ -418,11 +418,11 @@ void AddrCheckThread::run()
         }
         catch(exception &ex)
         {
-            TLOGERROR("exception:" << ex.what() << endl);
+            TLOG_ERROR("exception:" << ex.what() << endl);
         }
         catch(...)
         {
-            TLOGERROR("exception unknown error." << endl);
+            TLOG_ERROR("exception unknown error." << endl);
         }
 
         TC_ThreadLock::Lock lock(*this);

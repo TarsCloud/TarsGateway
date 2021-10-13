@@ -4,8 +4,8 @@
 
 void AsyncHttpCallback::onSucc(TC_HttpResponse &stHttpResponse)
 {
-    TLOGDEBUG("onSucc, content length:" << stHttpResponse.getContent().length() << endl);
-    //TLOGDEBUG(stHttpResponse.genHeader() << endl);
+    TLOG_DEBUG("onSucc, content length:" << stHttpResponse.getContent().length() << endl);
+    //TLOG_DEBUG(stHttpResponse.genHeader() << endl);
     _aLog->status = stHttpResponse.getStatus();
     _aLog->rspSize = stHttpResponse.getContent().length();
     _aLog->iRet = 0;
@@ -34,7 +34,7 @@ bool AsyncHttpCallback::onContinue(TC_HttpResponse &stHttpResponse)
 
 void AsyncHttpCallback::onFailed(FAILED_CODE ret, const string &info)
 {
-    TLOGERROR("onFailed:" << ret << ", " << info << "|" << _url << "|" << _addrPrx->getAddr() << endl);
+    TLOG_ERROR("onFailed:" << ret << ", " << info << "|" << _url << "|" << _addrPrx->getAddr() << endl);
 //    ERR_DAY_LOG << _addrPrx->getAddr() << _url << "|" << ret << "|" << info << endl;
     _aLog->status = 502;
     _aLog->errorMsg = "http fail:" + TC_Common::tostr(ret);
@@ -69,5 +69,5 @@ void AsyncHttpCallback::onFailed(FAILED_CODE ret, const string &info)
 
 void AsyncHttpCallback::onClose()
 {
-    TLOGDEBUG("onClose" << endl);
+    TLOG_DEBUG("onClose" << endl);
 }

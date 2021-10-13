@@ -191,7 +191,7 @@ public:
     {
         if (!_router)
         {
-            TLOGERROR("router is not already!" << endl);
+            TLOG_ERROR("router is not already!" << endl);
             return false;
         }
         return _router->parse(host, url, result);

@@ -19,31 +19,31 @@ GatewayServer g_app;
 /////////////////////////////////////////////////////////////////
 bool GatewayServer::loadProxy(const string &command, const string &params, string &result)
 {
-    TLOGDEBUG("command:" << command << endl);
+    TLOG_DEBUG("command:" << command << endl);
     addConfig(ServerConfig::ServerName + ".conf");
     TC_Config conf;
     conf.parseFile(ServerConfig::BasePath + ServerConfig::ServerName + ".conf");
     result = TupProxyManager::getInstance()->loadProxy(conf);
-    TLOGDEBUG("result:" << result << endl);
+    TLOG_DEBUG("result:" << result << endl);
     return true;
 }
 
 bool GatewayServer::loadHttp(const string &command, const string &params, string &result)
 {
-    TLOGDEBUG("[GatewayServer::loadHttp] command:" << command << endl);
+    TLOG_DEBUG("[GatewayServer::loadHttp] command:" << command << endl);
     addConfig(ServerConfig::ServerName + ".conf");
     TC_Config conf;
     conf.parseFile(ServerConfig::BasePath + ServerConfig::ServerName + ".conf");
     result = STATIONMNG->loadHttp(conf) ? "succ" : "fail";
-    TLOGDEBUG("[GatewayServer::load] result:" << result << endl);
+    TLOG_DEBUG("[GatewayServer::load] result:" << result << endl);
     return true;
 }
 
 bool GatewayServer::loadComm(const string &command, const string &params, string &result)
 {
-    TLOGDEBUG("[GatewayServer::loadHttp] command:" << command << endl);
+    TLOG_DEBUG("[GatewayServer::loadHttp] command:" << command << endl);
     result = STATIONMNG->loadComm() ? "succ" : "fail";
-    TLOGDEBUG("[GatewayServer::load] result:" << result << endl);
+    TLOG_DEBUG("[GatewayServer::load] result:" << result << endl);
     return true;
 }
 
@@ -94,7 +94,7 @@ void GatewayServer::initialize()
     _jsonPathEx = _jsonPath + "/";
     _monitorUrl = TC_Common::trim(conf.get("/main/base<monitor_url>", "/monitor/monitor.html"));
 
-    TLOGDEBUG("_rspSizeLimit:" << _rspSizeLimit
+    TLOG_DEBUG("_rspSizeLimit:" << _rspSizeLimit
                                << ", _localServerName:" << _localServerName
                                << ", _tupHost:" << tupHost
                                << ", tupfullhost:" << TC_Common::tostr(_tupFullHost.begin(), _tupFullHost.end())
@@ -115,7 +115,7 @@ void GatewayServer::initialize()
     {
         _timeoutRetCode.insert(vi[i]);
     }
-    TLOGDEBUG("inactive code:" << TC_Common::tostr(_inactiveRetCode.begin(), _inactiveRetCode.end()) << ", timeout code:" << TC_Common::tostr(_timeoutRetCode.begin(), _timeoutRetCode.end()) << endl);
+    TLOG_DEBUG("inactive code:" << TC_Common::tostr(_inactiveRetCode.begin(), _inactiveRetCode.end()) << ", timeout code:" << TC_Common::tostr(_timeoutRetCode.begin(), _timeoutRetCode.end()) << endl);
 
     TupBase::initStaticParam(conf);
     TupProxyManager::getInstance()->loadProxy(conf);
@@ -135,11 +135,11 @@ void GatewayServer::initialize()
         addServant<FlowControlImp>(ServerConfig::Application + "." + ServerConfig::ServerName + ".FlowControlObj");
         FlowControlManager::getInstance()->init(conf);
         FlowControlManager::getInstance()->start();
-        TLOGDEBUG("add flowcontrol obj succ..." << endl);
+        TLOG_DEBUG("add flowcontrol obj succ..." << endl);
     }
     catch (const std::exception &e)
     {
-        TLOGERROR("add flowcontrol fail, exception:" << e.what() << endl);
+        TLOG_ERROR("add flowcontrol fail, exception:" << e.what() << endl);
     }
 }
 

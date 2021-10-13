@@ -35,7 +35,7 @@ string TupProxyManager::loadProxy(const TC_Config &conf)
         {
             _nameMap.swap(nameMap);
 
-            TLOGDEBUG("nameMap:" << TC_Common::tostr(_nameMap) << endl);
+            TLOG_DEBUG("nameMap:" << TC_Common::tostr(_nameMap) << endl);
         }
 
         vector<string> nameVector;
@@ -77,7 +77,7 @@ string TupProxyManager::loadProxy(const TC_Config &conf)
             }
         }
 
-        TLOGDEBUG(" allproxy:" << TC_Common::tostr(_nameMap) << endl);
+        TLOG_DEBUG(" allproxy:" << TC_Common::tostr(_nameMap) << endl);
 
         _lastUpdateTime = 0;
         _lastUpdateTotalNum = 0;
@@ -102,20 +102,20 @@ string TupProxyManager::loadProxy(const TC_Config &conf)
                 }
                 else
                 {
-                    TLOGERROR("[TupProxyManager::loadHttpHeader] httpheader error:" << it->first << endl);
+                    TLOG_ERROR("[TupProxyManager::loadHttpHeader] httpheader error:" << it->first << endl);
                 }
 
                 ++it;
             }
 
-            TLOGDEBUG("[TupProxyManager::loadHttpHeader] " << TC_Common::tostr(_httpHeader) << endl);
+            TLOG_DEBUG("[TupProxyManager::loadHttpHeader] " << TC_Common::tostr(_httpHeader) << endl);
         }
 
         return "load ok";
     }
     catch (exception &ex)
     {
-        TLOGERROR("[TupProxyManager::loadProxy] error:" << ex.what() << endl);
+        TLOG_ERROR("[TupProxyManager::loadProxy] error:" << ex.what() << endl);
         return string("loadProxy config error:") + ex.what();
     }
 
@@ -129,7 +129,7 @@ void TupProxyManager::updateHashInfo(const string &servantName, const string &ob
     if (itp != _proxyMap.end())
     {
         parseHashInfo(obj, itp->second.second);
-        TLOGDEBUG(servantName << "|" << obj << "|hash:" << itp->second.second.type << "-" << itp->second.second.httpHeadKey << endl);
+        TLOG_DEBUG(servantName << "|" << obj << "|hash:" << itp->second.second.type << "-" << itp->second.second.httpHeadKey << endl);
     }
 }
 
@@ -208,7 +208,7 @@ ServantPrx TupProxyManager::getProxy(const string &sServantName, const string &s
         auto itFun = _proxyMap.find(nameFunc);
         if (itFun != _proxyMap.end())
         {
-            TLOGDEBUG("rpc-call---------------> " << itFun->second.first->tars_name() << " :: " << nameFunc << endl);
+            TLOG_DEBUG("rpc-call---------------> " << itFun->second.first->tars_name() << " :: " << nameFunc << endl);
             hi = itFun->second.second;
             return itFun->second.first;
         }
@@ -218,14 +218,14 @@ ServantPrx TupProxyManager::getProxy(const string &sServantName, const string &s
         {
             realServantName = itName->second;
             name = nameFunc; //
-            TLOGDEBUG("nameFunc|name:" << name << ", sServantName:" << sServantName << ", sFuncName:" << sFuncName << ", " << realServantName << endl);
+            TLOG_DEBUG("nameFunc|name:" << name << ", sServantName:" << sServantName << ", sFuncName:" << sFuncName << ", " << realServantName << endl);
         }
         else
         {
             auto it2 = _proxyMap.find(name);
             if (it2 != _proxyMap.end())
             {
-                TLOGDEBUG("rpc-call---------------> " << it2->second.first->tars_name() << " :: " << name << endl);
+                TLOG_DEBUG("rpc-call---------------> " << it2->second.first->tars_name() << " :: " << name << endl);
                 hi = it2->second.second;
                 return it2->second.first;
             }
@@ -241,7 +241,7 @@ ServantPrx TupProxyManager::getProxy(const string &sServantName, const string &s
         if (it1 != _nameMap.end()) //在配置里面找到了name，则找出对应的realServantname
         {
             realServantName = it1->second;
-            TLOGDEBUG("name:" << name << ", sServantName:" << sServantName << ", sFuncName:" << sFuncName << ", " << realServantName << endl);
+            TLOG_DEBUG("name:" << name << ", sServantName:" << sServantName << ", sFuncName:" << sFuncName << ", " << realServantName << endl);
         }
     }
 
@@ -269,7 +269,7 @@ ServantPrx TupProxyManager::getProxy(const string &sServantName, const string &s
 
         if (realServantName.empty())
         {
-            TLOGERROR(sServantName << ", " << name << ", no proxy" << endl);
+            TLOG_ERROR(sServantName << ", " << name << ", no proxy" << endl);
             return NULL;
         }
     }
@@ -278,7 +278,7 @@ ServantPrx TupProxyManager::getProxy(const string &sServantName, const string &s
 
     proxy = Application::getCommunicator()->stringToProxy<ServantPrx>(realServantName);
 
-    TLOGDEBUG("add_new_proxy, " << sServantName << ":" << sFuncName << "--->" << realServantName << ", hashtype:" << hi.type << "-" << hi.httpHeadKey << endl);
+    TLOG_DEBUG("add_new_proxy, " << sServantName << ":" << sFuncName << "--->" << realServantName << ", hashtype:" << hi.type << "-" << hi.httpHeadKey << endl);
 
     if (_realnameSet.find(realServantName) == _realnameSet.end())
     {
@@ -287,7 +287,7 @@ ServantPrx TupProxyManager::getProxy(const string &sServantName, const string &s
     }
     else
     {
-        TLOGERROR(realServantName << " has already set the protocol , no need reset." << endl);
+        TLOG_ERROR(realServantName << " has already set the protocol , no need reset." << endl);
     }
 
     if (!name.empty())
@@ -307,7 +307,7 @@ void TupProxyManager::run()
 
     while(!_terminate)
     {
-//        TLOGDEBUG("[TupProxyManager] run load proxy, time=" << _lastUpdateTime << ", _lastUpdateTotalNum:" << _lastUpdateTotalNum << endl);
+//        TLOG_DEBUG("[TupProxyManager] run load proxy, time=" << _lastUpdateTime << ", _lastUpdateTotalNum:" << _lastUpdateTotalNum << endl);
 
         try
         {
@@ -338,7 +338,7 @@ void TupProxyManager::run()
                     //有更新了
                     if (_lastUpdateTime != t || _lastUpdateTotalNum != iCurTotalNum)
                     {
-                        TLOGDEBUG("[TupProxyManager::run] new update test guid info, size:" << data.size() << endl);
+                        TLOG_DEBUG("[TupProxyManager::run] new update test guid info, size:" << data.size() << endl);
 
                         _lastUpdateTime = t;
                         _lastUpdateTotalNum = iCurTotalNum;
@@ -349,7 +349,7 @@ void TupProxyManager::run()
                         {
                             httpHeader["Q-GUID:" + TC_Common::upper(TC_Common::trim(data[i]["guid"]))] = data[i]["env"];
 
-                            TLOGDEBUG(data[i]["guid"] << ":" << data[i]["env"] << ":" << data[i]["name"] << endl);
+                            TLOG_DEBUG(data[i]["guid"] << ":" << data[i]["env"] << ":" << data[i]["name"] << endl);
                         }
 
                         TC_LockT<TC_ThreadMutex> lock(_mutex);
@@ -366,18 +366,18 @@ void TupProxyManager::run()
                     }
                     else
                     {
-                        TLOGDEBUG("[TupProxyManager::run] t = _lastUpdateTime, no update." << endl);
+                        TLOG_DEBUG("[TupProxyManager::run] t = _lastUpdateTime, no update." << endl);
                     }
                 }
             }
         }
         catch(exception &ex)
         {
-            TLOGERROR("exception:" << ex.what() << endl);
+            TLOG_ERROR("exception:" << ex.what() << endl);
         }
         catch(...)
         {
-            TLOGERROR("exception unknown error." << endl);
+            TLOG_ERROR("exception unknown error." << endl);
         }
 
         TC_ThreadLock::Lock lock(*this);

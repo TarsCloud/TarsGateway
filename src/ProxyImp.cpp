@@ -64,7 +64,7 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
 
         stParam.httpRequest.decode(&request[0], request.size());
 
-        TLOGDEBUG("request header:\r\n"
+        TLOG_DEBUG("request header:\r\n"
                   << stParam.httpRequest.genHeader() << endl);
 
         string sRemoteIp; //= stParam.httpRequest.getHeader("X-Forwarded-For-Pound");
@@ -81,7 +81,7 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
             sRemoteIp = current->getIp();
         }
 
-        TLOGDEBUG("sRemoteIp:" << sRemoteIp << endl);
+        TLOG_DEBUG("sRemoteIp:" << sRemoteIp << endl);
 
         if (stParam.httpRequest.checkHeader("Connection", "keep-alive"))
         {
@@ -94,7 +94,7 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
 
         if (STATIONMNG->isInBlackList("", sRemoteIp))
         {
-            TLOGERROR(sRemoteIp << " is in Global black list, url:" << stParam.httpRequest.getRequestUrl() << endl);
+            TLOG_ERROR(sRemoteIp << " is in Global black list, url:" << stParam.httpRequest.getRequestUrl() << endl);
             ProxyUtils::doErrorRsp(403, stParam.current, stParam.httpKeepAlive);
             return -1;
         }
@@ -163,7 +163,7 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
             vector<char> sTupData;
             if (getDataFromHTTPRequest(stParam.httpRequest, sTupData) != 0)
             {
-                TLOGERROR("getDataFromHTTPRequest failed"
+                TLOG_ERROR("getDataFromHTTPRequest failed"
                           << ",sGUID:" << stParam.sGUID << endl);
                 //current->close();
                 current->setResponse(false);
@@ -174,7 +174,7 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
             /// 解压，解密数据
             if (getRealDataByDecode(sTupData, stParam) != 0)
             {
-                TLOGERROR("getRealDataByDecode failed"
+                TLOG_ERROR("getRealDataByDecode failed"
                           << ",sGUID:" << stParam.sGUID << endl);
                 ProxyUtils::doErrorRsp(400, stParam.current, stParam.httpKeepAlive);
                 //current->close();
@@ -189,11 +189,11 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
     }
     catch (exception &ex)
     {
-        TLOGERROR("exception: " << ex.what() << ",sGUID:" << stParam.sGUID << endl);
+        TLOG_ERROR("exception: " << ex.what() << ",sGUID:" << stParam.sGUID << endl);
     }
     catch (...)
     {
-        TLOGERROR("exception: unknow exception, sGUID:" << stParam.sGUID << endl);
+        TLOG_ERROR("exception: unknow exception, sGUID:" << stParam.sGUID << endl);
     }
 
     ProxyUtils::doErrorRsp(500, current, stParam.httpKeepAlive);
@@ -240,7 +240,7 @@ E_PROXY_TYPE ProxyImp::parseReqType(const string &reqUrl, const string &host)
         }
     }
 
-    TLOGDEBUG(host << "|" << reqUrl << ", type:" << ret << endl);
+    TLOG_DEBUG(host << "|" << reqUrl << ", type:" << ret << endl);
     return ret;
 }
 

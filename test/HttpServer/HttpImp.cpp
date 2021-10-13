@@ -25,11 +25,11 @@ int HttpImp::doRequest(tars::TarsCurrentPtr current, vector<char>& response)
 
     string sReqContent(request.data(), request.size());
 
-    TLOGDEBUG("HttpImp::doRequest\r\n" << sReqContent.substr(0, sReqContent.find("\r\n\r\n")) << endl);
+    TLOG_DEBUG("HttpImp::doRequest\r\n" << sReqContent.substr(0, sReqContent.find("\r\n\r\n")) << endl);
 
     TC_HttpRequest req;
     req.decode(sReqContent);
-    TLOGDEBUG("url:" << req.getOriginRequest() << endl);
+    TLOG_DEBUG("url:" << req.getOriginRequest() << endl);
 
     TC_HttpResponse rsp;
     string data = "<html>hello server:" + TC_Common::now2str() + ", " + req.getOriginRequest() + "!</html>";
@@ -42,7 +42,7 @@ int HttpImp::doRequest(tars::TarsCurrentPtr current, vector<char>& response)
 	if (g_app.randTimeout)
 	{
 		unsigned int t = rand() % 20;
-		TLOGDEBUG("sleep second:" << t << endl);
+		TLOG_DEBUG("sleep second:" << t << endl);
 		sleep(t);
 	}
 	current->sendResponse(buffer.c_str(), (uint32_t)buffer.length());

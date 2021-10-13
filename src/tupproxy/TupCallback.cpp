@@ -29,7 +29,7 @@ int TupCallback::onDispatch(ReqMessagePtr msg)
 {
     if (msg->response->iRet == 0)
     {
-        TLOGDEBUG("================ getType:" << getType() << ", reqId:" << _iNewRequestId << ", iRet:" << msg->response->iRet << endl);
+        TLOG_DEBUG("================ getType:" << getType() << ", reqId:" << _iNewRequestId << ", iRet:" << msg->response->iRet << endl);
         if (getType() == "tup")
         {
             vector<char> &buff = msg->response->sBuffer;
@@ -55,13 +55,13 @@ int TupCallback::onDispatch(ReqMessagePtr msg)
     }
     else
     {
-        TLOGERROR("================ getType:" << getType() << ", reqId:" << _iNewRequestId << ", iRet:" << msg->response->iRet 
+        TLOG_ERROR("================ getType:" << getType() << ", reqId:" << _iNewRequestId << ", iRet:" << msg->response->iRet 
              << ", servant:" << _stParam.sServantName << ", func:" << _stParam.sFuncName << endl);
         if (getType() == "tup" || getType() == "json" || getType() == "tars")
         {
             vector<char> &buff = msg->response->sBuffer;
 
-            TLOGERROR("buff.size:" << buff.size() << ", iVersion:" << msg->response->iVersion << endl);
+            TLOG_ERROR("buff.size:" << buff.size() << ", iVersion:" << msg->response->iVersion << endl);
 
             doResponseException(msg->response->iRet, buff);
         }
@@ -106,7 +106,7 @@ void TupCallback::doResponse_tup(const vector<char> &buffer)
         }
         else
         {
-            TLOGERROR("buffer.size = " << buffer.size() << endl);
+            TLOG_ERROR("buffer.size = " << buffer.size() << endl);
             return;
         }
 
@@ -114,7 +114,7 @@ void TupCallback::doResponse_tup(const vector<char> &buffer)
         RequestPacket req;
         req.readFrom(is);
         //tup->readFrom(is);
-        TLOGDEBUG("read tup RequestPacket succ." << endl);
+        TLOG_DEBUG("read tup RequestPacket succ." << endl);
 
         req.iRequestId = _stParam.iRequestId;
         req.sServantName = _stParam.sServantName;
@@ -125,7 +125,7 @@ void TupCallback::doResponse_tup(const vector<char> &buffer)
 
         if (os.getLength() > g_app.getRspSizeLimit())
         {
-            TLOGERROR("packet is too big tup|" << os.getLength()
+            TLOG_ERROR("packet is too big tup|" << os.getLength()
                                                << "|" << _stParam.sServantName
                                                << "|" << _stParam.sFuncName
                                                << "|" << _stParam.sReqGuid
@@ -141,7 +141,7 @@ void TupCallback::doResponse_tup(const vector<char> &buffer)
         memcpy(&_rspBuffer[0], (char *)&bufferlength, 4);
         memcpy(&_rspBuffer[4], os.getBuffer(), os.getLength());
 
-        TLOGDEBUG(_stParam.sServantName << "::"
+        TLOG_DEBUG(_stParam.sServantName << "::"
                                         << _stParam.sFuncName << ", requestid:"
                                         << req.iRequestId << ", length:" << os.getLength() << endl);
 
@@ -149,11 +149,11 @@ void TupCallback::doResponse_tup(const vector<char> &buffer)
     }
     catch (exception &ex)
     {
-        TLOGERROR("exception: " << ex.what() << endl);
+        TLOG_ERROR("exception: " << ex.what() << endl);
     }
     catch (...)
     {
-        TLOGERROR("exception: unknown error." << endl);
+        TLOG_ERROR("exception: unknown error." << endl);
     }
 }
 
@@ -163,7 +163,7 @@ void TupCallback::doResponse_tars(shared_ptr<ResponsePacket> tup)
     {
         if (tup->iRequestId != _iNewRequestId)
         {
-            TLOGERROR("find tup origin request error:"
+            TLOG_ERROR("find tup origin request error:"
                       << _stParam.sServantName << "::"
                       << _stParam.sFuncName << " requestid:"
                       << tup->iRequestId << ", no match origin request:" << _iNewRequestId
@@ -181,7 +181,7 @@ void TupCallback::doResponse_tars(shared_ptr<ResponsePacket> tup)
 
         if (os.getLength() > g_app.getRspSizeLimit())
         {
-            TLOGERROR("packet is too big tup|" << os.getLength()
+            TLOG_ERROR("packet is too big tup|" << os.getLength()
                                                << "|" << _stParam.sServantName
                                                << "|" << _stParam.sFuncName
                                                << "|" << _stParam.sReqGuid
@@ -197,7 +197,7 @@ void TupCallback::doResponse_tars(shared_ptr<ResponsePacket> tup)
         memcpy(&_rspBuffer[0], (char *)&bufferlength, 4);
         memcpy(&_rspBuffer[4], os.getBuffer(), os.getLength());
 
-        TLOGDEBUG(_stParam.sServantName << "::"
+        TLOG_DEBUG(_stParam.sServantName << "::"
                                         << _stParam.sFuncName << ", requestid:"
                                         << tup->iRequestId << ", length:" << os.getLength() << endl);
 
@@ -205,11 +205,11 @@ void TupCallback::doResponse_tars(shared_ptr<ResponsePacket> tup)
     }
     catch (exception &ex)
     {
-        TLOGERROR("error:" << ex.what() << endl);
+        TLOG_ERROR("error:" << ex.what() << endl);
     }
     catch (...)
     {
-        TLOGERROR("unknown error." << endl);
+        TLOG_ERROR("unknown error." << endl);
     }
 }
 
@@ -219,7 +219,7 @@ void TupCallback::doResponse_json(shared_ptr<ResponsePacket> tup)
     {
         if (tup->iRequestId != _iNewRequestId)
         {
-            TLOGDEBUG("request error: requestid:" << tup->iRequestId << ", origin request:" << _iNewRequestId << endl);
+            TLOG_DEBUG("request error: requestid:" << tup->iRequestId << ", origin request:" << _iNewRequestId << endl);
             return;
         }
 
@@ -241,11 +241,11 @@ void TupCallback::doResponse_json(shared_ptr<ResponsePacket> tup)
     }
     catch (exception &ex)
     {
-        TLOGERROR("exception:" << ex.what() << endl);
+        TLOG_ERROR("exception:" << ex.what() << endl);
     }
     catch (...)
     {
-        TLOGERROR("exception: unknown error." << endl);
+        TLOG_ERROR("exception: unknown error." << endl);
     }
 }
 
@@ -253,11 +253,11 @@ void TupCallback::doResponseException(int ret, const vector<char> &buffer)
 {
     try
     {
-        TLOGERROR("ret:" << ret << ", buffer len:" << buffer.size() << endl);
+        TLOG_ERROR("ret:" << ret << ", buffer len:" << buffer.size() << endl);
 
         //记录调用开始时间和结束时间的两者之差
         int64_t nowTime = TC_Common::now2ms();
-        TLOGERROR(nowTime - _stParam.iTime << "|"
+        TLOG_ERROR(nowTime - _stParam.iTime << "|"
                                            << _stParam.sReqIP << "|"
                                            << _stParam.sReqGuid << "|"
                                            << _stParam.sServantName << "|"
@@ -302,11 +302,11 @@ void TupCallback::doResponseException(int ret, const vector<char> &buffer)
     }
     catch (exception &ex)
     {
-        TLOGERROR("error:" << ex.what() << endl);
+        TLOG_ERROR("error:" << ex.what() << endl);
     }
     catch (...)
     {
-        TLOGERROR("unknown error." << endl);
+        TLOG_ERROR("unknown error." << endl);
     }
 }
 
@@ -316,7 +316,7 @@ void TupCallback::handleResponse()
     // {
     //     return;
     // }
-    TLOGDEBUG("rsp size:" << _rspBuffer.size() << endl);
+    TLOG_DEBUG("rsp size:" << _rspBuffer.size() << endl);
 
     bool bGzipOk = !_stParam.pairAcceptZip.first.empty();
     bool bEncrypt = !_stParam.pairAcceptEpt.first.empty();
@@ -359,7 +359,7 @@ void TupCallback::handleResponse()
 
         if (bGzipOk && tmpBuffer.size() < _rspBuffer.size())
         {
-            TLOGDEBUG(" gzip: " << _rspBuffer.size() << "->" << tmpBuffer.size() << endl);
+            TLOG_DEBUG(" gzip: " << _rspBuffer.size() << "->" << tmpBuffer.size() << endl);
 
             _rspBuffer.swap(tmpBuffer);
 
@@ -372,20 +372,20 @@ void TupCallback::handleResponse()
         //加密
         TC_Tea::encrypt(_stParam.sEncryptKey.c_str(), &_rspBuffer[0], _rspBuffer.size(), tmpBuffer);
 
-        TLOGDEBUG(" encrypt: " << _rspBuffer.size() << "->" << tmpBuffer.size() << endl);
+        TLOG_DEBUG(" encrypt: " << _rspBuffer.size() << "->" << tmpBuffer.size() << endl);
 
         _rspBuffer.swap(tmpBuffer);
 
         httpResponse.setHeader(_stParam.pairAcceptEpt.first, _stParam.pairAcceptEpt.second);
     }
 
-    TLOGDEBUG("rsp buffer length:" << _rspBuffer.size() << endl);
+    TLOG_DEBUG("rsp buffer length:" << _rspBuffer.size() << endl);
 
     httpResponse.setResponse(200, "OK", &_rspBuffer[0], _rspBuffer.size());
 
     string response = httpResponse.encode();
 
-    TLOGDEBUG("\r\n"
+    TLOG_DEBUG("\r\n"
               << response.substr(0, response.find("\r\n\r\n")) << endl);
 
     _current->sendResponse(response.c_str(), response.length());
@@ -416,7 +416,7 @@ void TupCallback::handleResponse()
     //超级包打一个错误日志
     if (iOrgRspLen > g_app.getRspSizeLimit())
     {
-        TLOGERROR("packet is too big all|" << iOrgRspLen
+        TLOG_ERROR("packet is too big all|" << iOrgRspLen
                                            << "|" << _stParam.sReqGuid << ", " << _stParam.sServantName << "|" << _stParam.sFuncName
                                            << endl);
         ReportHelper::reportProperty("RspTotalSizeLimit", 1, 1);

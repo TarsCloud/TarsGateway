@@ -25,7 +25,7 @@ SimpleHttpServer::initialize()
 	}
 	catch(const std::exception& e)
 	{
-		TLOGERROR("exception:" << e.what() << endl);
+		TLOG_ERROR("exception:" << e.what() << endl);
 	}
 }
 /////////////////////////////////////////////////////////////////

@@ -24,7 +24,7 @@ static bool regInit(const string &p, bool isCase, regex_t &reg)
     {
         char errmsg[128] = {0};
         regerror(ret, &reg, errmsg, sizeof(errmsg));
-        TLOGERROR(p << "|iscase:" << isCase << ", regcomp error:" << ret << "|" << errmsg << endl);
+        TLOG_ERROR(p << "|iscase:" << isCase << ", regcomp error:" << ret << "|" << errmsg << endl);
         return false;
     }
     return true;
@@ -127,7 +127,7 @@ RouterPath::E_PATH_TYPE RouterPath::initPath(int id, const string &path, const s
     }
     else
     {
-        TLOGERROR("error path:" << path << endl);
+        TLOG_ERROR("error path:" << path << endl);
         return EPT_NULL;
     }
 
@@ -136,16 +136,16 @@ RouterPath::E_PATH_TYPE RouterPath::initPath(int id, const string &path, const s
     if ((_type == EPT_REGSUCC || _type == EPT_REGFAIL) && (!regInit(_path, _isCase, _reg)))
     {
         // 初始化正则失败
-        TLOGERROR(path << ", regInit fail!" << endl);
+        TLOG_ERROR(path << ", regInit fail!" << endl);
         return EPT_NULL;
     }
 
-    TLOGDEBUG("parse path succ:" << path << "|" << _type << "|" << _path << endl);
+    TLOG_DEBUG("parse path succ:" << path << "|" << _type << "|" << _path << endl);
 
     // 初始化 proxy_pass
     if (pp.length() < 8 || strncmp(pp.c_str(), "http://", 7) != 0)
     {
-        TLOGERROR("error proxy_pass:" << pp << ", " << path << endl);
+        TLOG_ERROR("error proxy_pass:" << pp << ", " << path << endl);
         return EPT_NULL;
     }
     string::size_type x = pp.find("/", 8);
@@ -161,7 +161,7 @@ RouterPath::E_PATH_TYPE RouterPath::initPath(int id, const string &path, const s
     }
     _stationId = stationId;
 
-    TLOGDEBUG("parse proxy_pass succ:" << pp << "|" << _proxyHost << "|" << _proxyPath << endl);
+    TLOG_DEBUG("parse proxy_pass succ:" << pp << "|" << _proxyHost << "|" << _proxyPath << endl);
 
     if (_proxyHost.length() > 3 && strncmp(_proxyHost.c_str() + (_proxyHost.length() - 3), "Obj", 3) == 0)
     {
@@ -181,7 +181,7 @@ bool RouterPath::match(const string &p, RouterResult &result)
     case EPT_FULL:
         if (p != _path)
         {
-            TLOGERROR("match fail, path:" << p << ", config path:" << _path << endl);
+            TLOG_ERROR("match fail, path:" << p << ", config path:" << _path << endl);
             return false;
         }
         break;
@@ -198,7 +198,7 @@ bool RouterPath::match(const string &p, RouterResult &result)
         }
         else
         {
-            TLOGDEBUG("match path succ, reg:" << _path << ", path:" << p << endl);
+            TLOG_DEBUG("match path succ, reg:" << _path << ", path:" << p << endl);
         }
 
         break;
@@ -254,7 +254,7 @@ bool RouterPath::genResult(const string &p, RouterResult &result)
     result.upstream = _proxyHost;
     result.stationId = _stationId;
 
-    TLOGDEBUG(p << " match path succ. Type:" << _type << ", result path:" << result.path << ", upstream:" << result.upstream << ", station:" << result.stationId << ", funcPath:" << result.funcPath << endl);
+    TLOG_DEBUG(p << " match path succ. Type:" << _type << ", result path:" << result.path << ", upstream:" << result.upstream << ", station:" << result.stationId << ", funcPath:" << result.funcPath << endl);
 
     return true;
 }
@@ -313,7 +313,7 @@ bool RouterHost::initHost(const string &serverName)
         _host = serverName.substr(1);
         if (!regInit(_host, false, _reg))
         {
-            TLOGERROR("init regex fail:" << serverName << "|" << _host << endl);
+            TLOG_ERROR("init regex fail:" << serverName << "|" << _host << endl);
             return false;
         }
         break;
@@ -470,7 +470,7 @@ bool HttpRouter::addRouter(int id, const string &serverName, const string &locat
             _regHost[serverName] = make_shared<RouterHost>();
             if (!_regHost[serverName]->initHost(serverName))
             {
-                TLOGERROR("init RouterHost fail:" << serverName << endl);
+                TLOG_ERROR("init RouterHost fail:" << serverName << endl);
                 _regHost.erase(serverName);
                 return false;
             }
@@ -478,7 +478,7 @@ bool HttpRouter::addRouter(int id, const string &serverName, const string &locat
         ret = _regHost[serverName]->addPath(id, location, proxyPass, stationId);
     }
 
-    TLOGDEBUG(id << "|" << serverName << "|" << location << "|" << proxyPass << "|" << ret << endl);
+    TLOG_DEBUG(id << "|" << serverName << "|" << location << "|" << proxyPass << "|" << ret << endl);
     return true;
 }
 
@@ -490,14 +490,14 @@ bool RouterAgent::reload(const vector<RouterParam> &param)
     {
         if (!router->addRouter(param[i].id, param[i].serverName, param[i].location, param[i].proxyPass, param[i].stationId))
         {
-            TLOGERROR("reload fail!" << param[i].id << "|" << param[i].serverName << "|" << param[i].location << "|" << param[i].stationId << endl);
+            TLOG_ERROR("reload fail!" << param[i].id << "|" << param[i].serverName << "|" << param[i].location << "|" << param[i].stationId << endl);
             return false;
         }
     }
 
     _router.swap(router);
     //_router = router;
-    TLOGDEBUG("reload router succ, total router:" << param.size() << endl);
+    TLOG_DEBUG("reload router succ, total router:" << param.size() << endl);
     return true;
 }
 
@@ -505,11 +505,11 @@ bool HttpRouter::parse(const string &host, const string &path, RouterResult &res
 {
     TC_ThreadRLock r(_rwLock);
     // 1、全匹配
-    TLOGDEBUG(host << "|" << path << endl);
+    TLOG_DEBUG(host << "|" << path << endl);
     auto it = _fullHost.find(host);
     if (it != _fullHost.end())
     {
-        TLOGDEBUG(host << " math full host, " << it->second->getOrderKey() << endl);
+        TLOG_DEBUG(host << " math full host, " << it->second->getOrderKey() << endl);
         return it->second->matchPath(path, result);
     }
     else
@@ -520,7 +520,7 @@ bool HttpRouter::parse(const string &host, const string &path, RouterResult &res
             // host 匹配到了， 就不再匹配其他host了
             if (t->second->matchHost(host))
             {
-                TLOGDEBUG(host << " math _preWCMatchHost, " << t->second->getOrderKey() << endl);
+                TLOG_DEBUG(host << " math _preWCMatchHost, " << t->second->getOrderKey() << endl);
                 return t->second->matchPath(path, result);
             }
         }
@@ -529,7 +529,7 @@ bool HttpRouter::parse(const string &host, const string &path, RouterResult &res
         {
             if (t->second->matchHost(host))
             {
-                TLOGDEBUG(host << " math _sufWCMatchHost, " << t->second->getOrderKey() << endl);
+                TLOG_DEBUG(host << " math _sufWCMatchHost, " << t->second->getOrderKey() << endl);
                 return t->second->matchPath(path, result);
             }
         }
@@ -538,14 +538,14 @@ bool HttpRouter::parse(const string &host, const string &path, RouterResult &res
         {
             if (t->second->matchHost(host))
             {
-                TLOGDEBUG(host << " math regHost, " << t->second->getOrderKey() << endl);
+                TLOG_DEBUG(host << " math regHost, " << t->second->getOrderKey() << endl);
                 return t->second->matchPath(path, result);
             }
         }
         //5、默认
         if (_defaultHost)
         {
-            TLOGDEBUG(host << " math default host, " << _defaultHost->getOrderKey() << endl);
+            TLOG_DEBUG(host << " math default host, " << _defaultHost->getOrderKey() << endl);
             return _defaultHost->matchPath(path, result);
         }
     }
