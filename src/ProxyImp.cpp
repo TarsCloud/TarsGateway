@@ -64,8 +64,9 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
 
         stParam.httpRequest.decode(&request[0], request.size());
 
-        TLOG_DEBUG("request header:\r\n"
+        TLOG_DEBUG("method:" << stParam.httpRequest.getMethod() << "\r\n, request header:\r\n"
                   << stParam.httpRequest.genHeader() << endl);
+
 
         string sRemoteIp; //= stParam.httpRequest.getHeader("X-Forwarded-For-Pound");
 
@@ -97,6 +98,29 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
             TLOG_ERROR(sRemoteIp << " is in Global black list, url:" << stParam.httpRequest.getRequestUrl() << endl);
             ProxyUtils::doErrorRsp(403, stParam.current, stParam.httpKeepAlive);
             return -1;
+        }
+
+        //跨域请求, 浏览器发起的飞行预检
+        if(stParam.httpRequest.isOPTIONS())
+        {
+        	TC_HttpResponse response;
+        	response.setResponse(200, "OK", "");
+        	response.setHeader("Access-Control-Allow-Origin", "*");
+        	response.setHeader("Access-Control-Allow-Methods", "POST,GET,OPTIONS");
+        	response.setHeader("Access-Control-Max-Age", "86440");
+            response.setHeader("Access-Control-Allow-Headers", "Content-Type,X-Requested-With");
+            
+        	response.setContentType("text/plain");
+        	string buffer = response.encode();
+
+        	stParam.current->sendResponse(buffer.c_str(), buffer.length());
+        	if (!stParam.httpKeepAlive)
+        	{
+        		response.setConnection("close");
+        		stParam.current->close();
+        	}
+        	return 0;
+
         }
 
         stParam.sIP = sRemoteIp;
