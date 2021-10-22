@@ -106,7 +106,10 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
         	TC_HttpResponse response;
         	response.setResponse(200, "OK", "");
         	response.setHeader("Access-Control-Allow-Origin", "*");
-        	response.setHeader("Access-Control-Allow-Methods", "POST");
+        	response.setHeader("Access-Control-Allow-Methods", "POST,GET,OPTIONS");
+        	response.setHeader("Access-Control-Max-Age", "86440");
+            response.setHeader("Access-Control-Allow-Headers", "X-GUID,X-XUA");
+            
         	response.setContentType("text/plain");
         	string buffer = response.encode();
 

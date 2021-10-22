@@ -334,6 +334,7 @@ void TupCallback::handleResponse()
         httpResponse.setHeader("Access-Control-Allow-Origin", "*");
         httpResponse.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
         httpResponse.setHeader("Access-Control-Max-Age", "86400");
+        response.setHeader("Access-Control-Allow-Headers", "X-GUID,X-XUA");
     }
     else
     {
