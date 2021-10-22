@@ -47,6 +47,66 @@ bool GatewayServer::loadComm(const string &command, const string &params, string
     return true;
 }
 
+bool GatewayServer::loadRspHeader(const string &command, const string &params, string &result)
+{
+    try
+    {
+        addConfig("httpheader.conf");
+        TC_Config conf;
+        conf.parseFile(ServerConfig::BasePath + "httpheader.conf");
+        map<string, string> protoMap = conf.getDomainMap("/httprsp_headers/protocol_map");
+
+        map<string, map<string, string>> headers;
+        for (auto it = protoMap.begin(); it != protoMap.end(); ++it)
+        {
+            map<string, string> defHeaders = conf.getDomainMap("/httprsp_headers/" + it->second + "/default_headers");
+            if (defHeaders.size() > 0)
+            {
+                headers[it->first] = defHeaders;
+                TLOG_DEBUG("add http header:" << it->first << " |" << TC_Common::tostr(defHeaders) << endl);
+            }
+
+            vector<string> bidList = conf.getDomainVector("/httprsp_headers/" + it->second + "/special_headers");
+            for (size_t i = 0; i < bidList.size(); i++)
+            {
+                string strList = conf.get("/httprsp_headers/" + it->second + "/special_headers/" + bidList[i] + "<servant_station_list>");
+                vector<string> ssList = TC_Common::sepstr<string>(strList, "|");
+                if (ssList.size() == 0)
+                {
+                    continue;
+                }
+
+                map<string, string> mh = conf.getDomainMap("/httprsp_headers/" + it->second + "/special_headers/" + bidList[i] + "/headers");
+                if (mh.size() == 0)
+                {
+                    continue;
+                }
+
+                for (size_t i = 0; i < ssList.size(); i++)
+                {
+                    headers[it->first + "#" + ssList[i]] = mh;
+                    TLOG_DEBUG("add http header:" << it->first + "#" + ssList[i] << " |" << TC_Common::tostr(defHeaders) << endl);
+                }
+            }
+        }
+        
+        {
+            TC_ThreadWLock w(_rwLock);
+            _httpHeaders.swap(headers);
+            TLOG_DEBUG("add rsp http headers finish, total:" << _httpHeaders.size() << endl);
+        }
+
+        result = "load succ, total:" + TC_Common::tostr(headers.size());
+        return true;
+    }
+    catch(const std::exception& e)
+    {
+        TLOG_ERROR("exception:" << e.what() << endl); 
+        result = "exception:" + string(e.what());
+    }
+    return false;
+}
+
 /////////////////////////////////////////////////////////////////
 void GatewayServer::initialize()
 {
@@ -126,9 +186,14 @@ void GatewayServer::initialize()
     StationManager::getInstance()->init(conf);
     StationManager::getInstance()->start();
 
+    string loadRsp;
+    loadRspHeader("", "", loadRsp);
+    TLOG_DEBUG("load http header, " << loadRsp);
+
     TARS_ADD_ADMIN_CMD_NORMAL("loadProxy", GatewayServer::loadProxy);
     TARS_ADD_ADMIN_CMD_NORMAL("loadHttp", GatewayServer::loadHttp);
     TARS_ADD_ADMIN_CMD_NORMAL("loadComm", GatewayServer::loadComm);
+    TARS_ADD_ADMIN_CMD_NORMAL("loadRspHeader", GatewayServer::loadRspHeader);
 
     try
     {
@@ -163,6 +228,27 @@ bool GatewayServer::isTupHost(const string &h) const
         }
     }
     return false;
+}
+
+void GatewayServer::setRspHeaders(int proto, const string& ss, TC_HttpResponse& httpResponse)
+{
+    vector<string> hkey;
+    hkey.push_back(TC_Common::tostr(proto));
+    hkey.push_back(TC_Common::tostr(proto) + "#" + ss);
+
+    TC_ThreadRLock r(_rwLock);
+
+    for (auto& k : hkey)
+    {
+        auto it = _httpHeaders.find(k);
+        if (it != _httpHeaders.end())
+        {
+            for (auto ith = it->second.begin(); ith != it->second.end(); ++ith)
+            {
+                httpResponse.setHeader(ith->first, ith->second);
+            }
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////

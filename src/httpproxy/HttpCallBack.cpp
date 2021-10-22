@@ -5,6 +5,7 @@
 void AsyncHttpCallback::onSucc(TC_HttpResponse &stHttpResponse)
 {
     TLOG_DEBUG("onSucc, content length:" << stHttpResponse.getContent().length() << endl);
+    g_app.setRspHeaders((int)EPT_HTTP_PROXY, _aLog->station, stHttpResponse);
     //TLOG_DEBUG(stHttpResponse.genHeader() << endl);
     _aLog->status = stHttpResponse.getStatus();
     _aLog->rspSize = stHttpResponse.getContent().length();

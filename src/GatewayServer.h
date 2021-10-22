@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include "servant/Application.h"
+#include "util/tc_thread_rwlock.h"
 
 using namespace tars;
 
@@ -77,6 +78,8 @@ public:
 
     bool isTupHost(const string &h) const;
 
+    void setRspHeaders(int proto, const string &ss, TC_HttpResponse &httpResponse);
+
   protected:
     /**
      * 加载配置
@@ -89,8 +92,10 @@ public:
     bool loadProxy(const string& command, const string& params, string& result);
     bool loadHttp(const string& command, const string& params, string& result);
     bool loadComm(const string &command, const string &params, string &result);
+    bool loadRspHeader(const string &command, const string &params, string &result);
 
   private:
+    map<string, map<string, string>> _httpHeaders;  // key: proto_servant
     string _localServerName;
     size_t _rspSizeLimit;
     //string _tupHost;
@@ -103,6 +108,8 @@ public:
     set<int> _inactiveRetCode;
     set<int> _timeoutRetCode;
     string _tupProxyConf;
+
+    TC_ThreadRWLocker   _rwLock;
 };
 
 extern GatewayServer g_app;

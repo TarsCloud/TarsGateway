@@ -116,8 +116,16 @@ function build_webconf()
     sed -i "s/db_pwd/$TARS_DB_PWD/g" install/config-tmp.json
 
     curl -s -X POST -H "Content-Type: application/json" ${TARS_WEB_HOST}/api/add_config_file?ticket=${TARS_WEB_TOKEN} -d@install/config-tmp.json
+    
+    LOG_INFO "===>add httpheader.conf:\n";
+    rm -f install/httpheaderconfig-tmp.json;
+    cp install/httpheaderconfig.json install/httpheaderconfig-tmp.json;
+
+    curl -s -X POST -H "Content-Type: application/json" ${TARS_WEB_HOST}/api/add_config_file?ticket=${TARS_WEB_TOKEN} -d@install/httpheaderconfig-tmp.json
+
     rm -f install/server-tmp.json;
     rm -f install/config-tmp.json;
+    rm -f install/httpheaderconfig-tmp.json;
 
     LOG_INFO "====> build_webconf finish!\n";
 }

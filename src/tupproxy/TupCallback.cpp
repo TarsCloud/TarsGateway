@@ -328,26 +328,28 @@ void TupCallback::handleResponse()
     httpResponse.setHeader("Date", TC_Common::now2GMTstr());
     httpResponse.setHeader("Server", "TarsGateway-Server");
     // httpResponse.setHeader("Content-Type", "application/multipart-formdata");
-    if (getType() == "json")
-    {
-        httpResponse.setHeader("Content-Type", "application/json");
-        httpResponse.setHeader("Access-Control-Allow-Origin", "*");
-        httpResponse.setHeader("Access-Control-Allow-Methods", "POST, GET");
-    }
-    else
-    {
-        httpResponse.setHeader("Content-Type", "application/octet-stream");
-    }
     httpResponse.setHeader("Cache-Control", "no-cache"); //不缓存内容
 
-    //        if (_setConnectionTag == 1 && _bKeepAlive)
-    if (_bKeepAlive)
+    if (_stParam.httpKeepAlive)
     {
         httpResponse.setConnection("keep-alive");
     }
     else
     {
         httpResponse.setConnection("close");
+    }
+
+    if (getType() == "json")
+    {
+        httpResponse.setHeader("Content-Type", "application/json");
+        g_app.setRspHeaders((int)EPT_JSON_PROXY, _stParam.sServantName, httpResponse);
+        // httpResponse.setHeader("Access-Control-Allow-Origin", "*");
+        // httpResponse.setHeader("Access-Control-Allow-Methods", "POST, GET");
+    }
+    else
+    {
+        httpResponse.setHeader("Content-Type", "application/octet-stream");
+        g_app.setRspHeaders((int)EPT_TUP_PROXY, _stParam.sServantName, httpResponse);
     }
 
     vector<char> tmpBuffer = _rspBuffer;

@@ -8,7 +8,7 @@ using namespace tars;
 
 enum E_PROXY_TYPE
 {
-    EPT_CROSSDOMAIN,
+    EPT_CROSSDOMAIN = 0,
     EPT_MONITOR,
     EPT_TUP_PROXY,
     EPT_JSON_PROXY,
