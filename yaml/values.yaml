@@ -2,7 +2,7 @@
 cloud:
   group: tars
   name: gatewayserver
-  logo: assets/logo.png
+  logo: logo.png
   version: latest
   changelist: Changelist.md
   description: >-
@@ -13,8 +13,7 @@ cloud:
   repository: https://github.com/TarsCloud/TarsGateway.git
   readme: ReadMe.md
   protocols: []
-  assets: 
-    - assets
+  assets: []
 app: Base
 server: GatewayServer
 template: tars.cpp
