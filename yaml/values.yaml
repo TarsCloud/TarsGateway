@@ -1,4 +1,20 @@
 
+cloud:
+  group: tars
+  name: gatewayserver
+  logo: assets/logo.png
+  version: latest
+  changelist: Changelist.md
+  description: >-
+    TarsGateway is a general API gateway based on the TARS development framework, supporting the HTTP protocol for requests and tars-tup&tars-tars protocol, tars-json protocol, and HTTP protocol for the backend. In addition to protocol forwarding, it also supports flow control, black and white lists and other functions. 
+  collaborators:
+    - ruanshudong@qq.com
+    - shevqko@qq.com
+  repository: https://github.com/TarsCloud/TarsGateway.git
+  readme: ReadMe.md
+  protocols: []
+  assets: 
+    - assets
 app: Base
 server: GatewayServer
 template: tars.cpp
@@ -32,48 +48,50 @@ config:
   - name: GatewayServer.conf
     content: |
       <main>
-          #传到后面taf服务的http头, 多个头以,分隔
+          #传到后面tars服务的http头, 多个头以,分隔
           filterheaders = X-GUID|X-XUA|Host
-          # 是否打开通过主控发现代理，1打开， 0 关闭
+          # 是否打开通过主控发现代理，1打开, 0 关闭
           auto_proxy=1
-          flow_report_obj=Base.TarsGatewayServer.FlowControlObj
+          # 流控统计obj, 改成和当前服务部署地址匹配
+          flow_report_obj=Base.GatewayServer.FlowControlObj
           <base>
               # tup 回包大小限制
               rspsize=5242880
-              #tup_host 如果不配置，那么所有host开头的，且没有path或者path为 / ， 也判断为 tup 请求， 例如： prx.tup.whup.com|127.0.0.1|192.168.2.123
+              #tup_host 如果不配置，那么所有host开头的，且没有path或者path为 /, 也判断为 tup 请求， 例如: prx.tup.demo.com|127.0.0.1|192.168.2.123
               tup_host=
+              # http _ tup请求的路径
               tup_path=/tup
+              # http + json请求的路径
               json_path=/json
               monitor_url=/monitor/monitor.html
           </base>
           
           <proxy>
-              # servant = server_full_obj [| hash_type [| http header key] ]
+              # servant = server_full_obj [ hash_type | http header key ]
               # hash_type: 0, 轮训; 1: requestid, 2: http头, 3: client ip
               # Hello=TestApp.HelloServer.HelloObj | 1
               # Hello=TestApp.HelloServer.HelloObj | 2 | X-GUID
-              #Hello=TestApp.HelloServer.HelloObj | 3
+              # Hello=TestApp.HelloServer.HelloObj | 3
 
               hello = TestApp.HelloServer.HelloObj
 
+              # 指定某个域, 后面配置中, 可以指定某些http头转发到这个域下面的服务
               <test>
-                  v = Base.LoginServer.LoginObj
-                  hello = Test.HelloServer.HelloObj@tcp -h 127.0.0.1 -p 22346 | 2 | X-GUID
+                  Hello = Test.HelloServer.HelloObj@tcp -h 127.0.0.1 -p 22346 | 2 | X-GUID
               </test>
 
               <dogfood>
-                  v = Base.LoginServer.LoginObj
-                  hello = Test.HelloServer.HelloObj@tcp -h 127.0.0.1 -p 22346
+                  Hello = Test.HelloServer.HelloObj@tcp -h 127.0.0.1 -p 22346
               </dogfood>
           </proxy>
 
-          #http头:值, 转到proxy某个服务
+          # http头:值, 转到proxy某个服务
           <httpheader>
-              Q-gUID:344bfdf1afb146ffa68b2bd69a57f193 = test
+              X-GUID:344bfdf1afb146ffa68b2bd69a57f193 = test
           </httpheader>
 
-        <http_retcode>
-              # 定义哪些返回码做超时容错处理，哪些返回码做出错容灾处理
+          <http_retcode>
+              # 定义哪些tars返回码做超时容错处理，哪些返回码做出错容灾处理
               inactive=2|6
               timeout=1|3
           </http_retcode>
@@ -101,7 +119,7 @@ config:
     content: |
       <httprsp_headers>
 
-        # 协议定义， 和网关服务里面的定义对应
+        # 协议定义, 和网关服务里面的定义对应
         <protocol_map>
           2=tup
           3=json
@@ -136,7 +154,7 @@ config:
           </special_headers>
         </tup>
 
-        #tup协议代理，定制回包http头
+        # http+json协议代理，定制回包http头
         <json>
           # default_headers 为该协议默认加的 http 头
           <default_headers>
@@ -168,7 +186,7 @@ config:
           </special_headers>
         </json>
 
-        #tup协议代理，定制回包http头
+        #http+tup协议代理，定制回包http头
         <http>
           # default_headers 为该协议默认加的 http 头
           <default_headers>
