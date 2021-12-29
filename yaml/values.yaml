@@ -5,6 +5,7 @@ cloud:
   logo: logo.png
   version: latest
   changelist: Changelist.md
+  lang: cpp
   description: >-
     TarsGateway is a general API gateway based on the TARS development framework, supporting the HTTP protocol for requests and tars-tup&tars-tars protocol, tars-json protocol, and HTTP protocol for the backend. In addition to protocol forwarding, it also supports flow control, black and white lists and other functions. 
   collaborators:
