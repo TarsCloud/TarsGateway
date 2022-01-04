@@ -3,7 +3,7 @@ name: build-gateway-tag
 
 on:
   push:
-    branches:
+    tags:
       - v*
 
 jobs:
