@@ -3,6 +3,7 @@
 #include "servant/Application.h"
 #include "util/tc_config.h"
 #include "util/tc_mysql.h"
+#include "Verify.h"
 
 TupProxyManager::TupProxyManager()
 {
@@ -79,6 +80,8 @@ string TupProxyManager::loadProxy(const TC_Config &conf)
 
         TLOG_DEBUG(" allproxy:" << TC_Common::tostr(_nameMap) << endl);
 
+        initVerifyInfo(conf);
+
         _lastUpdateTime = 0;
         _lastUpdateTotalNum = 0;
 
@@ -120,6 +123,80 @@ string TupProxyManager::loadProxy(const TC_Config &conf)
     }
 
     return "loadProxy error.";
+}
+
+void TupProxyManager::initVerifyInfo(const TC_Config& conf)
+{
+    map<string, VerifyInfo>     proxyVerify;
+    set<string>                 noVerify;
+
+    vector<string> authVector;
+    if(conf.getDomainVector("/main/auth", authVector))
+    {
+        for(size_t i = 0; i < authVector.size(); i++)
+        {
+            VerifyInfo info;
+            string authObj = conf.get("/main/auth/" + authVector[i] + "<verify>");
+            if (authObj.empty())
+            {
+                TLOG_ERROR("auth info init fail:" << "/main/auth/" << authVector[i] << "<verify> is empty!" << endl);
+                continue;
+            }
+            info.prx = Application::getCommunicator()->stringToProxy<Base::VerifyPrx>(authObj);
+            info.tokenHeader = conf.get("/main/auth/" + authVector[i] + "<auth_http_header>");
+            if (info.tokenHeader.empty())
+            {
+                TLOG_ERROR("auth info init fail:" << "/main/auth/" << authVector[i] << "<auth_http_header> is empty!" << endl);
+                continue;
+            }
+            info.verifyBody = (TC_Common::lower(conf.get("/main/auth/" + authVector[i] + "<verify_body>", "false")) == "true");
+            info.verifyHeaders = TC_Common::sepstr<string>(conf.get("/main/auth/" + authVector[i] + "<verify_headers>"), "|");
+            vector<string> lines = conf.getDomainLine("/main/auth/" + authVector[i] + "/auth_list");
+            for (auto it = lines.begin(); it != lines.end(); it++)
+            {
+                vector<string> vs = TC_Common::sepstr<string>(*it, ":");
+                if (vs.size() == 2)
+                {
+                    vector<string> funcList = TC_Common::sepstr<string>(vs[1], "|");
+                    for (size_t i = 0; i < funcList.size(); i++)
+                    {
+                        proxyVerify[vs[0] + ":" + funcList[i]] = info;
+                        TLOG_DEBUG("add verify|" << vs[0] + ":" + funcList[i] << "|" << authObj << endl);
+                    }               
+                }
+                else
+                {
+                    proxyVerify[*it] = info;
+                    TLOG_DEBUG("add verify|" << *it << "|" << authObj << endl);
+                }      
+            }
+            
+            lines = conf.getDomainLine("/main/auth/" + authVector[i] + "/auth_list/exclude");
+            for (auto it = lines.begin(); it != lines.end(); it++)
+            {
+                vector<string> vs = TC_Common::sepstr<string>(*it, ":");
+                if (vs.size() == 2)
+                {
+                    vector<string> funcList = TC_Common::sepstr<string>(vs[1], "|");
+                    for (size_t i = 0; i < funcList.size(); i++)
+                    {
+                        noVerify.insert(vs[0] + ":" + funcList[i]);
+                        TLOG_DEBUG("exclude verify|" << vs[0] + ":" + funcList[i] << endl);
+                    }               
+                }
+                else
+                {
+                    noVerify.insert(*it);
+                    TLOG_DEBUG("exclude verify|" << *it << endl);
+                }      
+            }
+            
+        }
+    }
+
+    _proxyVerify.swap(proxyVerify);
+    _noVerify.swap(noVerify);
+    TLOG_DEBUG("init verify ok" << endl);
 }
 
 void TupProxyManager::updateHashInfo(const string &servantName, const string &obj)
@@ -169,6 +246,38 @@ string TupProxyManager::parseHashInfo(const string &objInfo, THashInfo &hi)
         realObj = vsServant[0];
     }
     return TC_Common::trim(realObj);
+}
+
+ServantPrx TupProxyManager::getProxy(const string& sServantName, const string& sFuncName, const TC_HttpRequest &httpRequest, ProxyExInfo& pei)
+{
+    ServantPrx prx = getProxy(sServantName, sFuncName, httpRequest, pei.hashInfo);
+    if (prx)
+    {
+        TC_LockT<TC_ThreadMutex> lock(_mutex);
+        string servant = string(prx->tars_name().substr(0, prx->tars_name().find("@")));
+        string serverFunc = servant + ":" + sFuncName;
+        if (_noVerify.find(servant) != _noVerify.end() || _noVerify.find(serverFunc) != _noVerify.end())
+        {
+            return prx;
+        }
+        if (_proxyVerify.find(servant) != _proxyVerify.end())
+        {
+            pei.verifyInfo = _proxyVerify[servant];
+            return prx;
+        }
+        if (_proxyVerify.find(serverFunc) != _proxyVerify.end())
+        {
+            pei.verifyInfo = _proxyVerify[servant];
+            return prx;
+        }
+        string app = servant.substr(0, servant.find(".")) + ".*";
+        if (_proxyVerify.find(app) != _proxyVerify.end())
+        {
+            pei.verifyInfo = _proxyVerify[app];
+            return prx;
+        }
+    }
+    return prx;
 }
 
 //如果没有配置servantname,则根据配置<funcname></funcname>来进行赋值。

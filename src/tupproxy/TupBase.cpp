@@ -32,16 +32,12 @@ std::atomic<int> g_requestId;
 const string CTX_TARSHASH_KEY = "CTX_TARSHASH_KEY";
 
 //////////////////////////////////////////////////////
-//string TupBase::_LocalServerName = "Base.TupProxyServer";;
-//unsigned int TupBase::_rspSizeLimit = 1048576;
+
 int TupBase::_setConnectionTag = 0;
 
 string TupBase::_sEncryptKey;
 string TupBase::_sEncryptKeyV2;
-//bool TupBase::_bReportMetis= true;
 int TupBase::_iMinCompressLen = 512;
-//map<string,bool> TupBase::_mCryptServantNames;
-//bool TupBase::_bCryptCheck= false;
 
 //////////////////////////////////////////////////////
 TupBase::TupBase() //: _pEncryptBuff(NULL), _iEncryptLength(0)
@@ -68,17 +64,11 @@ void TupBase::destroyBase()
 // 初始化静态配置
 int TupBase::initStaticParam(const TC_Config &conf)
 {
-    //_LocalServerName = ServerConfig::Application + "." + ServerConfig::ServerName;
-
-    //    _sEncryptKey1    = "ABCDEFGHIJKLMNOP";
     _sEncryptKey = "sDf434ol*123+-KD";
     _sEncryptKeyV2 = "lS-0O&62Jl(j%!zM";
 
     //是否设置回包的http包头Connection值为keep_alive,默认不设置
     _setConnectionTag = TC_Common::strto<int>(conf.get("/config/setConnection/<tag>", "0"));
-
-    //默认是1M
-    //_rspSizeLimit = TC_Common::strto<unsigned int>(conf.get("/config/limit/<rspsize>", "1048576"));
 
     return 0;
 }
@@ -102,11 +92,7 @@ string TupBase::loadFilterHeader()
         conf.parseFile(g_app.getConfFile());
         _headers = TC_Common::sepstr<string>(conf.get("/main<filterheaders>", ""), ", ;|");
 
-        _hashType = TC_Common::strto<int>(conf.get("/main/hash<hash_type>", "0"));
-
-        _sHttpHeader = TC_Common::upper(conf.get("/main/hash<httpheader>"));
-
-        TLOG_DEBUG(TC_Common::tostr(_headers) << "|" << _hashType << "|" << _sHttpHeader << endl);
+        TLOG_DEBUG(TC_Common::tostr(_headers) << endl);
 
         return "reload ok";
     }
@@ -275,9 +261,9 @@ int TupBase::getDataFromHTTPRequest(const TC_HttpRequest &httpRequest, vector<ch
     }
 }
 
-int TupBase::getRealDataByDecode(vector<char> &sRealTupData, HandleParam &stParam)
+int TupBase::getRealDataByDecode(vector<char> &sRealTupData, shared_ptr<HandleParam> stParam)
 {
-    if (!stParam.iEptType && !stParam.iZipType)
+    if (!stParam->iEptType && !stParam->iZipType)
     {
         return 0;
     }
@@ -287,9 +273,9 @@ int TupBase::getRealDataByDecode(vector<char> &sRealTupData, HandleParam &stPara
     vector<char> sTempData = sRealTupData;
 
     // 解密数据
-    if (stParam.iEptType)
+    if (stParam->iEptType)
     {
-        bool bEpt = TC_Tea::decrypt(stParam.sEncryptKey.c_str(), &sRealTupData[0], sRealTupData.size(), sTempData);
+        bool bEpt = TC_Tea::decrypt(stParam->sEncryptKey.c_str(), &sRealTupData[0], sRealTupData.size(), sTempData);
         if (!bEpt)
         {
             TLOG_ERROR("http protocol decrypt error, iOrgLen:" << iOrgLen << endl);
@@ -303,7 +289,7 @@ int TupBase::getRealDataByDecode(vector<char> &sRealTupData, HandleParam &stPara
     }
 
     // 解压缩
-    if (stParam.iZipType)
+    if (stParam->iZipType)
     {
         bool bGzip = TC_GZip::uncompress(&sRealTupData[0], sRealTupData.size(), sTempData);
         if (!bGzip)
@@ -320,38 +306,38 @@ int TupBase::getRealDataByDecode(vector<char> &sRealTupData, HandleParam &stPara
     return 0;
 }
 
-void TupBase::getFilter(HandleParam &stParam)
+void TupBase::getFilter(shared_ptr<HandleParam> stParam)
 {
-    getHttpFilter(stParam.httpRequest.getHeaders(), stParam.filterHeader);
-    stParam.filterHeader["REMOTE_IP"] = stParam.sIP;
-    stParam.filterHeader["X-Forwarded-For-Host"] = stParam.sIP + ":" + TC_Common::tostr(stParam.current->getPort());
-    if (stParam.filterHeader.find("X-GUID") == stParam.filterHeader.end())
+    getHttpFilter(stParam->httpRequest.getHeaders(), stParam->filterHeader);
+    stParam->filterHeader["REMOTE_IP"] = stParam->sIP;
+    stParam->filterHeader["X-Forwarded-For-Host"] = stParam->sIP + ":" + TC_Common::tostr(stParam->current->getPort());
+    if (stParam->filterHeader.find("X-GUID") == stParam->filterHeader.end())
     {
-        stParam.filterHeader["X-GUID"] = stParam.sGUID;
+        stParam->filterHeader["X-GUID"] = stParam->sGUID;
     }
-    // if (stParam.filterHeader.find("X-Forwarded-For-Host") == stParam.filterHeader.end())
+    // if (stParam->filterHeader.find("X-Forwarded-For-Host") == stParam->filterHeader.end())
     // {
-    //     stParam.filterHeader["X-Forwarded-For-Host"] = stParam.sIP;
-    //     +":" + TC_Common::tostr(stParam.current->getPort());
+    //     stParam->filterHeader["X-Forwarded-For-Host"] = stParam->sIP;
+    //     +":" + TC_Common::tostr(stParam->current->getPort());
     // }
 }
 
-int TupBase::handleTarsRequest(HandleParam &stParam)
+int TupBase::handleTarsRequest(shared_ptr<HandleParam> stParam)
 {
     string sErrMsg;
 
     try
     {
-        stParam.current->setResponse(false);
+        stParam->current->setResponse(false);
         //解析出所有的tup请求
-        RequestPacket tupRequest;
+        shared_ptr<RequestPacket> tupRequest = make_shared<RequestPacket>();
 
         int ret = -1;
-        if (EPT_JSON_PROXY == stParam.proxyType)
+        if (EPT_JSON_PROXY == stParam->proxyType)
         {
             ret = parseJsonRequest(stParam, tupRequest);
         }
-        else if (EPT_TUP_PROXY == stParam.proxyType)
+        else if (EPT_TUP_PROXY == stParam->proxyType)
         {
             ret = parseTupRequest(stParam, tupRequest);
         }
@@ -359,34 +345,34 @@ int TupBase::handleTarsRequest(HandleParam &stParam)
         if (ret != 0)
         {
             TLOG_ERROR("parseTupRequest error"
-                      << ", type:" << stParam.proxyType
+                      << ", type:" << stParam->proxyType
                       << ",ret:" << ret
-                      << ",length:" << stParam.length
-                      << ",sGUID:" << stParam.sGUID
+                      << ",length:" << stParam->length
+                      << ",sGUID:" << stParam->sGUID
                       << endl);
 
             ReportHelper::reportStat(g_app.getLocalServerName(), "RequestMonitor", "ParseTupBodyErr", -1);
-            //stParam.current->close();
-            ProxyUtils::doErrorRsp(400, stParam.current, stParam.httpKeepAlive);
+            //stParam->current->close();
+            ProxyUtils::doErrorRsp(400, stParam->current, stParam->httpKeepAlive);
             return 0;
         }
 
         //解析代理
-        THashInfo hi;
-        ServantPrx proxy = TupProxyManager::getInstance()->getProxy(tupRequest.sServantName, tupRequest.sFuncName, stParam.httpRequest, hi);
+        ProxyExInfo pei;
+        ServantPrx proxy = TupProxyManager::getInstance()->getProxy(tupRequest->sServantName, tupRequest->sFuncName, stParam->httpRequest, pei);
 
         if (!proxy)
         {
             TLOG_ERROR("tup request no match proxy error, "
-                      << ", sServantName:" << tupRequest.sServantName
-                      << ", sFuncName:" << tupRequest.sFuncName
-                      << ", sGUID:" << stParam.sGUID
+                      << ", sServantName:" << tupRequest->sServantName
+                      << ", sFuncName:" << tupRequest->sFuncName
+                      << ", sGUID:" << stParam->sGUID
                       << endl);
 
-            TLOG_ERROR("parseTupProxy error, sGUID:" << stParam.sGUID << endl);
+            TLOG_ERROR("parseTupProxy error, sGUID:" << stParam->sGUID << endl);
 
             ReportHelper::reportStat(g_app.getLocalServerName(), "RequestMonitor", "GetProxyErr", -1);
-            ProxyUtils::doErrorRsp(404, stParam.current, stParam.httpKeepAlive);
+            ProxyUtils::doErrorRsp(404, stParam->current, stParam->httpKeepAlive);
             return 0;
         }
         else
@@ -394,85 +380,63 @@ int TupBase::handleTarsRequest(HandleParam &stParam)
             ReportHelper::reportStat(g_app.getLocalServerName(), "FindProxyMonitor", "TupProxyOK", 0);
         }
 
-        if (!STATIONMNG->checkWhiteList(proxy->tars_name(), stParam.sIP))
+        if (!STATIONMNG->checkWhiteList(proxy->tars_name(), stParam->sIP))
         {
-            TLOG_ERROR(stParam.sIP << " is not in " << proxy->tars_name() << " 's white list, obj:" << tupRequest.sServantName << ":" << tupRequest.sFuncName << endl);
-            ProxyUtils::doErrorRsp(403, stParam.current, stParam.httpKeepAlive);
+            TLOG_ERROR(stParam->sIP << " is not in " << proxy->tars_name() << " 's white list, obj:" << tupRequest->sServantName << ":" << tupRequest->sFuncName << endl);
+            ProxyUtils::doErrorRsp(403, stParam->current, stParam->httpKeepAlive);
             return 0;
         }
-        else if (STATIONMNG->isInBlackList(proxy->tars_name(), stParam.sIP))
+        else if (STATIONMNG->isInBlackList(proxy->tars_name(), stParam->sIP))
         {
-            TLOG_ERROR(stParam.sIP << " is in " << proxy->tars_name() << " 's black list, obj:" << tupRequest.sServantName << ":" << tupRequest.sFuncName << endl);
-            ProxyUtils::doErrorRsp(403, stParam.current, stParam.httpKeepAlive);
+            TLOG_ERROR(stParam->sIP << " is in " << proxy->tars_name() << " 's black list, obj:" << tupRequest->sServantName << ":" << tupRequest->sFuncName << endl);
+            ProxyUtils::doErrorRsp(403, stParam->current, stParam->httpKeepAlive);
             return 0;
         }
         else if (!FlowControlManager::getInstance()->check(proxy->tars_name()))
         {
             TLOG_ERROR("tars request:" << proxy->tars_name() << " flowcontrol false!!!" << endl);
-            ProxyUtils::doErrorRsp(429, stParam.current, stParam.httpKeepAlive);
+            ProxyUtils::doErrorRsp(429, stParam->current, stParam->httpKeepAlive);
             return 0;
         }
 
         getFilter(stParam);
 
-        //构造异步回调对象
-        TupCallbackParam stCbParam;
-        stCbParam.iTime = TC_Common::now2ms();
-        stCbParam.pairAcceptZip = stParam.pairAcceptZip;
-        stCbParam.pairAcceptEpt = stParam.pairAcceptEpt;
-        //stCbParam.iPortType = stParam.iPortType;
-        stCbParam.iEptType = stParam.iEptType;
-        stCbParam.iZipType = stParam.iZipType;
-        stCbParam.sReqGuid = stParam.sGUID;
-        stCbParam.sReqXua = stParam.sXUA;
-        stCbParam.sReqIP = stParam.sIP;
-        stCbParam.sEncryptKey = stParam.sEncryptKey;
-        stCbParam.iReqBufferSize = stParam.length;
-
-        stCbParam.iRequestId = tupRequest.iRequestId;
-        stCbParam.sServantName = tupRequest.sServantName;
-        stCbParam.sFuncName = tupRequest.sFuncName;
-        stCbParam.httpKeepAlive = stParam.httpKeepAlive;
-        stCbParam.isRestful = stParam.isRestful;
-
-        TupCallbackPtr cb;
-        if (JSONVERSION == tupRequest.iVersion)
+        // 处理verify身份鉴权问题 ============
+        if (pei.verifyInfo.prx)
         {
-            cb = new TupCallback("json", stParam.current, stCbParam, stParam.httpKeepAlive);
-        }
-        else if (TARSVERSION == tupRequest.iVersion)
-        {
-            cb = new TupCallback("tars", stParam.current, stCbParam, stParam.httpKeepAlive);
+            VerifyReq vReq;
+            vReq.token = stParam->httpRequest.getHeader(pei.verifyInfo.tokenHeader);
+            if (vReq.token.empty())
+            {
+                TLOG_ERROR("get tokenHeader empty:" << tupRequest->sServantName << ":" << tupRequest->sFuncName << "|http header:" << pei.verifyInfo.tokenHeader << endl);
+                ProxyUtils::doErrorRsp(401, stParam->current, stParam->httpKeepAlive, "Unauthorized: " + pei.verifyInfo.tokenHeader + " is empty.");
+                return 0;
+            }
+            for (auto it = pei.verifyInfo.verifyHeaders.begin(); it != pei.verifyInfo.verifyHeaders.end(); it++)
+            {
+                vReq.verifyHeaders[*it] = stParam->httpRequest.getHeader(*it);
+            }
+            if (pei.verifyInfo.verifyBody)
+            {
+                vReq.body.assign(stParam->buffer, stParam->buffer + stParam->length);
+            }
+            
+            try
+            {
+                VerifyCallbackPtr vcb = new VerifyCallback(proxy, tupRequest, stParam, pei.hashInfo, vReq.token);
+                pei.verifyInfo.prx->async_verify(vcb, vReq);                
+            }
+            catch(exception& ex)
+            {
+                TLOG_ERROR("verify exception:" << ex.what() << "|" << tupRequest->sServantName << ":" << tupRequest->sFuncName << endl);
+                ProxyUtils::doErrorRsp(401, stParam->current, stParam->httpKeepAlive, "Unauthorized: veirfy exception.");
+                return 0;
+            }
         }
         else
         {
-            cb = new TupCallback("tup", stParam.current, stCbParam, stParam.httpKeepAlive);
+            callServer(proxy, stParam, tupRequest, pei.hashInfo);
         }
-
-        //记录日志
-        FDLOG("tup") << 0 << "|"
-                     << stParam.sIP << "|"
-                     << stParam.sGUID << "|"
-                     << tupRequest.sServantName << "|"
-                     << tupRequest.sFuncName << "|"
-                     << stParam.iEptType << "|"
-                     << stParam.iZipType << "|"
-                     << proxy->tars_name() << "|"
-                     //<< stParam.iPortType << "|"
-                     //                << stParam.iOrgReqLen << "|"
-                     << stParam.length << "|"
-                     << endl;
-
-        string sHttpHeaderValue;
-        if (!hi.httpHeadKey.empty())
-        {
-            sHttpHeaderValue = stParam.httpRequest.getHeader(hi.httpHeadKey);
-        }
-
-        //设置需要透传的头部
-        tupRequest.context.insert(stParam.filterHeader.begin(), stParam.filterHeader.end());
-        // 正常用户
-        tupAsyncCall(tupRequest, proxy, cb, hi.type, sHttpHeaderValue);
 
         return 0;
     }
@@ -484,41 +448,41 @@ int TupBase::handleTarsRequest(HandleParam &stParam)
     {
         sErrMsg = "unknown error";
     }
-    //stParam.current->close();
+    //stParam->current->close();
 
-    ProxyUtils::doErrorRsp(400, stParam.current, stParam.httpKeepAlive);
+    ProxyUtils::doErrorRsp(400, stParam->current, stParam->httpKeepAlive);
 
-    TLOG_ERROR("exception: " << sErrMsg << ",sGUID:" << stParam.sGUID << endl);
+    TLOG_ERROR("exception: " << sErrMsg << ",sGUID:" << stParam->sGUID << endl);
 
     ReportHelper::reportStat(g_app.getLocalServerName(), "RequestMonitor", "ReqException2Num", -1);
 
     return -99;
 }
 
-int TupBase::parseJsonRequest(HandleParam &stParam, RequestPacket &tupRequest)
+int TupBase::parseJsonRequest(shared_ptr<HandleParam> stParam, shared_ptr<RequestPacket> tupRequest)
 {
     try
     {
-        string buff(stParam.buffer, stParam.buffer + stParam.length);
+        string buff(stParam->buffer, stParam->buffer + stParam->length);
 
-        tupRequest.iVersion = JSONVERSION;
-        tupRequest.cPacketType = tars::TARSNORMAL;
+        tupRequest->iVersion = JSONVERSION;
+        tupRequest->cPacketType = tars::TARSNORMAL;
 
-        if (stParam.httpRequest.getRequestUrl().length() > 6)
+        if (stParam->httpRequest.getRequestUrl().length() > 6)
         {
-            vector<string> vs = TC_Common::sepstr<string>(stParam.httpRequest.getRequestUrl(), "/");
+            vector<string> vs = TC_Common::sepstr<string>(stParam->httpRequest.getRequestUrl(), "/");
             if (vs.size() < 3)
             {
-                TLOG_ERROR("parse json url fail:" << stParam.httpRequest.getRequestUrl() << endl);
+                TLOG_ERROR("parse json url fail:" << stParam->httpRequest.getRequestUrl() << endl);
                 return -1;
             }
 
-            tupRequest.iRequestId = 99;
-            tupRequest.sServantName = TC_Common::trim(vs[1]);
-            tupRequest.sFuncName = TC_Common::trim(vs[2]);
-            tupRequest.sBuffer.resize(buff.length());
-            tupRequest.sBuffer.assign(buff.begin(), buff.end());
-            stParam.isRestful = true;
+            tupRequest->iRequestId = 99;
+            tupRequest->sServantName = TC_Common::trim(vs[1]);
+            tupRequest->sFuncName = TC_Common::trim(vs[2]);
+            tupRequest->sBuffer.resize(buff.length());
+            tupRequest->sBuffer.assign(buff.begin(), buff.end());
+            stParam->isRestful = true;
         }
         else
         {
@@ -527,14 +491,14 @@ int TupBase::parseJsonRequest(HandleParam &stParam, RequestPacket &tupRequest)
 
             tars::JsonValuePtr p = tars::TC_Json::getValue(buff);
             tars::JsonValueObjPtr pObj = tars::JsonValueObjPtr::dynamicCast(p);
-            tars::JsonInput::readJson(tupRequest.iMessageType, pObj->value["msgtype"], false);
-            tars::JsonInput::readJson(tupRequest.iRequestId, pObj->value["reqid"], false);
-            tars::JsonInput::readJson(tupRequest.iTimeout, pObj->value["timeout"], false);
-            tars::JsonInput::readJson(tupRequest.context, pObj->value["context"], false);
-            tars::JsonInput::readJson(tupRequest.status, pObj->value["status"], false);
+            tars::JsonInput::readJson(tupRequest->iMessageType, pObj->value["msgtype"], false);
+            tars::JsonInput::readJson(tupRequest->iRequestId, pObj->value["reqid"], false);
+            tars::JsonInput::readJson(tupRequest->iTimeout, pObj->value["timeout"], false);
+            tars::JsonInput::readJson(tupRequest->context, pObj->value["context"], false);
+            tars::JsonInput::readJson(tupRequest->status, pObj->value["status"], false);
 
-            tars::JsonInput::readJson(tupRequest.sServantName, pObj->value["obj"], false);
-            tars::JsonInput::readJson(tupRequest.sFuncName, pObj->value["func"], false);
+            tars::JsonInput::readJson(tupRequest->sServantName, pObj->value["obj"], false);
+            tars::JsonInput::readJson(tupRequest->sFuncName, pObj->value["func"], false);
 
             string data;
             tars::JsonInput::readJson(data, pObj->value["data"], true);
@@ -543,9 +507,9 @@ int TupBase::parseJsonRequest(HandleParam &stParam, RequestPacket &tupRequest)
                 TLOG_ERROR("parseJsonRequest error, data is empty!!!" << endl);
                 return -1;
             }
-            tupRequest.sBuffer.resize(data.length());
-            tupRequest.sBuffer.assign(data.begin(), data.end());
-            stParam.isRestful = false;
+            tupRequest->sBuffer.resize(data.length());
+            tupRequest->sBuffer.assign(data.begin(), data.end());
+            stParam->isRestful = false;
         }
 
         return 0;
@@ -558,10 +522,10 @@ int TupBase::parseJsonRequest(HandleParam &stParam, RequestPacket &tupRequest)
     return -1;
 }
 
-int TupBase::parseTupRequest(HandleParam &stParam, RequestPacket &tupRequest)
+int TupBase::parseTupRequest(shared_ptr<HandleParam> stParam, shared_ptr<RequestPacket> tupRequest)
 {
-    const char *buffer = stParam.buffer;
-    size_t length = stParam.length;
+    const char *buffer = stParam->buffer;
+    size_t length = stParam->length;
     //长度保护
     if (length < sizeof(uint32_t))
     {
@@ -592,9 +556,9 @@ int TupBase::parseTupRequest(HandleParam &stParam, RequestPacket &tupRequest)
 
         is.setBuffer(buffer + 4, l - 4);
 
-        tupRequest.readFrom(is);
+        tupRequest->readFrom(is);
 
-        TLOGDEBUG(tupRequest.sServantName << "::" << tupRequest.sFuncName << ", requestid:" << tupRequest.iRequestId << endl);
+        TLOGDEBUG(tupRequest->sServantName << "::" << tupRequest->sFuncName << ", requestid:" << tupRequest->iRequestId << endl);
 
         return 0;
     }
@@ -605,29 +569,69 @@ int TupBase::parseTupRequest(HandleParam &stParam, RequestPacket &tupRequest)
     return -1;
 }
 
-// ServantPrx TupBase::parseTupProxy(const BasePacket& tupRequest, HandleParam& stParam)
-// {
-// 	ServantPrx proxy = TupProxyManager::getInstance()->getProxy(tupRequest.sServantName, tupRequest.sFuncName, stParam.httpRequest);
+void TupBase::callServer(ServantPrx proxy, shared_ptr<HandleParam> stParam, shared_ptr<RequestPacket> tupRequest, const THashInfo& hi)
+{
+    //构造异步回调对象
+    shared_ptr<TupCallbackParam> stCbParam = make_shared<TupCallbackParam>();
+    stCbParam->iTime = TC_Common::now2ms();
+    stCbParam->pairAcceptZip = stParam->pairAcceptZip;
+    stCbParam->pairAcceptEpt = stParam->pairAcceptEpt;
+    //stCbParam->iPortType = stParam->iPortType;
+    stCbParam->iEptType = stParam->iEptType;
+    stCbParam->iZipType = stParam->iZipType;
+    stCbParam->sReqGuid = stParam->sGUID;
+    stCbParam->sReqXua = stParam->sXUA;
+    stCbParam->sReqIP = stParam->sIP;
+    stCbParam->sEncryptKey = stParam->sEncryptKey;
+    stCbParam->iReqBufferSize = stParam->length;
 
-// 	if (!proxy)
-// 	{
-// 		TLOG_ERROR("tup request no match proxy error, "
-// 			<< ", sServantName:" << tupRequest.sServantName
-// 			<< ", sFuncName:" << tupRequest.sFuncName
-// 			<< ", sGUID:" << stParam.sGUID
-// 			<< endl);
+    stCbParam->iRequestId = tupRequest->iRequestId;
+    stCbParam->sServantName = tupRequest->sServantName;
+    stCbParam->sFuncName = tupRequest->sFuncName;
+    stCbParam->httpKeepAlive = stParam->httpKeepAlive;
+    stCbParam->isRestful = stParam->isRestful;
 
-// 		ReportHelper::reportStat(g_app.getLocalServerName(), "FindProxyMonitor", "TupProxyErr", -1);
-// 	}
-// 	else
-// 	{
-// 		ReportHelper::reportStat(g_app.getLocalServerName(), "FindProxyMonitor", "TupProxyOK", 0);
-// 	}
+    TupCallbackPtr cb;
+    if (JSONVERSION == tupRequest->iVersion)
+    {
+        cb = new TupCallback("json", stParam->current, stCbParam, stParam->httpKeepAlive);
+    }
+    else if (TARSVERSION == tupRequest->iVersion)
+    {
+        cb = new TupCallback("tars", stParam->current, stCbParam, stParam->httpKeepAlive);
+    }
+    else
+    {
+        cb = new TupCallback("tup", stParam->current, stCbParam, stParam->httpKeepAlive);
+    }
 
-//     return proxy;
-// }
+    //记录日志
+    FDLOG("tup") << 0 << "|"
+                    << stParam->sIP << "|"
+                    << stParam->sGUID << "|"
+                    << tupRequest->sServantName << "|"
+                    << tupRequest->sFuncName << "|"
+                    << stParam->iEptType << "|"
+                    << stParam->iZipType << "|"
+                    << proxy->tars_name() << "|"
+                    //<< stParam->iPortType << "|"
+                    //                << stParam->iOrgReqLen << "|"
+                    << stParam->length << "|"
+                    << endl;
 
-void TupBase::tupAsyncCall(RequestPacket &tup, ServantPrx &proxy, const TupCallbackPtr &cb, THashInfo::E_HASH_TYPE ht, const string &sHttpHeaderValue)
+    string sHttpHeaderValue;
+    if (!hi.httpHeadKey.empty())
+    {
+        sHttpHeaderValue = stParam->httpRequest.getHeader(hi.httpHeadKey);
+    }
+
+    //设置需要透传的头部
+    tupRequest->context.insert(stParam->filterHeader.begin(), stParam->filterHeader.end());
+    // 正常用户
+    tupAsyncCall(tupRequest, proxy, cb, hi.type, sHttpHeaderValue);
+}
+
+void TupBase::tupAsyncCall(shared_ptr<RequestPacket> tup, ServantPrx proxy, TupCallbackPtr cb, THashInfo::E_HASH_TYPE ht, const string &sHttpHeaderValue)
 {
 
     //用自己的requestid, 回来的时候好匹配
@@ -640,32 +644,32 @@ void TupBase::tupAsyncCall(RequestPacket &tup, ServantPrx &proxy, const TupCallb
         //BasePacket newTup = tup;
 
         //设置新的tup requestid
-        int oldReqID = tup.iRequestId;
-        tup.iRequestId = requestId;
+        int oldReqID = tup->iRequestId;
+        tup->iRequestId = requestId;
 
         //设置TARS服务的ServantName
-        tup.sServantName = string(proxy->tars_name().substr(0, proxy->tars_name().find("@")));
+        tup->sServantName = string(proxy->tars_name().substr(0, proxy->tars_name().find("@")));
 
         //调用链追踪;
-        int traceFlag = TraceControl::getInstance()->check(cb->getServantName(), tup.sFuncName);
+        int traceFlag = TraceControl::getInstance()->check(cb->getServantName(), tup->sFuncName);
         if (traceFlag >= 0 && traceFlag <= 15)
         {
-            string traceID = genTraceID(cb->getServantName(), tup.sFuncName, ServerConfig::LocalIp, requestId);
+            string traceID = genTraceID(cb->getServantName(), tup->sFuncName, ServerConfig::LocalIp, requestId);
             stringstream ss;
             ss << std::hex << traceFlag << "." << TraceControl::getInstance()->getParamMaxLen() << "-" << traceID << "|";
             
             string spanID = TC_UUIDGenerator::getInstance()->genID();
             string traceKey = ss.str() + spanID + "|" + spanID;
-            SET_MSG_TYPE(tup.iMessageType, tars::TARSMESSAGETYPETRACE);
-            tup.status[ServantProxy::STATUS_TRACE_KEY] = traceKey;
+            SET_MSG_TYPE(tup->iMessageType, tars::TARSMESSAGETYPETRACE);
+            tup->status[ServantProxy::STATUS_TRACE_KEY] = traceKey;
             
             string _trace_param_;
-            int _trace_param_flag_ = ServantProxyThreadData::needTraceParam(ServantProxyThreadData::TraceContext::EST_TS, traceKey, tup.sBuffer.size());
+            int _trace_param_flag_ = ServantProxyThreadData::needTraceParam(ServantProxyThreadData::TraceContext::EST_TS, traceKey, tup->sBuffer.size());
             if (ServantProxyThreadData::TraceContext::ENP_NORMAL == _trace_param_flag_)
             {
-                if (tup.iVersion == tars::JSONVERSION)
+                if (tup->iVersion == tars::JSONVERSION)
                 {
-                    _trace_param_.assign(tup.sBuffer.begin(), tup.sBuffer.end());
+                    _trace_param_.assign(tup->sBuffer.begin(), tup->sBuffer.end());
                 }
                 else
                 {
@@ -674,24 +678,24 @@ void TupBase::tupAsyncCall(RequestPacket &tup, ServantPrx &proxy, const TupCallb
             }
             else if(ServantProxyThreadData::TraceContext::ENP_OVERMAXLEN == _trace_param_flag_)
             {
-                _trace_param_ = "{\"trace_param_over_max_len\":true, \"data_len\":" + TC_Common::tostr(tup.sBuffer.size()) + "}";
+                _trace_param_ = "{\"trace_param_over_max_len\":true, \"data_len\":" + TC_Common::tostr(tup->sBuffer.size()) + "}";
             }
             
-            TARS_TRACE(traceKey, TRACE_ANNOTATION_TS, ServerConfig::Application + "." + ServerConfig::ServerName, tup.sServantName, tup.sFuncName, 0, _trace_param_, "");
-            TLOG_DEBUG("trace===>" << traceKey << ", " << tup.sServantName << ":" << tup.sFuncName << endl);
+            TARS_TRACE(traceKey, TRACE_ANNOTATION_TS, ServerConfig::Application + "." + ServerConfig::ServerName, tup->sServantName, tup->sFuncName, 0, _trace_param_, "");
+            TLOG_DEBUG("trace===>" << traceKey << ", " << tup->sServantName << ":" << tup->sFuncName << endl);
 
             cb->setTraceKey(traceKey);
         }
         
         /////end 调用链追踪
 
-        //tup.context.insert(filterHeader.begin(), filterHeader.end());
-        //newTup.context = filterHeader;
+        //tup->context.insert(filterHeader.begin(), filterHeader.end());
+        //newtup->context = filterHeader;
 
         //重新编码
         tars::TarsOutputStream<BufferWriter> buffer;
 
-        tup.writeTo(buffer);
+        tup->writeTo(buffer);
 
         unsigned int bufferlength = buffer.getLength() + 4;
         bufferlength = htonl(bufferlength);
@@ -706,43 +710,43 @@ void TupBase::tupAsyncCall(RequestPacket &tup, ServantPrx &proxy, const TupCallb
         TLOG_DEBUG("tars_name:" << proxy->tars_name() << endl);
 
         string sHashType;
-        if (tup.context.find(CTX_TARSHASH_KEY) != tup.context.end() && tup.context[CTX_TARSHASH_KEY].length() > 0)
+        if (tup->context.find(CTX_TARSHASH_KEY) != tup->context.end() && tup->context[CTX_TARSHASH_KEY].length() > 0)
         {
-            proxy->tars_hash(tars::hash<string>()(tup.context[CTX_TARSHASH_KEY]))->rpc_call_async(requestId, tup.sFuncName, s.c_str(), s.length(), cb);
-            sHashType = "context hash, key=" + tup.context[CTX_TARSHASH_KEY];
+            proxy->tars_hash(tars::hash<string>()(tup->context[CTX_TARSHASH_KEY]))->rpc_call_async(requestId, tup->sFuncName, s.c_str(), s.length(), cb);
+            sHashType = "context hash, key=" + tup->context[CTX_TARSHASH_KEY];
         }
         else if (ht == THashInfo::EHT_ROBINROUND)
         {
             sHashType = "robin round";
-            proxy->rpc_call_async(requestId, tup.sFuncName, s.c_str(), s.length(), cb);
+            proxy->rpc_call_async(requestId, tup->sFuncName, s.c_str(), s.length(), cb);
         }
         else if (ht == THashInfo::EHT_REQUESTID)
         {
             sHashType = "requestid hash, reqid=" + TC_Common::tostr(oldReqID);
-            proxy->tars_hash(oldReqID)->rpc_call_async(requestId, tup.sFuncName, s.c_str(), s.length(), cb);
+            proxy->tars_hash(oldReqID)->rpc_call_async(requestId, tup->sFuncName, s.c_str(), s.length(), cb);
         }
         else if (ht == THashInfo::EHT_HTTPHEAD && !sHttpHeaderValue.empty())
         {
             sHashType = "http head hash, head=" + sHttpHeaderValue;
-            proxy->tars_hash(tars::hash<string>()(sHttpHeaderValue))->rpc_call_async(requestId, tup.sFuncName, s.c_str(), s.length(), cb);
+            proxy->tars_hash(tars::hash<string>()(sHttpHeaderValue))->rpc_call_async(requestId, tup->sFuncName, s.c_str(), s.length(), cb);
         }
         else if (ht == THashInfo::EHT_CLIENTIP)
         {
             sHashType = "clientip hash, ip=" + cb->getClientIp();
-            proxy->tars_hash(tars::hash<string>()(cb->getClientIp()))->rpc_call_async(requestId, tup.sFuncName, s.c_str(), s.length(), cb);
+            proxy->tars_hash(tars::hash<string>()(cb->getClientIp()))->rpc_call_async(requestId, tup->sFuncName, s.c_str(), s.length(), cb);
         }
         else
         {
             sHashType = "default hash";
-            proxy->rpc_call_async(requestId, tup.sFuncName, s.c_str(), s.length(), cb);
+            proxy->rpc_call_async(requestId, tup->sFuncName, s.c_str(), s.length(), cb);
         }
 
-        TLOG_DEBUG(tup.sServantName << "::" << tup.sFuncName << ", version:" << (int)tup.iVersion << ", hash:" << sHashType << ", async call succ." << endl);
+        TLOG_DEBUG(tup->sServantName << "::" << tup->sFuncName << ", version:" << (int)tup->iVersion << ", hash:" << sHashType << ", async call succ." << endl);
 
-        FDLOG("call") << tup.sServantName + "::" + tup.sFuncName << "|" << sHttpHeaderValue
-                      << "|iRequestId:" << tup.iRequestId
+        FDLOG("call") << tup->sServantName + "::" + tup->sFuncName << "|" << sHttpHeaderValue
+                      << "|iRequestId:" << tup->iRequestId
                       << "|oldReqID:" << oldReqID
-                      << "|type:" << (int)(tup.iVersion)
+                      << "|type:" << (int)(tup->iVersion)
                       << "|buffer.size:" << s.length()
                       << "|HashType:" << sHashType
                       << "|ServantName:" << proxy->tars_name()

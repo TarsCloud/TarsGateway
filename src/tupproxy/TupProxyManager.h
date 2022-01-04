@@ -4,29 +4,10 @@
 #include "servant/Application.h"
 #include "util/tc_monitor.h"
 #include "util/tc_singleton.h"
+#include "proxybase/ProxyParam.h"
 
 using namespace std;
 using namespace tars;
-
-struct THashInfo
-{
-    enum E_HASH_TYPE
-    {
-        EHT_ROBINROUND = 0,
-        EHT_REQUESTID = 1,
-        EHT_HTTPHEAD = 2,
-        EHT_CLIENTIP = 3,
-        EHT_DEFAULT = 99,
-    };
-
-    THashInfo()
-    {
-        type = EHT_DEFAULT;
-    }
-
-    E_HASH_TYPE type;
-    string httpHeadKey;
-};
 
 /**
  * 管理所有后端的TARS服务的代理
@@ -52,7 +33,7 @@ class TupProxyManager : public TC_Singleton<TupProxyManager>, public TC_ThreadLo
      * @return ServantPrx 
      */
     ServantPrx getProxy(const string &sServantName, const string &sFuncName, const TC_HttpRequest &httpRequest, THashInfo &hi);
-
+    ServantPrx getProxy(const string& sServantName, const string& sFuncName, const TC_HttpRequest &httpRequest, ProxyExInfo& pei);
     /**
      * 构造
      */
@@ -68,6 +49,7 @@ class TupProxyManager : public TC_Singleton<TupProxyManager>, public TC_ThreadLo
 
     string parseHashInfo(const string &objInfo, THashInfo &hi);
     void updateHashInfo(const string &servantName, const string &obj);
+    void initVerifyInfo(const TC_Config& conf);
 
   protected:
     TC_ThreadMutex _mutex;
@@ -78,6 +60,8 @@ class TupProxyManager : public TC_Singleton<TupProxyManager>, public TC_ThreadLo
 
     //map<string, ServantPrx> _proxyMap;
     map<string, pair<ServantPrx, THashInfo>> _proxyMap;
+    map<string, VerifyInfo>     _proxyVerify;
+    set<string>                 _noVerify;
     //map<string, ServantPrx> _jsonProxy;
 
     set<string> _realnameSet;

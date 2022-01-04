@@ -16,7 +16,7 @@ public:
 
     void initializeHttp();
 
-    int handleHttpRequest(HandleParam& param, shared_ptr<AccessLog> aLog);
+    int handleHttpRequest(shared_ptr<HandleParam> param, shared_ptr<AccessLog> aLog);
 
     //int handleRequest(HandleParam& param, shared_ptr<AccessLog> aLog);
 

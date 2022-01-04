@@ -56,7 +56,7 @@ int TupCallback::onDispatch(ReqMessagePtr msg)
     else
     {
         TLOG_ERROR("================ getType:" << getType() << ", reqId:" << _iNewRequestId << ", iRet:" << msg->response->iRet 
-             << ", servant:" << _stParam.sServantName << ", func:" << _stParam.sFuncName << endl);
+             << ", servant:" << _stParam->sServantName << ", func:" << _stParam->sFuncName << endl);
         if (getType() == "tup" || getType() == "json" || getType() == "tars")
         {
             vector<char> &buff = msg->response->sBuffer;
@@ -87,7 +87,7 @@ int TupCallback::onDispatch(ReqMessagePtr msg)
             _trace_param_ = "{\"trace_param_over_max_len\":true, \"data_len\":" + TC_Common::tostr(msg->response->sBuffer.size()) + "}";
         }
         
-        TARS_TRACE(getTraceKey(), TRACE_ANNOTATION_TE, ServerConfig::Application + "." + ServerConfig::ServerName, _stParam.sServantName, _stParam.sFuncName, msg->response->iRet, _trace_param_, ""); 
+        TARS_TRACE(getTraceKey(), TRACE_ANNOTATION_TE, ServerConfig::Application + "." + ServerConfig::ServerName, _stParam->sServantName, _stParam->sFuncName, msg->response->iRet, _trace_param_, ""); 
     }
 
     return 0;
@@ -116,9 +116,9 @@ void TupCallback::doResponse_tup(const vector<char> &buffer)
         //tup->readFrom(is);
         TLOG_DEBUG("read tup RequestPacket succ." << endl);
 
-        req.iRequestId = _stParam.iRequestId;
-        req.sServantName = _stParam.sServantName;
-        req.sFuncName = _stParam.sFuncName;
+        req.iRequestId = _stParam->iRequestId;
+        req.sServantName = _stParam->sServantName;
+        req.sFuncName = _stParam->sFuncName;
 
         tars::TarsOutputStream<BufferWriter> os;
         req.writeTo(os);
@@ -126,9 +126,9 @@ void TupCallback::doResponse_tup(const vector<char> &buffer)
         if (os.getLength() > g_app.getRspSizeLimit())
         {
             TLOG_ERROR("packet is too big tup|" << os.getLength()
-                                               << "|" << _stParam.sServantName
-                                               << "|" << _stParam.sFuncName
-                                               << "|" << _stParam.sReqGuid
+                                               << "|" << _stParam->sServantName
+                                               << "|" << _stParam->sFuncName
+                                               << "|" << _stParam->sReqGuid
                                                << endl);
             ReportHelper::reportProperty("RspSizeLimit", 1, 1);
         }
@@ -141,8 +141,8 @@ void TupCallback::doResponse_tup(const vector<char> &buffer)
         memcpy(&_rspBuffer[0], (char *)&bufferlength, 4);
         memcpy(&_rspBuffer[4], os.getBuffer(), os.getLength());
 
-        TLOG_DEBUG(_stParam.sServantName << "::"
-                                        << _stParam.sFuncName << ", requestid:"
+        TLOG_DEBUG(_stParam->sServantName << "::"
+                                        << _stParam->sFuncName << ", requestid:"
                                         << req.iRequestId << ", length:" << os.getLength() << endl);
 
         handleResponse();
@@ -164,17 +164,17 @@ void TupCallback::doResponse_tars(shared_ptr<ResponsePacket> tup)
         if (tup->iRequestId != _iNewRequestId)
         {
             TLOG_ERROR("find tup origin request error:"
-                      << _stParam.sServantName << "::"
-                      << _stParam.sFuncName << " requestid:"
+                      << _stParam->sServantName << "::"
+                      << _stParam->sFuncName << " requestid:"
                       << tup->iRequestId << ", no match origin request:" << _iNewRequestId
                       << endl);
             return;
         }
 
         ////回复包设置为请求包的信息
-        tup->iRequestId = _stParam.iRequestId;
-        //tup->sServantName = _stParam.sServantName;
-        //tup->sFuncName = _stParam.sFuncName;
+        tup->iRequestId = _stParam->iRequestId;
+        //tup->sServantName = _stParam->sServantName;
+        //tup->sFuncName = _stParam->sFuncName;
 
         tars::TarsOutputStream<BufferWriter> os;
         tup->writeTo(os);
@@ -182,9 +182,9 @@ void TupCallback::doResponse_tars(shared_ptr<ResponsePacket> tup)
         if (os.getLength() > g_app.getRspSizeLimit())
         {
             TLOG_ERROR("packet is too big tup|" << os.getLength()
-                                               << "|" << _stParam.sServantName
-                                               << "|" << _stParam.sFuncName
-                                               << "|" << _stParam.sReqGuid
+                                               << "|" << _stParam->sServantName
+                                               << "|" << _stParam->sFuncName
+                                               << "|" << _stParam->sReqGuid
                                                << endl);
             ReportHelper::reportProperty("RspSizeLimit", 1, 1);
         }
@@ -197,8 +197,8 @@ void TupCallback::doResponse_tars(shared_ptr<ResponsePacket> tup)
         memcpy(&_rspBuffer[0], (char *)&bufferlength, 4);
         memcpy(&_rspBuffer[4], os.getBuffer(), os.getLength());
 
-        TLOG_DEBUG(_stParam.sServantName << "::"
-                                        << _stParam.sFuncName << ", requestid:"
+        TLOG_DEBUG(_stParam->sServantName << "::"
+                                        << _stParam->sFuncName << ", requestid:"
                                         << tup->iRequestId << ", length:" << os.getLength() << endl);
 
         handleResponse();
@@ -223,14 +223,14 @@ void TupCallback::doResponse_json(shared_ptr<ResponsePacket> tup)
             return;
         }
 
-        if (_stParam.isRestful)
+        if (_stParam->isRestful)
         {
             _rspBuffer.assign(tup->sBuffer.begin(), tup->sBuffer.end());
         }
         else
         {
             tars::JsonValueObjPtr p = new tars::JsonValueObj();
-            p->value["reqid"] = tars::JsonOutput::writeJson(_stParam.iRequestId);
+            p->value["reqid"] = tars::JsonOutput::writeJson(_stParam->iRequestId);
             p->value["data"] = tars::JsonOutput::writeJson(string(tup->sBuffer.begin(), tup->sBuffer.end()));
             string buff = tars::TC_Json::writeValue(p);
             _rspBuffer.resize(buff.length());
@@ -257,45 +257,34 @@ void TupCallback::doResponseException(int ret, const vector<char> &buffer)
 
         //记录调用开始时间和结束时间的两者之差
         int64_t nowTime = TC_Common::now2ms();
-        TLOG_ERROR(nowTime - _stParam.iTime << "|"
-                                           << _stParam.sReqIP << "|"
-                                           << _stParam.sReqGuid << "|"
-                                           << _stParam.sServantName << "|"
-                                           << _stParam.sFuncName << "|"
-                                           << _stParam.iEptType << "|"
-                                           << _stParam.iZipType << "|"
-                                           //<< _stParam.iPortType << "|"
+        TLOG_ERROR(nowTime - _stParam->iTime << "|"
+                                           << _stParam->sReqIP << "|"
+                                           << _stParam->sReqGuid << "|"
+                                           << _stParam->sServantName << "|"
+                                           << _stParam->sFuncName << "|"
+                                           << _stParam->iEptType << "|"
+                                           << _stParam->iZipType << "|"
+                                           //<< _stParam->iPortType << "|"
                                            << endl);
 
-        FDLOG("tupcall_exception") << _stParam.sReqIP << "|"
-                                   << _stParam.sServantName << "|"
-                                   << _stParam.sFuncName << "|"
-                                   << _stParam.sReqGuid << "|"
-                                   << _stParam.sReqXua << "|"
-                                   << _stParam.iEptType << "|"
-                                   << _stParam.iZipType << "|"
-                                   << nowTime - _stParam.iTime << "|"
+        FDLOG("tupcall_exception") << _stParam->sReqIP << "|"
+                                   << _stParam->sServantName << "|"
+                                   << _stParam->sFuncName << "|"
+                                   << _stParam->sReqGuid << "|"
+                                   << _stParam->sReqXua << "|"
+                                   << _stParam->iEptType << "|"
+                                   << _stParam->iZipType << "|"
+                                   << nowTime - _stParam->iTime << "|"
                                    << ret
                                    << endl;
-
-        // FDLOG("tupcall_exception") << nowTime - _stParam.iTime << "|"
-        // 	<< _stParam.sServantName << "|"
-        // 	<< _stParam.sServantName << "|"
-        // 	<< _stParam.sReqIP << "|"
-        // 	<< _stParam.sReqGuid << "|1|"
-        // 	<< _stParam.iEptType << "|"
-        // 	<< _stParam.iZipType << "|"
-        // 	//<< _stParam.iPortType << "|"
-        // 	<< _stParam.iReqBufferSize
-        // 	<< endl;
-
+        
         if (ret == -7)
         {
-            ProxyUtils::doErrorRsp(504, _current, _stParam.httpKeepAlive);
+            ProxyUtils::doErrorRsp(504, _current, _stParam->httpKeepAlive);
         }
         else
         {
-            ProxyUtils::doErrorRsp(502, _current, _stParam.httpKeepAlive);
+            ProxyUtils::doErrorRsp(502, _current, _stParam->httpKeepAlive);
         }
 
         ReportHelper::reportStat(g_app.getLocalServerName(), "RequestMonitor", "doResponseException", 0);
@@ -318,8 +307,8 @@ void TupCallback::handleResponse()
     // }
     TLOG_DEBUG("rsp size:" << _rspBuffer.size() << endl);
 
-    bool bGzipOk = !_stParam.pairAcceptZip.first.empty();
-    bool bEncrypt = !_stParam.pairAcceptEpt.first.empty();
+    bool bGzipOk = !_stParam->pairAcceptZip.first.empty();
+    bool bEncrypt = !_stParam->pairAcceptEpt.first.empty();
 
     size_t iOrgRspLen = _rspBuffer.size();
 
@@ -330,7 +319,7 @@ void TupCallback::handleResponse()
     // httpResponse.setHeader("Content-Type", "application/multipart-formdata");
     httpResponse.setHeader("Cache-Control", "no-cache"); //不缓存内容
 
-    if (_stParam.httpKeepAlive)
+    if (_stParam->httpKeepAlive)
     {
         httpResponse.setConnection("keep-alive");
     }
@@ -342,14 +331,14 @@ void TupCallback::handleResponse()
     if (getType() == "json")
     {
         httpResponse.setHeader("Content-Type", "application/json");
-        g_app.setRspHeaders((int)EPT_JSON_PROXY, _stParam.sServantName, httpResponse);
+        g_app.setRspHeaders((int)EPT_JSON_PROXY, _stParam->sServantName, httpResponse);
         // httpResponse.setHeader("Access-Control-Allow-Origin", "*");
         // httpResponse.setHeader("Access-Control-Allow-Methods", "POST, GET");
     }
     else
     {
         httpResponse.setHeader("Content-Type", "application/octet-stream");
-        g_app.setRspHeaders((int)EPT_TUP_PROXY, _stParam.sServantName, httpResponse);
+        g_app.setRspHeaders((int)EPT_TUP_PROXY, _stParam->sServantName, httpResponse);
     }
 
     vector<char> tmpBuffer = _rspBuffer;
@@ -365,20 +354,20 @@ void TupCallback::handleResponse()
 
             _rspBuffer.swap(tmpBuffer);
 
-            httpResponse.setHeader(_stParam.pairAcceptZip.first, _stParam.pairAcceptZip.second);
+            httpResponse.setHeader(_stParam->pairAcceptZip.first, _stParam->pairAcceptZip.second);
         }
     }
 
     if (bEncrypt)
     {
         //加密
-        TC_Tea::encrypt(_stParam.sEncryptKey.c_str(), &_rspBuffer[0], _rspBuffer.size(), tmpBuffer);
+        TC_Tea::encrypt(_stParam->sEncryptKey.c_str(), &_rspBuffer[0], _rspBuffer.size(), tmpBuffer);
 
         TLOG_DEBUG(" encrypt: " << _rspBuffer.size() << "->" << tmpBuffer.size() << endl);
 
         _rspBuffer.swap(tmpBuffer);
 
-        httpResponse.setHeader(_stParam.pairAcceptEpt.first, _stParam.pairAcceptEpt.second);
+        httpResponse.setHeader(_stParam->pairAcceptEpt.first, _stParam->pairAcceptEpt.second);
     }
 
     TLOG_DEBUG("rsp buffer length:" << _rspBuffer.size() << endl);
@@ -391,7 +380,7 @@ void TupCallback::handleResponse()
               << response.substr(0, response.find("\r\n\r\n")) << endl);
 
     _current->sendResponse(response.c_str(), response.length());
-    if (!_stParam.httpKeepAlive)
+    if (!_stParam->httpKeepAlive)
     {
         _current->close();
     }
@@ -402,16 +391,16 @@ void TupCallback::handleResponse()
 
     //记录调用开始时间和结束时间的两者之差
     int64_t nowTime = TC_Common::now2ms();
-    FDLOG("response") << _stParam.sReqIP << "|"
-                      << _stParam.sReqGuid << "|"
-                      << _stParam.sReqXua << "|"
-                      << _stParam.sServantName << "|"
-                      << _stParam.sFuncName << "|"
-                      << _stParam.iEptType << "|"
-                      << _stParam.iZipType << "|"
+    FDLOG("response") << _stParam->sReqIP << "|"
+                      << _stParam->sReqGuid << "|"
+                      << _stParam->sReqXua << "|"
+                      << _stParam->sServantName << "|"
+                      << _stParam->sFuncName << "|"
+                      << _stParam->iEptType << "|"
+                      << _stParam->iZipType << "|"
                       << bEncrypt << "|"
                       << bGzipOk << "|"
-                      << nowTime - _stParam.iTime << "|"
+                      << nowTime - _stParam->iTime << "|"
                       << _rspBuffer.size()
                       << endl;
 
@@ -419,12 +408,39 @@ void TupCallback::handleResponse()
     if (iOrgRspLen > g_app.getRspSizeLimit())
     {
         TLOG_ERROR("packet is too big all|" << iOrgRspLen
-                                           << "|" << _stParam.sReqGuid << ", " << _stParam.sServantName << "|" << _stParam.sFuncName
+                                           << "|" << _stParam->sReqGuid << ", " << _stParam->sServantName << "|" << _stParam->sFuncName
                                            << endl);
         ReportHelper::reportProperty("RspTotalSizeLimit", 1, 1);
     }
 
     _rspBuffer.clear();
 }
+
+void VerifyCallback::callback_verify(tars::Int32 ret,  const Base::VerifyRsp& rsp)
+{
+    if (0 != ret || rsp.ret != EVC_SUCC)
+    {
+        TLOG_ERROR("verify ret error:" << ret << "|verify code:" << rsp.ret << "|" << _request->sServantName << ":" << _request->sFuncName << endl);
+        ProxyUtils::doErrorRsp(401, _param->current, _param->httpKeepAlive, "Unauthorized: veirfy fail, ret=" + TC_Common::tostr(rsp.ret));
+        return;
+    }
+    else
+    {
+        TLOG_DEBUG(_request->sServantName << ":" << _request->sFuncName << "|async_verify succ:" << rsp.ret << ", " << rsp.uid << ", " << rsp.context << endl);
+    }
+
+    _request->context["X-Verify-UID"] = rsp.uid;
+    _request->context["X-Verify-Data"] = rsp.context;
+    _request->context["X-Verify-Token"] = _token;
+
+    TupBase::callServer(_proxy, _param, _request, _hashInfo);
+}
+
+void VerifyCallback::callback_verify_exception(tars::Int32 ret)
+{
+    TLOG_ERROR("async_verify ret error:" << ret << "|" << _request->sServantName << ":" << _request->sFuncName << endl);
+    ProxyUtils::doErrorRsp(401, _param->current, _param->httpKeepAlive, "Unauthorized: veirfy exception, ret=" + TC_Common::tostr(ret));
+}
+
 
 //////////////////////////////////////////////////////

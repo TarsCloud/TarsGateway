@@ -4,10 +4,11 @@
 #include "servant/Application.h"
 #include "util/tc_http.h"
 #include "TupBase.h"
+#include "Verify.h"
 
 using namespace std;
 using namespace tars;
-
+using namespace Base;
 
 struct TupCallbackParam
 {
@@ -52,7 +53,7 @@ public:
 
     TupCallback(const string& type, 
                 const TarsCurrentPtr& current,
-                const TupCallbackParam& stParam, bool keepAlive) 
+                const shared_ptr<TupCallbackParam> stParam, bool keepAlive) 
 				:_stParam(stParam), _bKeepAlive(keepAlive), _iNewRequestId(0), _current(current)
     {
         setType(type);
@@ -72,12 +73,12 @@ public:
 
     string getClientIp() const
     {
-        return _stParam.sReqIP;
+        return _stParam->sReqIP;
     }
 
     const string getServantName() const
     {
-        return _stParam.sServantName;
+        return _stParam->sServantName;
     }
     
     void setTraceKey(const string& k)
@@ -113,7 +114,7 @@ protected:
     /**
      * 请求相关参数
      */
-    TupCallbackParam            _stParam;
+    shared_ptr<TupCallbackParam>    _stParam;
 
 
 
@@ -136,6 +137,25 @@ protected:
 
 typedef TC_AutoPtr<TupCallback> TupCallbackPtr;
 
+class VerifyCallback: public VerifyPrxCallback
+{
+public:
+    VerifyCallback(ServantPrx proxy, shared_ptr<RequestPacket> request, shared_ptr<HandleParam> param, const THashInfo& hi, const string& token)
+        :_proxy(proxy), _request(request), _param(param), _hashInfo(hi), _token(token) 
+    {}
+
+    virtual void callback_verify(tars::Int32 ret,  const Base::VerifyRsp& rsp);
+    virtual void callback_verify_exception(tars::Int32 ret);
+
+private:
+    ServantPrx  _proxy;
+    shared_ptr<RequestPacket>  _request;
+    shared_ptr<HandleParam> _param;
+    THashInfo   _hashInfo;
+    string      _token;
+};
+
+typedef TC_AutoPtr<VerifyCallback> VerifyCallbackPtr;
 
 /////////////////////////////////////////////////////
 #endif

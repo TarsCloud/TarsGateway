@@ -10,7 +10,7 @@ class ProxyUtils
 public:
 
     // 统一错误返回处理
-    static string getHttpErrorRsp(int statusCode)
+    static string getHttpErrorRsp(int statusCode, bool keepAlive, const string& rspInfo = "")
     {
         TC_HttpResponse httpRsp;
         string content;
@@ -23,8 +23,14 @@ public:
         else if (401 == statusCode)
         {
             info = "Unauthorized";
-            content = "<html> <head><title>401 Unauthorized</title></head> <body> <center><h1>401 Unauthorized</h1></center> </body> </html>"; 
-        }
+            if (!rspInfo.empty())
+            {
+                content = "<html> <head><title>401 Unauthorized</title></head> <body> <center><h1>" + rspInfo + "</h1></center> </body> </html>"; 
+            }
+            else
+            {
+                content = "<html> <head><title>401 Unauthorized</title></head> <body> <center><h1>401 Unauthorized</h1></center> </body> </html>"; 
+            }           }
         else if (403 == statusCode)
         {
             info = "Forbidden";
@@ -71,13 +77,22 @@ public:
             content = "<html> <head><title>Server Interval Error</title></head> <body> <center><h1>Server Interval Error</h1></center> </body> </html>";
         }
         
+        if (keepAlive)
+        {
+            httpRsp.setConnection("keep-alive");
+        }
+        else
+        {
+            httpRsp.setConnection("close");
+        }
+
         httpRsp.setResponse(statusCode, info, content);
         return httpRsp.encode();
     }
 
-    static void doErrorRsp(int statusCode, tars::TarsCurrentPtr current, bool keepAlive = false)
+    static void doErrorRsp(int statusCode, tars::TarsCurrentPtr current, bool keepAlive = false, const string& rspInfo = "")
     {
-        string data = getHttpErrorRsp(statusCode);
+        string data = getHttpErrorRsp(statusCode, keepAlive, rspInfo);
         current->sendResponse(data.c_str(), data.length());
         if (!keepAlive)
         {

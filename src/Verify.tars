@@ -1,0 +1,29 @@
+module Base
+{
+    enum E_VERIFY_CODE
+    {
+        EVC_TOKEN_EXPIRE    = -3,           // token过期
+        EVC_ERR_TOKEN = -2,                 // token格式错误等
+        EVC_SYS_ERR = -1,                   // 系统异常
+        EVC_SUCC = 0                        // 成功
+    };
+
+    struct VerifyReq
+    {
+        1 require   string                  token;          // token
+        2 optional  map<string, string>     verifyHeaders;  // 请求网关时的 http 头
+        3 optional  vector<byte>            body;           // 请求body
+    };
+
+    struct VerifyRsp
+    {
+        1 require   int     ret;        // 返回码， 取值为 E_VERIFY_CODE
+        2 optional  string  uid;        // 认证成功后的 uid
+        3 optional  string  context;    // 认证服务认证成功后可能需要的附件数据透传给业务， 后面调用服务时通过 context["X-Verify-Data"] 透传
+    };
+
+    interface Verify
+    {
+        int verify(VerifyReq req, out VerifyRsp rsp);
+    };
+};

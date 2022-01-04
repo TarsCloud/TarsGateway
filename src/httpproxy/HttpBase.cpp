@@ -20,92 +20,20 @@ void HttpBase::initializeHttp()
     _httpAsync.start();
 }
 
-/*
-int HttpBase::handleHttpRequest(HandleParam& param, shared_ptr<AccessLog> aLog)
+int HttpBase::handleHttpRequest(shared_ptr<HandleParam> param, shared_ptr<AccessLog> aLog)
 {
-    string reqUrl = param.httpRequest.getOriginRequest();
-    string::size_type pos = reqUrl.find("?");
-    if (pos != string::npos)
-    {
-        reqUrl = reqUrl.substr(0, pos);
-    }
-    aLog->reqUrl = reqUrl;
-
-    TLOG_DEBUG("requrl:" << reqUrl << endl);
-    string &stationId = aLog->station;
-    if (!ROUTERMNG->getStation(reqUrl, aLog->station, aLog->funcPath))
-    {
-        TLOG_ERROR("find station fail, url:" << param.httpRequest.getRequestUrl() << endl);
-        aLog->errorMsg = "find station fail";
-        aLog->status = 404;
-        ProxyUtils::doErrorRsp(404, param.current, param.httpKeepAlive);
-        return -1;
-    }
-    else
-    {
-        TLOG_DEBUG("staion:" << stationId << ", url:" << reqUrl << endl);
-    }
-
-    if (STATIONMNG->isInBlackList(stationId, param.sIP))
-    {
-        TLOG_ERROR(param.sIP << " is in " << stationId << " 's black list, url:" << param.httpRequest.getRequestUrl() << endl);
-        aLog->errorMsg = "in station blacklist";
-        aLog->status = 403;
-        ProxyUtils::doErrorRsp(403, param.current, param.httpKeepAlive);
-        return -2; 
-    }
-
-    if (!FlowControlManager::getInstance()->check(stationId))
-    {
-        TLOG_ERROR("station:" << stationId << " flowcontrol false!!!" << endl);
-        aLog->errorMsg = "flowcontrol";
-        aLog->status = 503;
-        ProxyUtils::doErrorRsp(503, param.current, param.httpKeepAlive);
-        return -3;
-    }
-
-    if (_httpPrx.find(stationId) == _httpPrx.end()) 
-    {
-        _httpPrx[stationId] = HttpProxyFactory::getInstance()->getHttpProxy(stationId);
-    }
-    AddrPrx proxy = _httpPrx[stationId]->getProxy();
-    if (!proxy)
-    {
-        TLOG_ERROR(stationId << " has no valid proxy!" << endl);
-        aLog->errorMsg = "has no valid proxy";
-        aLog->status = 501;
-        ProxyUtils::doErrorRsp(501, param.current, param.httpKeepAlive);
-        return -4;
-    }
-    else
-    {
-        TLOG_DEBUG("select addr succ:" << stationId << "|" << proxy->getAddr() << "|" << reqUrl << endl);
-    }
-
-    // _httpAsync.setProxyAddr(proxy->getAddr().c_str());
-    aLog->proxyAddr = proxy->getAddr();
-
-    TC_HttpAsync::RequestCallbackPtr cb = new AsyncHttpCallback(reqUrl, param.current, proxy, aLog, param.httpKeepAlive);
-    _httpAsync.doAsyncRequest(param.httpRequest, cb, proxy->getAddr());
-
-    return 0;
-}
-*/
-
-int HttpBase::handleHttpRequest(HandleParam &param, shared_ptr<AccessLog> aLog)
-{
-    aLog->reqUrl = param.httpRequest.getRequestUrl();
+    aLog->reqUrl = param->httpRequest.getRequestUrl();
     string &reqUrl = aLog->reqUrl;
 
     TLOG_DEBUG("requrl:" << reqUrl << endl);
     //string &stationId = aLog->station;
     RouterResult rr;
-    if (!Router->parse(param.httpRequest.getURL().getDomain(), param.httpRequest.getRequestUrl(), rr))
+    if (!Router->parse(param->httpRequest.getURL().getDomain(), param->httpRequest.getRequestUrl(), rr))
     {
-        TLOG_ERROR("find station fail, url:" << param.httpRequest.getRequestUrl() << ", host:" << param.httpRequest.getHost() << endl);
+        TLOG_ERROR("find station fail, url:" << param->httpRequest.getRequestUrl() << ", host:" << param->httpRequest.getHost() << endl);
         aLog->errorMsg = "find station fail";
         aLog->status = 404;
-        ProxyUtils::doErrorRsp(404, param.current, param.httpKeepAlive);
+        ProxyUtils::doErrorRsp(404, param->current, param->httpKeepAlive);
         return -1;
     }
     else
@@ -115,21 +43,21 @@ int HttpBase::handleHttpRequest(HandleParam &param, shared_ptr<AccessLog> aLog)
         TLOG_DEBUG("staion:" << rr.stationId << ", url:" << reqUrl << ", new path:" << rr.path << endl);
     }
 
-    if (!STATIONMNG->checkWhiteList(rr.stationId, param.sIP))
+    if (!STATIONMNG->checkWhiteList(rr.stationId, param->sIP))
     {
-        TLOG_ERROR(param.sIP << " is not in " << rr.stationId << " 's white list, url:" << param.httpRequest.getRequestUrl() << endl);
+        TLOG_ERROR(param->sIP << " is not in " << rr.stationId << " 's white list, url:" << param->httpRequest.getRequestUrl() << endl);
         aLog->errorMsg = "not in station whitelist";
         aLog->status = 403;
-        ProxyUtils::doErrorRsp(403, param.current, param.httpKeepAlive);
+        ProxyUtils::doErrorRsp(403, param->current, param->httpKeepAlive);
         return -2;
     }
 
-    if (STATIONMNG->isInBlackList(rr.stationId, param.sIP))
+    if (STATIONMNG->isInBlackList(rr.stationId, param->sIP))
     {
-        TLOG_ERROR(param.sIP << " is in " << rr.stationId << " 's black list, url:" << param.httpRequest.getRequestUrl() << endl);
+        TLOG_ERROR(param->sIP << " is in " << rr.stationId << " 's black list, url:" << param->httpRequest.getRequestUrl() << endl);
         aLog->errorMsg = "in station blacklist";
         aLog->status = 403;
-        ProxyUtils::doErrorRsp(403, param.current, param.httpKeepAlive);
+        ProxyUtils::doErrorRsp(403, param->current, param->httpKeepAlive);
         return -2;
     }
 
@@ -138,7 +66,7 @@ int HttpBase::handleHttpRequest(HandleParam &param, shared_ptr<AccessLog> aLog)
         TLOG_ERROR("station:" << rr.stationId << " flowcontrol false!!!" << endl);
         aLog->errorMsg = "flowcontrol";
         aLog->status = 429;
-        ProxyUtils::doErrorRsp(aLog->status, param.current, param.httpKeepAlive);
+        ProxyUtils::doErrorRsp(aLog->status, param->current, param->httpKeepAlive);
         return -3;
     }
 
@@ -160,7 +88,7 @@ int HttpBase::handleHttpRequest(HandleParam &param, shared_ptr<AccessLog> aLog)
             TLOG_ERROR(rr.upstream << " has no valid proxy!" << endl);
             aLog->errorMsg = "has no valid proxy";
             aLog->status = 500;
-            ProxyUtils::doErrorRsp(500, param.current, param.httpKeepAlive);
+            ProxyUtils::doErrorRsp(500, param->current, param->httpKeepAlive);
             return -4;
         }
         else
@@ -170,9 +98,9 @@ int HttpBase::handleHttpRequest(HandleParam &param, shared_ptr<AccessLog> aLog)
         }
     }
 
-    param.httpRequest.setPath(rr.path.c_str());
-    TC_HttpAsync::RequestCallbackPtr cb = new AsyncHttpCallback(reqUrl, param.current, proxy, aLog, param.httpKeepAlive);
-    _httpAsync.doAsyncRequest(param.httpRequest, cb, aLog->proxyAddr);
+    param->httpRequest.setPath(rr.path.c_str());
+    TC_HttpAsync::RequestCallbackPtr cb = new AsyncHttpCallback(reqUrl, param->current, proxy, aLog, param->httpKeepAlive);
+    _httpAsync.doAsyncRequest(param->httpRequest, cb, aLog->proxyAddr);
     TLOG_DEBUG("doAsyncHttpRequest, " << aLog->host << "/" << reqUrl << "=>" << aLog->proxyAddr << endl);
     return 0;
 }

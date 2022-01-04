@@ -8,8 +8,7 @@
 #include "proxybase/ProxyParam.h"
 #include "TupCallback.h"
 #include "TupProxyManager.h"
-//#include "mtt_logger.h"
-//#include "mtt_unireporter.h"
+
 //////////////////////////////////////////////////////
 
 using namespace tars;
@@ -76,11 +75,13 @@ public:
     
     int setRspEncodingToHeader(const TC_HttpRequest& httpRequest, pair<string, string>& pairAcceptZip, pair<string, string>& pairAcceptEpt);
 
+   static void callServer(ServantPrx proxy, shared_ptr<HandleParam> stParam, shared_ptr<RequestPacket> tupRequest, const THashInfo& hi);
+
 protected:
 
     static string genTraceID(const string& servantName, const string& funcName, const string& host, int reqID);
 
-    void getFilter(HandleParam &stParam);
+    void getFilter(shared_ptr<HandleParam> stParam);
   /**
      * 从HTTP POST Data或者GET参数中取出Tup数据
      * 
@@ -91,14 +92,14 @@ protected:
      * 解压，解密数据
      * 
      */
-  int getRealDataByDecode(vector<char> &sRealTupData, HandleParam &stParam);
+  int getRealDataByDecode(vector<char> &sRealTupData, shared_ptr<HandleParam> stParam);
 
   /**
      * TUP包具体处理
      * 
      * @param stParam 
      */
-  int handleTarsRequest(HandleParam &stParam);
+  int handleTarsRequest(shared_ptr<HandleParam> stParam);
 
   /**
      * 解析TUP包
@@ -108,7 +109,7 @@ protected:
      * @param tupRequest
      * @return int
      */
-  int parseTupRequest(HandleParam &stParam, RequestPacket &tupRequest);
+  int parseTupRequest(shared_ptr<HandleParam> stParam, shared_ptr<RequestPacket> tupRequest);
 
   /**
      * 解析JSON包
@@ -118,7 +119,7 @@ protected:
      * @param tupRequest
      * @return int
      */
-  int parseJsonRequest(HandleParam &stParam, RequestPacket &tupRequest);
+  int parseJsonRequest(shared_ptr<HandleParam> stParam, shared_ptr<RequestPacket> tupRequest);
 
   /**
      * 解析所有的代理
@@ -135,40 +136,20 @@ protected:
      * @param tup 
      * @param proxy 
      */
-  void tupAsyncCall(RequestPacket &tup, ServantPrx &proxy, const TupCallbackPtr &cb, THashInfo::E_HASH_TYPE ht, const string &sHttpHeaderValue);
+  static void tupAsyncCall(shared_ptr<RequestPacket> tup, ServantPrx proxy, TupCallbackPtr cb, THashInfo::E_HASH_TYPE ht, const string &sHttpHeaderValue);
 
 protected:
     // 参数类
-    //static string              _LocalServerName;
+   static int              _setConnectionTag;
 
-    //static unsigned int        _rspSizeLimit;
-
-    static int                 _setConnectionTag;
-
-//    static bool                _userbaseSave;
-
-//    static string              _sEncryptKey1;
-    static string				_sEncryptKey;
-	static string				_sEncryptKeyV2;
-
-//    static bool                _bReportMetis;
-
-    static int                 _iMinCompressLen;
-
-//    static map<string,bool>    _mCryptServantNames;
-//    static bool                _bCryptCheck;
+   static string				_sEncryptKey;
+   static string				_sEncryptKeyV2;
+   static int              _iMinCompressLen;
 
 protected:
     // 会写：重新加载
-    vector<string>             _headers;
-    int                        _hashType;
-    string                     _sHttpHeader;
-//    map<string, string>        _mDyeValue;
-    string                     _crossDomain;
+    vector<string>         _headers;
 
-    // 数据类
-//    char *                     _pEncryptBuff;
-//    int                        _iEncryptLength;
 };
 
 

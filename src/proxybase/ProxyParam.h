@@ -3,6 +3,7 @@
 #include "servant/Application.h"
 #include "ReportHelper.h"
 #include "GatewayServer.h"
+#include "Verify.h"
 
 using namespace tars;
 
@@ -47,6 +48,34 @@ struct UpstreamInfo
     string  addr;
     int     weight;
     bool    fusingOnOff;
+};
+
+struct THashInfo
+{
+    enum E_HASH_TYPE
+    {
+        EHT_ROBINROUND = 0,
+        EHT_REQUESTID = 1,
+        EHT_HTTPHEAD = 2,
+        EHT_CLIENTIP = 3,
+        EHT_DEFAULT = 99,
+    };
+    E_HASH_TYPE type {EHT_DEFAULT};
+    string httpHeadKey;
+};
+
+struct VerifyInfo
+{
+    string  tokenHeader;
+    Base::VerifyPrx prx {NULL};
+    vector<string>  verifyHeaders;
+    bool    verifyBody {false};
+};
+
+struct ProxyExInfo
+{
+    THashInfo   hashInfo;
+    VerifyInfo  verifyInfo;
 };
 
 struct AccessLog

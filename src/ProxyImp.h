@@ -49,7 +49,7 @@ protected:
      * 过滤自动监控测试请求
      * 
      */
-    void filterMonitor(HandleParam& stParam);
+    void filterMonitor(shared_ptr<HandleParam> stParam);
 
     E_PROXY_TYPE parseReqType(const string &reqUrl, const string& host);
 
