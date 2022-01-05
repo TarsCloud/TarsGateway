@@ -1,3 +1,13 @@
+## v1.2.0
+
+### en
+
+- Increase authentication capability, The gateway authenticates the service interface according to the configuration, so that each interface does not need to authenticate itself
+
+### cn
+
+- 增加鉴权能力, 网关根据配置去业务的接口鉴权, 这样不需要业务自己每个接口都自己鉴权
+
 ## v1.1.0
 
 ### en
