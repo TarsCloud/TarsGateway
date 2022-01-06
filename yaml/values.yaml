@@ -13,8 +13,10 @@ cloud:
     - shevqko@qq.com
   repository: https://github.com/TarsCloud/TarsGateway.git
   readme: ReadMe.md
-  protocols: []
-  assets: []
+  protocols: 
+    - src/Verify.tars
+  assets: 
+    - images
 app: Base
 server: GatewayServer
 template: tars.cpp
