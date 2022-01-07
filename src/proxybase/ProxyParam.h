@@ -10,10 +10,12 @@ using namespace tars;
 enum E_PROXY_TYPE
 {
     EPT_CROSSDOMAIN = 0,
-    EPT_MONITOR,
-    EPT_TUP_PROXY,
-    EPT_JSON_PROXY,
-    EPT_HTTP_PROXY,
+    EPT_MONITOR=1,
+    EPT_TUP_PROXY=2,
+    EPT_JSON_PROXY=3,
+    EPT_HTTP_PROXY=4,
+    EPT_ERROR_PROXY=10,
+    EPT_OPTIONS_REQ = 11,
 };
 
 enum E_HTTP_RESLUT

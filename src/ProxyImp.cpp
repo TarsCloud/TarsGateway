@@ -101,26 +101,11 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
         }
 
         //跨域请求, 浏览器发起的飞行预检
-        if(stParam->httpRequest.isOPTIONS())
+        if (stParam->httpRequest.isOPTIONS())
         {
-        	TC_HttpResponse response;
-        	response.setResponse(200, "OK", "");
-        	response.setHeader("Access-Control-Allow-Origin", "*");
-        	response.setHeader("Access-Control-Allow-Methods", "POST,GET,OPTIONS");
-        	response.setHeader("Access-Control-Max-Age", "86440");
-            response.setHeader("Access-Control-Allow-Headers", "Content-Type,X-Requested-With");
-            
-        	response.setContentType("text/plain");
-        	string buffer = response.encode();
-
-        	stParam->current->sendResponse(buffer.c_str(), buffer.length());
-        	if (!stParam->httpKeepAlive)
-        	{
-        		response.setConnection("close");
-        		stParam->current->close();
-        	}
-        	return 0;
-
+            ProxyUtils::doOptionsRsp(current, stParam->httpKeepAlive);
+            TLOG_DEBUG("doOptionsRsp:" << stParam->httpRequest.getRequestUrl() << endl);
+            return 0;
         }
 
         stParam->sIP = sRemoteIp;
@@ -272,10 +257,22 @@ void ProxyImp::filterMonitor(shared_ptr<HandleParam> stParam)
 {
     if (EPT_MONITOR == stParam->proxyType) //监控用
     {
+
         TC_HttpResponse response;
-        response.setResponse(200, "OK", "<html>hello TupMonitor! [version:1.2]</html>");
+        string data = "<html>hello GatewayMonitor! [version:1.2]</html>";
+        response.setResponse(200, "OK", data);
         response.setContentType("text/html;charset=utf-8");
-        response.setConnection("close");
+        response.setContentLength(data.length());
+        if (stParam->httpKeepAlive)
+        {
+            response.setConnection("keep-alive");
+        }
+        else
+        {
+            response.setConnection("close");
+        }
+        g_app.setRspHeaders((int)EPT_MONITOR, "", response);
+        //response.setConnection("close");
         string buffer = response.encode();
 
         stParam->current->sendResponse(buffer.c_str(), buffer.length());

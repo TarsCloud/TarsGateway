@@ -102,6 +102,19 @@ public:
         TLOG_DEBUG(statusCode << "|" << data << endl);
     }
 
+    static void doOptionsRsp(tars::TarsCurrentPtr current, bool keepAlive = false)
+    {
+        TC_HttpResponse httpRsp;
+        httpRsp.setResponse(200, "OK", "<html> <head><title>200 OK</title></head> <body> <center><h1>200 OK</h1></center> </body> </html>");
+        g_app.setRspHeaders((int)EPT_OPTIONS_REQ, "", httpRsp);
+        string data =  httpRsp.encode();
+        current->sendResponse(data.c_str(), data.length());
+        if (!keepAlive)
+        {
+            current->close();
+        }
+    }
+
 };
 
 
