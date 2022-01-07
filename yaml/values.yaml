@@ -32,7 +32,7 @@ servants:
     timeout: 30000
   - name: ProxyObj
     port: 20000
-    isTars: true
+    isTars: false 
     isTcp: true
     thread: 5
     capacity: 100000
