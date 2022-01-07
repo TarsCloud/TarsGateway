@@ -1,3 +1,15 @@
+## v1.2.1
+
+### en
+
+- option && monitor request http response header can be configured
+- fix values ProxyObj isTars: false
+
+### cn
+
+- 支持增加 http 响应头的配置化(主要为了支持跨域请求)
+- 修复 value.yaml 中的 ProxyObj 配置的错误
+
 ## v1.2.0
 
 ### en
