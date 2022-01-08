@@ -4,11 +4,13 @@
 
 - option && monitor request http response header can be configured
 - fix values ProxyObj isTars: false
+- fix the bug that the HTTP header does not return under abnormal conditions in the cross domain request mode
 
 ### cn
 
 - 支持增加 http 响应头的配置化(主要为了支持跨域请求)
 - 修复 value.yaml 中的 ProxyObj 配置的错误
+- 修复跨域请求模式下, 在异常情况下, http 头没有返回的 bug
 
 ## v1.2.0
 

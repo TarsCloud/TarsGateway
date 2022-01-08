@@ -10,7 +10,7 @@ class ProxyUtils
 public:
 
     // 统一错误返回处理
-    static string getHttpErrorRsp(int statusCode, bool keepAlive, const string& rspInfo = "")
+    static string getHttpErrorRsp(int statusCode, E_PROXY_TYPE type, bool keepAlive, const string& rspInfo = "")
     {
         TC_HttpResponse httpRsp;
         string content;
@@ -87,13 +87,16 @@ public:
         }
 
         httpRsp.setResponse(statusCode, info, content);
+        g_app.setRspHeaders((int)type, "", httpRsp);
+
         return httpRsp.encode();
     }
 
-    static void doErrorRsp(int statusCode, tars::TarsCurrentPtr current, bool keepAlive = false, const string& rspInfo = "")
+    static void doErrorRsp(int statusCode, tars::TarsCurrentPtr current, E_PROXY_TYPE type, bool keepAlive = false, const string& rspInfo = "")
     {
-        string data = getHttpErrorRsp(statusCode, keepAlive, rspInfo);
+        string data = getHttpErrorRsp(statusCode, type, keepAlive, rspInfo);
         current->sendResponse(data.c_str(), data.length());
+
         if (!keepAlive)
         {
             current->close();

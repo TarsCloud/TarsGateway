@@ -33,7 +33,7 @@ int HttpBase::handleHttpRequest(shared_ptr<HandleParam> param, shared_ptr<Access
         TLOG_ERROR("find station fail, url:" << param->httpRequest.getRequestUrl() << ", host:" << param->httpRequest.getHost() << endl);
         aLog->errorMsg = "find station fail";
         aLog->status = 404;
-        ProxyUtils::doErrorRsp(404, param->current, param->httpKeepAlive);
+        ProxyUtils::doErrorRsp(404, param->current, param->proxyType, param->httpKeepAlive);
         return -1;
     }
     else
@@ -48,7 +48,7 @@ int HttpBase::handleHttpRequest(shared_ptr<HandleParam> param, shared_ptr<Access
         TLOG_ERROR(param->sIP << " is not in " << rr.stationId << " 's white list, url:" << param->httpRequest.getRequestUrl() << endl);
         aLog->errorMsg = "not in station whitelist";
         aLog->status = 403;
-        ProxyUtils::doErrorRsp(403, param->current, param->httpKeepAlive);
+        ProxyUtils::doErrorRsp(403,  param->current, param->proxyType,param->httpKeepAlive);
         return -2;
     }
 
@@ -57,7 +57,7 @@ int HttpBase::handleHttpRequest(shared_ptr<HandleParam> param, shared_ptr<Access
         TLOG_ERROR(param->sIP << " is in " << rr.stationId << " 's black list, url:" << param->httpRequest.getRequestUrl() << endl);
         aLog->errorMsg = "in station blacklist";
         aLog->status = 403;
-        ProxyUtils::doErrorRsp(403, param->current, param->httpKeepAlive);
+        ProxyUtils::doErrorRsp(403, param->current, param->proxyType, param->httpKeepAlive);
         return -2;
     }
 
@@ -66,7 +66,7 @@ int HttpBase::handleHttpRequest(shared_ptr<HandleParam> param, shared_ptr<Access
         TLOG_ERROR("station:" << rr.stationId << " flowcontrol false!!!" << endl);
         aLog->errorMsg = "flowcontrol";
         aLog->status = 429;
-        ProxyUtils::doErrorRsp(aLog->status, param->current, param->httpKeepAlive);
+        ProxyUtils::doErrorRsp(aLog->status,  param->current, param->proxyType,param->httpKeepAlive);
         return -3;
     }
 
@@ -88,7 +88,7 @@ int HttpBase::handleHttpRequest(shared_ptr<HandleParam> param, shared_ptr<Access
             TLOG_ERROR(rr.upstream << " has no valid proxy!" << endl);
             aLog->errorMsg = "has no valid proxy";
             aLog->status = 500;
-            ProxyUtils::doErrorRsp(500, param->current, param->httpKeepAlive);
+            ProxyUtils::doErrorRsp(500,  param->current, param->proxyType,param->httpKeepAlive);
             return -4;
         }
         else

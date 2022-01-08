@@ -352,8 +352,7 @@ int TupBase::handleTarsRequest(shared_ptr<HandleParam> stParam)
                       << endl);
 
             ReportHelper::reportStat(g_app.getLocalServerName(), "RequestMonitor", "ParseTupBodyErr", -1);
-            //stParam->current->close();
-            ProxyUtils::doErrorRsp(400, stParam->current, stParam->httpKeepAlive);
+            ProxyUtils::doErrorRsp(400,  stParam->current, stParam->proxyType, stParam->httpKeepAlive);
             return 0;
         }
 
@@ -372,7 +371,7 @@ int TupBase::handleTarsRequest(shared_ptr<HandleParam> stParam)
             TLOG_ERROR("parseTupProxy error, sGUID:" << stParam->sGUID << endl);
 
             ReportHelper::reportStat(g_app.getLocalServerName(), "RequestMonitor", "GetProxyErr", -1);
-            ProxyUtils::doErrorRsp(404, stParam->current, stParam->httpKeepAlive);
+            ProxyUtils::doErrorRsp(404,  stParam->current, stParam->proxyType, stParam->httpKeepAlive);
             return 0;
         }
         else
@@ -383,19 +382,19 @@ int TupBase::handleTarsRequest(shared_ptr<HandleParam> stParam)
         if (!STATIONMNG->checkWhiteList(proxy->tars_name(), stParam->sIP))
         {
             TLOG_ERROR(stParam->sIP << " is not in " << proxy->tars_name() << " 's white list, obj:" << tupRequest->sServantName << ":" << tupRequest->sFuncName << endl);
-            ProxyUtils::doErrorRsp(403, stParam->current, stParam->httpKeepAlive);
+            ProxyUtils::doErrorRsp(403,  stParam->current, stParam->proxyType, stParam->httpKeepAlive);
             return 0;
         }
         else if (STATIONMNG->isInBlackList(proxy->tars_name(), stParam->sIP))
         {
             TLOG_ERROR(stParam->sIP << " is in " << proxy->tars_name() << " 's black list, obj:" << tupRequest->sServantName << ":" << tupRequest->sFuncName << endl);
-            ProxyUtils::doErrorRsp(403, stParam->current, stParam->httpKeepAlive);
+            ProxyUtils::doErrorRsp(403,  stParam->current, stParam->proxyType, stParam->httpKeepAlive);
             return 0;
         }
         else if (!FlowControlManager::getInstance()->check(proxy->tars_name()))
         {
             TLOG_ERROR("tars request:" << proxy->tars_name() << " flowcontrol false!!!" << endl);
-            ProxyUtils::doErrorRsp(429, stParam->current, stParam->httpKeepAlive);
+            ProxyUtils::doErrorRsp(429, stParam->current, stParam->proxyType, stParam->httpKeepAlive);
             return 0;
         }
 
@@ -409,7 +408,7 @@ int TupBase::handleTarsRequest(shared_ptr<HandleParam> stParam)
             if (vReq.token.empty())
             {
                 TLOG_ERROR("get tokenHeader empty:" << tupRequest->sServantName << ":" << tupRequest->sFuncName << "|http header:" << pei.verifyInfo.tokenHeader << endl);
-                ProxyUtils::doErrorRsp(401, stParam->current, stParam->httpKeepAlive, "Unauthorized: " + pei.verifyInfo.tokenHeader + " is empty.");
+                ProxyUtils::doErrorRsp(401, stParam->current, stParam->proxyType, stParam->httpKeepAlive, "Unauthorized: " + pei.verifyInfo.tokenHeader + " is empty.");
                 return 0;
             }
             for (auto it = pei.verifyInfo.verifyHeaders.begin(); it != pei.verifyInfo.verifyHeaders.end(); it++)
@@ -429,7 +428,7 @@ int TupBase::handleTarsRequest(shared_ptr<HandleParam> stParam)
             catch(exception& ex)
             {
                 TLOG_ERROR("verify exception:" << ex.what() << "|" << tupRequest->sServantName << ":" << tupRequest->sFuncName << endl);
-                ProxyUtils::doErrorRsp(401, stParam->current, stParam->httpKeepAlive, "Unauthorized: veirfy exception.");
+                ProxyUtils::doErrorRsp(401, stParam->current, stParam->proxyType, stParam->httpKeepAlive, "Unauthorized: veirfy exception.");
                 return 0;
             }
         }
@@ -448,9 +447,8 @@ int TupBase::handleTarsRequest(shared_ptr<HandleParam> stParam)
     {
         sErrMsg = "unknown error";
     }
-    //stParam->current->close();
 
-    ProxyUtils::doErrorRsp(400, stParam->current, stParam->httpKeepAlive);
+    ProxyUtils::doErrorRsp(400, stParam->current, stParam->proxyType, stParam->httpKeepAlive);
 
     TLOG_ERROR("exception: " << sErrMsg << ",sGUID:" << stParam->sGUID << endl);
 

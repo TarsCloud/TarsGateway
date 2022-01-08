@@ -280,11 +280,11 @@ void TupCallback::doResponseException(int ret, const vector<char> &buffer)
         
         if (ret == -7)
         {
-            ProxyUtils::doErrorRsp(504, _current, _stParam->httpKeepAlive);
+            ProxyUtils::doErrorRsp(504, _current, EPT_TUP_PROXY, _stParam->httpKeepAlive);
         }
         else
         {
-            ProxyUtils::doErrorRsp(502, _current, _stParam->httpKeepAlive);
+            ProxyUtils::doErrorRsp(502, _current, EPT_TUP_PROXY, _stParam->httpKeepAlive);
         }
 
         ReportHelper::reportStat(g_app.getLocalServerName(), "RequestMonitor", "doResponseException", 0);
@@ -421,7 +421,7 @@ void VerifyCallback::callback_verify(tars::Int32 ret,  const Base::VerifyRsp& rs
     if (0 != ret || rsp.ret != EVC_SUCC)
     {
         TLOG_ERROR("verify ret error:" << ret << "|verify code:" << rsp.ret << "|" << _request->sServantName << ":" << _request->sFuncName << endl);
-        ProxyUtils::doErrorRsp(401, _param->current, _param->httpKeepAlive, "Unauthorized: veirfy fail, ret=" + TC_Common::tostr(rsp.ret));
+        ProxyUtils::doErrorRsp(401,  _param->current, _param->proxyType, _param->httpKeepAlive, "Unauthorized: veirfy fail, ret=" + TC_Common::tostr(rsp.ret));
         return;
     }
     else
@@ -439,7 +439,7 @@ void VerifyCallback::callback_verify(tars::Int32 ret,  const Base::VerifyRsp& rs
 void VerifyCallback::callback_verify_exception(tars::Int32 ret)
 {
     TLOG_ERROR("async_verify ret error:" << ret << "|" << _request->sServantName << ":" << _request->sFuncName << endl);
-    ProxyUtils::doErrorRsp(401, _param->current, _param->httpKeepAlive, "Unauthorized: veirfy exception, ret=" + TC_Common::tostr(ret));
+    ProxyUtils::doErrorRsp(401, _param->current, _param->proxyType, _param->httpKeepAlive, "Unauthorized: veirfy exception, ret=" + TC_Common::tostr(ret));
 }
 
 

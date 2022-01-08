@@ -65,7 +65,7 @@ void AsyncHttpCallback::onFailed(FAILED_CODE ret, const string &info)
         }
     }
 
-    ProxyUtils::doErrorRsp(_aLog->status, _current, _keepalive);
+    ProxyUtils::doErrorRsp(_aLog->status, _current, EPT_HTTP_PROXY, _keepalive);
 }
 
 void AsyncHttpCallback::onClose()

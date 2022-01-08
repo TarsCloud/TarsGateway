@@ -93,10 +93,12 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
             stParam->httpKeepAlive = false;
         }
 
+        stParam->proxyType = parseReqType(stParam->httpRequest.getRequestUrl(), stParam->httpRequest.getURL().getDomain());
+
         if (STATIONMNG->isInBlackList("", sRemoteIp))
         {
             TLOG_ERROR(sRemoteIp << " is in Global black list, url:" << stParam->httpRequest.getRequestUrl() << endl);
-            ProxyUtils::doErrorRsp(403, stParam->current, stParam->httpKeepAlive);
+            ProxyUtils::doErrorRsp(403,  stParam->current, stParam->proxyType, stParam->httpKeepAlive);
             return -1;
         }
 
@@ -124,7 +126,6 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
             stParam->httpRequest.eraseHeader("Expect");
         }
 
-        stParam->proxyType = parseReqType(stParam->httpRequest.getRequestUrl(), stParam->httpRequest.getURL().getDomain());
 
         // 统一设置不自动回包
         current->setResponse(false);
@@ -174,9 +175,8 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
             {
                 TLOG_ERROR("getDataFromHTTPRequest failed"
                           << ",sGUID:" << stParam->sGUID << endl);
-                //current->close();
                 current->setResponse(false);
-                ProxyUtils::doErrorRsp(400, current, stParam->httpKeepAlive);
+                ProxyUtils::doErrorRsp(400, current, stParam->proxyType, stParam->httpKeepAlive);
                 return 0;
             }
 
@@ -185,8 +185,7 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
             {
                 TLOG_ERROR("getRealDataByDecode failed"
                           << ",sGUID:" << stParam->sGUID << endl);
-                ProxyUtils::doErrorRsp(400, stParam->current, stParam->httpKeepAlive);
-                //current->close();
+                ProxyUtils::doErrorRsp(400, stParam->current, stParam->proxyType, stParam->httpKeepAlive);
                 return 0;
             }
 
@@ -205,7 +204,7 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
         TLOG_ERROR("exception: unknow exception, sGUID:" << stParam->sGUID << endl);
     }
 
-    ProxyUtils::doErrorRsp(500, current, stParam->httpKeepAlive);
+    ProxyUtils::doErrorRsp(500,  current, stParam->proxyType, stParam->httpKeepAlive);
     ReportHelper::reportStat(g_app.getLocalServerName(), "RequestMonitor", "Exception1Num", -1);
 
     return 0;
