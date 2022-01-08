@@ -165,7 +165,7 @@ config:
             Access-Control-Allow-Origin=*
             Access-Control-Allow-Methods=POST, GET, OPTIONS
             Access-Control-Max-Age=86400
-            Access-Control-Allow-Headers=Content-Type,X-Requested-With
+            Access-Control-Allow-Headers=Content-Type,X-Requested-With,X-Token
           </default_headers>
 
           # special_headers 为其他需要特殊配置的列表
@@ -179,7 +179,7 @@ config:
                 Access-Control-Allow-Origin=*
                 Access-Control-Allow-Methods=POST, GET, OPTIONS
                 Access-Control-Max-Age=86400
-                Access-Control-Allow-Headers=Content-Type,X-Requested-With
+                Access-Control-Allow-Headers=Content-Type,X-Requested-With,X-Token
 
               </headers>
             </for_h5_call>
