@@ -439,7 +439,7 @@ void VerifyCallback::callback_verify(tars::Int32 ret,  const Base::VerifyRsp& rs
 void VerifyCallback::callback_verify_exception(tars::Int32 ret)
 {
     TLOG_ERROR("async_verify ret error:" << ret << "|" << _request->sServantName << ":" << _request->sFuncName << endl);
-    ProxyUtils::doErrorRsp(401, _param->current, _param->proxyType, _param->httpKeepAlive, "Unauthorized: veirfy exception, ret=" + TC_Common::tostr(ret));
+    ProxyUtils::doErrorRsp(401, _param->current, _param->proxyType, _param->httpKeepAlive, "Unauthorized: verify exception, ret=" + TC_Common::tostr(ret));
 }
 
 

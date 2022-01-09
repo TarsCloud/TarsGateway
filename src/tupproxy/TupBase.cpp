@@ -422,6 +422,8 @@ int TupBase::handleTarsRequest(shared_ptr<HandleParam> stParam)
             
             try
             {
+            	TLOG_DEBUG("verify " << tupRequest->sServantName << ":" << tupRequest->sFuncName << ", auth obj:" << pei.verifyInfo.prx->tars_full_name() << endl);
+
                 VerifyCallbackPtr vcb = new VerifyCallback(proxy, tupRequest, stParam, pei.hashInfo, vReq.token);
                 pei.verifyInfo.prx->async_verify(vcb, vReq);                
             }
