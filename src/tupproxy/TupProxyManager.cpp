@@ -143,11 +143,11 @@ void TupProxyManager::initVerifyInfo(const TC_Config& conf)
                 continue;
             }
 
-            size_t pos = authObj.find("@");
+            size_t pos = authObj.find_first_of("@");
             if(pos == string::npos) {
-            	authObj = authObj + "#99999";
+            	authObj += "#99999";
             } else {
-				authObj = authObj.substr(0, pos) + "#99999" + authObj.substr(pos+1);
+				authObj = authObj.substr(0, pos) + "#99999" + authObj.substr(pos);
             }
 
             //为了区别协议解析器, 必须用一个特殊的名字, 避免authObj也用在普通服务上, 这样协议解析器就乱了!
