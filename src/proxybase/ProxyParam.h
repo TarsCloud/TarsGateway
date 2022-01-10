@@ -3,7 +3,6 @@
 #include "servant/Application.h"
 #include "ReportHelper.h"
 #include "GatewayServer.h"
-#include "Verify.h"
 
 using namespace tars;
 
@@ -70,7 +69,7 @@ struct THashInfo
 struct VerifyInfo
 {
     string  tokenHeader;
-    Base::VerifyPrx prx {NULL};
+    ServantPrx prx {NULL};
     vector<string>  verifyHeaders;
     bool    verifyBody {false};
 };

@@ -137,6 +137,7 @@ protected:
 
 typedef TC_AutoPtr<TupCallback> TupCallbackPtr;
 
+/*
 class VerifyCallback: public VerifyPrxCallback
 {
 public:
@@ -156,6 +157,26 @@ private:
 };
 
 typedef TC_AutoPtr<VerifyCallback> VerifyCallbackPtr;
+*/
+
+class VerifyCallbackEx: public ServantProxyCallback
+{
+public:
+    VerifyCallbackEx(ServantPrx proxy, shared_ptr<RequestPacket> request, shared_ptr<HandleParam> param, const THashInfo& hi, const string& token)
+        :_proxy(proxy), _request(request), _param(param), _hashInfo(hi), _token(token) 
+    {}
+
+    virtual int onDispatch(ReqMessagePtr msg);
+
+private:
+    ServantPrx  _proxy;
+    shared_ptr<RequestPacket>  _request;
+    shared_ptr<HandleParam> _param;
+    THashInfo   _hashInfo;
+    string      _token;
+};
+
+typedef TC_AutoPtr<VerifyCallbackEx> VerifyCallbackExPtr;
 
 /////////////////////////////////////////////////////
 #endif

@@ -403,6 +403,7 @@ void TupCallback::handleResponse()
     _rspBuffer.clear();
 }
 
+/*
 void VerifyCallback::callback_verify(tars::Int32 ret,  const Base::VerifyRsp& rsp)
 {
     if (0 != ret || rsp.ret != EVC_SUCC)
@@ -428,6 +429,41 @@ void VerifyCallback::callback_verify_exception(tars::Int32 ret)
     TLOG_ERROR("async_verify ret error:" << ret << "|" << _request->sServantName << ":" << _request->sFuncName << endl);
     ProxyUtils::doErrorRsp(401, _param->current, _param->proxyType, _param->httpKeepAlive, "Unauthorized: verify exception, ret:" + TC_Common::tostr(ret));
 }
+*/
 
+int VerifyCallbackEx::onDispatch(ReqMessagePtr msg)
+{
+    TLOG_DEBUG("ret:" << msg->response->iRet<< endl);
+    if (msg->response->iRet == 0)
+    {
+        tars::TarsInputStream<tars::BufferReader> is;
+        is.setBuffer(msg->response->sBuffer);
+        Base::VerifyRsp rsp;
+        is.read(rsp, 2, true);
+        if (rsp.ret != EVC_SUCC)
+        {
+            TLOG_ERROR("verify ret error:" << msg->response->iRet << "|verify code:" << rsp.ret << "|" << _request->sServantName << ":" << _request->sFuncName << endl);
+            ProxyUtils::doErrorRsp(401, _param->current, _param->proxyType, _param->httpKeepAlive, "Unauthorized: veirfy fail, ret=" + TC_Common::tostr(rsp.ret));
+            return -1;
+        }
+        else
+        {
+            TLOG_DEBUG(_request->sServantName << ":" << _request->sFuncName << "|async_verify succ:" << rsp.ret << ", " << rsp.uid << ", " << rsp.context << endl);
+        }
+
+        _request->context["X-Verify-UID"] = rsp.uid;
+        _request->context["X-Verify-Data"] = rsp.context;
+        _request->context["X-Verify-Token"] = _token;
+
+        TupBase::callServer(_proxy, _param, _request, _hashInfo);
+    }
+    else
+    {
+        TLOG_ERROR("async_verify ret error:" << msg->response->iRet << "|" << _request->sServantName << ":" << _request->sFuncName << endl);
+        ProxyUtils::doErrorRsp(401, _param->current, _param->proxyType, _param->httpKeepAlive, "Unauthorized: veirfy exception, ret=" + TC_Common::tostr(msg->response->iRet));
+    }
+
+    return 0;
+}
 
 //////////////////////////////////////////////////////

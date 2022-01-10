@@ -122,6 +122,17 @@ protected:
      */
   	int parseJsonRequest(const shared_ptr<HandleParam> &stParam, const shared_ptr<RequestPacket> &tupRequest);
 
+   /**
+     * 手动组包发verify请求
+     * 
+     * @param proxy 
+     * @param stParam
+     * @param tRequest 
+     * @param pei
+     * @return int
+     */
+   int doVerifyAsync(ServantPrx proxy, shared_ptr<HandleParam> stParam, shared_ptr<RequestPacket> tRequest, const ProxyExInfo &pei);
+
   	/**
      * 异步发送
      * 

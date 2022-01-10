@@ -142,7 +142,9 @@ void TupProxyManager::initVerifyInfo(const TC_Config& conf)
                 TLOG_ERROR("auth info init fail:" << "/main/auth/" << authVector[i] << "<verify> is empty!" << endl);
                 continue;
             }
-            info.prx = Application::getCommunicator()->stringToProxy<Base::VerifyPrx>(authObj + "#99999");
+            
+            info.prx = Application::getCommunicator()->stringToProxy<Base::VerifyPrx>(authObj);
+            info.prx->tars_set_protocol(_prot_tup);
             info.tokenHeader = conf.get("/main/auth/" + authVector[i] + "<auth_http_header>");
             if (info.tokenHeader.empty())
             {

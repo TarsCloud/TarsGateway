@@ -393,40 +393,10 @@ int TupBase::handleTarsRequest(const shared_ptr<HandleParam> &stParam)
 
         getFilter(stParam);
 
-        // 处理verify身份鉴权问题 ============
         if (pei.verifyInfo.prx)
         {
-            VerifyReq vReq;
-            vReq.token = stParam->httpRequest.getHeader(pei.verifyInfo.tokenHeader);
-            if (vReq.token.empty())
-            {
-                TLOG_ERROR("get tokenHeader empty:" << tupRequest->sServantName << ":" << tupRequest->sFuncName << "|http header:" << pei.verifyInfo.tokenHeader << endl);
-                ProxyUtils::doErrorRsp(401, stParam->current, stParam->proxyType, stParam->httpKeepAlive, "Unauthorized: " + pei.verifyInfo.tokenHeader + " is empty.");
-                return 0;
-            }
-            for (auto it = pei.verifyInfo.verifyHeaders.begin(); it != pei.verifyInfo.verifyHeaders.end(); it++)
-            {
-                vReq.verifyHeaders[*it] = stParam->httpRequest.getHeader(*it);
-            }
-            if (pei.verifyInfo.verifyBody)
-            {
-//                vReq.body.assign(stParam->buffer, stParam->buffer + stParam->length);
-				vReq.body = stParam->buffer;
-            }
-            
-            try
-            {
-            	TLOG_DEBUG("verify " << tupRequest->sServantName << ":" << tupRequest->sFuncName << ", auth obj:" << pei.verifyInfo.prx->tars_full_name() << endl);
-
-                VerifyCallbackPtr vcb = new VerifyCallback(proxy, tupRequest, stParam, pei.hashInfo, vReq.token);
-                pei.verifyInfo.prx->async_verify(vcb, vReq);                
-            }
-            catch(exception& ex)
-            {
-                TLOG_ERROR("verify exception:" << ex.what() << "|" << tupRequest->sServantName << ":" << tupRequest->sFuncName << endl);
-                ProxyUtils::doErrorRsp(401, stParam->current, stParam->proxyType, stParam->httpKeepAlive, "Unauthorized: veirfy exception.");
-                return 0;
-            }
+            // 处理verify身份鉴权问题 ============
+            doVerifyAsync(proxy, stParam, tupRequest, pei);
         }
         else
         {
@@ -451,6 +421,61 @@ int TupBase::handleTarsRequest(const shared_ptr<HandleParam> &stParam)
     ReportHelper::reportStat(g_app.getLocalServerName(), "RequestMonitor", "ReqException2Num", -1);
 
     return -99;
+}
+
+int TupBase::doVerifyAsync(ServantPrx proxy, shared_ptr<HandleParam> stParam, shared_ptr<RequestPacket> tRequest, const ProxyExInfo &pei)
+{
+    static atomic<int>  verifyReqID;
+    VerifyReq vReq;
+    vReq.token = stParam->httpRequest.getHeader(pei.verifyInfo.tokenHeader);
+    if (vReq.token.empty())
+    {
+        TLOG_ERROR("get tokenHeader empty:" << tRequest->sServantName << ":" << tRequest->sFuncName << "|http header:" << pei.verifyInfo.tokenHeader << endl);
+        ProxyUtils::doErrorRsp(401, stParam->current, stParam->proxyType, stParam->httpKeepAlive, "Unauthorized: " + pei.verifyInfo.tokenHeader + " is empty.");
+        return 0;
+    }
+    for (auto it = pei.verifyInfo.verifyHeaders.begin(); it != pei.verifyInfo.verifyHeaders.end(); it++)
+    {
+        vReq.verifyHeaders[*it] = stParam->httpRequest.getHeader(*it);
+    }
+    if (pei.verifyInfo.verifyBody)
+    {
+        vReq.body = stParam->buffer;
+    }
+    
+    RequestPacket tReq;
+    tReq.iVersion = tars::TARSVERSION;
+    tReq.cPacketType = tars::TARSNORMAL;
+    tReq.iRequestId = ++verifyReqID;
+    tReq.sServantName = string(pei.verifyInfo.prx->tars_name().substr(0, pei.verifyInfo.prx->tars_name().find("@")));
+    tReq.sFuncName = "verify";
+
+    tars::TarsOutputStream<tars::BufferWriterVector> os;
+    os.write(vReq, 1);
+    tReq.sBuffer.assign(os.getBuffer(), os.getBuffer() + os.getLength());
+
+    tars::TarsOutputStream<BufferWriter> buffer;
+    tReq.writeTo(buffer);
+
+    unsigned int bufferlength = buffer.getLength() + 4;
+    bufferlength = htonl(bufferlength);
+
+    string s;
+    s.append((char *)&bufferlength, 4);
+    s.append(buffer.getBuffer(), buffer.getLength());
+
+    try
+    {
+        VerifyCallbackExPtr vcb = new VerifyCallbackEx(proxy, tRequest, stParam, pei.hashInfo, vReq.token);    
+        pei.verifyInfo.prx->rpc_call_async(tReq.iRequestId, tReq.sFuncName,  s.c_str(), s.length(), vcb);    
+        TLOG_DEBUG("do verify tars_rpc_call_async succ, buff len:" << s.length() << endl);   
+    }
+    catch(exception& ex)
+    {
+        TLOG_ERROR("verify exception:" << ex.what() << "|" << tRequest->sServantName << ":" << tRequest->sFuncName << endl);
+        ProxyUtils::doErrorRsp(401, stParam->current, stParam->proxyType, stParam->httpKeepAlive, "Unauthorized: veirfy exception.");  
+    }    
+    return 0;
 }
 
 int TupBase::parseJsonRequest(const shared_ptr<HandleParam> &stParam, const shared_ptr<RequestPacket> &tupRequest)
