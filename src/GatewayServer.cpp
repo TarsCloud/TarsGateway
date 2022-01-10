@@ -207,7 +207,7 @@ void GatewayServer::initialize()
         TLOG_ERROR("add flowcontrol fail, exception:" << e.what() << endl);
     }
 
-    LocalRollLogger::getInstance()->logger()->setLogLevel(LocalRollLogger::TARS_LOG);
+//    LocalRollLogger::getInstance()->logger()->setLogLevel(LocalRollLogger::TARS_LOG);
 }
 
 bool GatewayServer::isTupHost(const string &h) const

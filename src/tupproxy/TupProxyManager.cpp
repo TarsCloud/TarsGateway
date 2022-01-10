@@ -142,7 +142,17 @@ void TupProxyManager::initVerifyInfo(const TC_Config& conf)
                 TLOG_ERROR("auth info init fail:" << "/main/auth/" << authVector[i] << "<verify> is empty!" << endl);
                 continue;
             }
-            info.prx = Application::getCommunicator()->stringToProxy<Base::VerifyPrx>(authObj + "#99999");
+
+            size_t pos = authObj.find("@");
+            if(pos == string::npos) {
+            	authObj = authObj + "#99999";
+            } else {
+				authObj = authObj.substr(0, pos) + "#99999" + authObj.substr(pos+1);
+            }
+
+            //为了区别协议解析器, 必须用一个特殊的名字, 避免authObj也用在普通服务上, 这样协议解析器就乱了!
+            info.prx = Application::getCommunicator()->stringToProxy<Base::VerifyPrx>(authObj);
+
             info.tokenHeader = conf.get("/main/auth/" + authVector[i] + "<auth_http_header>");
             if (info.tokenHeader.empty())
             {
