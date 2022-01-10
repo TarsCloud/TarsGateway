@@ -41,11 +41,8 @@ int TupCallback::onDispatch(ReqMessagePtr msg)
         }
         else if (getType() == "json")
         {
-            //if (!msg->response->sBuffer.empty())
-            {
-                ReportHelper::reportProperty("response_iVersion_json");
-                doResponse_json(msg->response);
-            }
+            ReportHelper::reportProperty("response_iVersion_json");
+            doResponse_json(msg->response);
         }
         else if (getType() == "tars")
         {
@@ -110,10 +107,8 @@ void TupCallback::doResponse_tup(const vector<char> &buffer)
             return;
         }
 
-        //shared_ptr<RequestPacket> tup(new RequestPacket());
         RequestPacket req;
         req.readFrom(is);
-        //tup->readFrom(is);
         TLOG_DEBUG("read tup RequestPacket succ." << endl);
 
         req.iRequestId = _stParam->iRequestId;
@@ -264,7 +259,6 @@ void TupCallback::doResponseException(int ret, const vector<char> &buffer)
                                            << _stParam->sFuncName << "|"
                                            << _stParam->iEptType << "|"
                                            << _stParam->iZipType << "|"
-                                           //<< _stParam->iPortType << "|"
                                            << endl);
 
         FDLOG("tupcall_exception") << _stParam->sReqIP << "|"
@@ -301,11 +295,7 @@ void TupCallback::doResponseException(int ret, const vector<char> &buffer)
 
 void TupCallback::handleResponse()
 {
-    // if (_rspBuffer.size() == 0)
-    // {
-    //     return;
-    // }
-    TLOG_DEBUG("rsp size:" << _rspBuffer.size() << endl);
+	TLOG_DEBUG("rsp size:" << _rspBuffer.size() <<", " << _stParam->sServantName << "::" << _stParam->sFuncName << endl);
 
     bool bGzipOk = !_stParam->pairAcceptZip.first.empty();
     bool bEncrypt = !_stParam->pairAcceptEpt.first.empty();
@@ -316,7 +306,6 @@ void TupCallback::handleResponse()
     TC_HttpResponse httpResponse;
     httpResponse.setHeader("Date", TC_Common::now2GMTstr());
     httpResponse.setHeader("Server", "TarsGateway-Server");
-    // httpResponse.setHeader("Content-Type", "application/multipart-formdata");
     httpResponse.setHeader("Cache-Control", "no-cache"); //不缓存内容
 
     if (_stParam->httpKeepAlive)
@@ -332,8 +321,6 @@ void TupCallback::handleResponse()
     {
         httpResponse.setHeader("Content-Type", "application/json");
         g_app.setRspHeaders((int)EPT_JSON_PROXY, _stParam->sServantName, httpResponse);
-        // httpResponse.setHeader("Access-Control-Allow-Origin", "*");
-        // httpResponse.setHeader("Access-Control-Allow-Methods", "POST, GET");
     }
     else
     {
@@ -439,7 +426,7 @@ void VerifyCallback::callback_verify(tars::Int32 ret,  const Base::VerifyRsp& rs
 void VerifyCallback::callback_verify_exception(tars::Int32 ret)
 {
     TLOG_ERROR("async_verify ret error:" << ret << "|" << _request->sServantName << ":" << _request->sFuncName << endl);
-    ProxyUtils::doErrorRsp(401, _param->current, _param->proxyType, _param->httpKeepAlive, "Unauthorized: verify exception, ret=" + TC_Common::tostr(ret));
+    ProxyUtils::doErrorRsp(401, _param->current, _param->proxyType, _param->httpKeepAlive, "Unauthorized: verify exception, ret:" + TC_Common::tostr(ret));
 }
 
 

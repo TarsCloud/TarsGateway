@@ -37,7 +37,7 @@ int TupBase::_setConnectionTag = 0;
 
 string TupBase::_sEncryptKey;
 string TupBase::_sEncryptKeyV2;
-int TupBase::_iMinCompressLen = 512;
+//int TupBase::_iMinCompressLen = 512;
 
 //////////////////////////////////////////////////////
 TupBase::TupBase() //: _pEncryptBuff(NULL), _iEncryptLength(0)
@@ -88,7 +88,6 @@ string TupBase::loadFilterHeader()
     try
     {
         TC_Config conf;
-        //conf.parseFile(ServerConfig::BasePath + ServerConfig::ServerName + ".conf");
         conf.parseFile(g_app.getConfFile());
         _headers = TC_Common::sepstr<string>(conf.get("/main<filterheaders>", ""), ", ;|");
 
@@ -169,7 +168,6 @@ int TupBase::getReqEncodingFromHeader(const TC_HttpRequest &httpRequest, int &iZ
     std::string sTccEncoding = httpRequest.getHeader("X-S-ZIP");
     if (!sTccEncoding.empty())
     {
-        //        if (strcasestr(sTccEncoding.c_str(), "gzip") != NULL || sTccEncoding.find("xxxx") != string::npos)
         iZipType = 1;
 
         ReportHelper::reportProperty("HTTPHeader_X-S-ZIP");
@@ -261,52 +259,52 @@ int TupBase::getDataFromHTTPRequest(const TC_HttpRequest &httpRequest, vector<ch
     }
 }
 
-int TupBase::getRealDataByDecode(vector<char> &sRealTupData, shared_ptr<HandleParam> stParam)
+int TupBase::getRealDataByDecode(const shared_ptr<HandleParam> &stParam)
 {
     if (!stParam->iEptType && !stParam->iZipType)
     {
         return 0;
     }
 
-    int iOrgLen = sRealTupData.size();
+    size_t iOrgLen = stParam->buffer.size();
 
-    vector<char> sTempData = sRealTupData;
+    vector<char> sTempData = stParam->buffer;
 
     // 解密数据
     if (stParam->iEptType)
     {
-        bool bEpt = TC_Tea::decrypt(stParam->sEncryptKey.c_str(), &sRealTupData[0], sRealTupData.size(), sTempData);
+    	bool bEpt = TC_Tea::decrypt(stParam->sEncryptKey.c_str(), stParam->buffer.data(), stParam->buffer.size(), sTempData);
         if (!bEpt)
         {
-            TLOG_ERROR("http protocol decrypt error, iOrgLen:" << iOrgLen << endl);
+            TLOG_ERROR("http protocol decrypt error, origin len:" << iOrgLen << endl);
             ReportHelper::reportStat(g_app.getLocalServerName(), "RequestMonitor", "DecryptErr", -1);
             return -1;
         }
 
-        TLOG_DEBUG("TeaDecrypt OK, " << iOrgLen << "->" << sRealTupData.size() << endl);
+        TLOG_DEBUG("TeaDecrypt OK, origin len: " << iOrgLen << "-> " << stParam->buffer.size() << endl);
 
-        sTempData.swap(sRealTupData);
+        sTempData.swap(stParam->buffer);
     }
 
     // 解压缩
     if (stParam->iZipType)
     {
-        bool bGzip = TC_GZip::uncompress(&sRealTupData[0], sRealTupData.size(), sTempData);
+    	bool bGzip = TC_GZip::uncompress(stParam->buffer.data(), stParam->buffer.size(), sTempData);
         if (!bGzip)
         {
-            TLOG_ERROR("http protocol gzip uncompress error, iOrgLen:" << iOrgLen << endl);
+        	TLOG_ERROR("http protocol gzip uncompress error, origin len:" << iOrgLen << endl);
             ReportHelper::reportStat(g_app.getLocalServerName(), "RequestMonitor", "UncompressErr", -1);
             return -2;
         }
 
-        sRealTupData.swap(sTempData);
-        TLOG_DEBUG("gzipUncompress OK, " << iOrgLen << "->" << sRealTupData.size() << endl);
+        stParam->buffer.swap(sTempData);
+        TLOG_DEBUG("gzipUncompress OK, origin len: " << iOrgLen << "->" << stParam->buffer.size() << endl);
     }
 
     return 0;
 }
 
-void TupBase::getFilter(shared_ptr<HandleParam> stParam)
+void TupBase::getFilter(const shared_ptr<HandleParam> &stParam)
 {
     getHttpFilter(stParam->httpRequest.getHeaders(), stParam->filterHeader);
     stParam->filterHeader["REMOTE_IP"] = stParam->sIP;
@@ -315,14 +313,9 @@ void TupBase::getFilter(shared_ptr<HandleParam> stParam)
     {
         stParam->filterHeader["X-GUID"] = stParam->sGUID;
     }
-    // if (stParam->filterHeader.find("X-Forwarded-For-Host") == stParam->filterHeader.end())
-    // {
-    //     stParam->filterHeader["X-Forwarded-For-Host"] = stParam->sIP;
-    //     +":" + TC_Common::tostr(stParam->current->getPort());
-    // }
 }
 
-int TupBase::handleTarsRequest(shared_ptr<HandleParam> stParam)
+int TupBase::handleTarsRequest(const shared_ptr<HandleParam> &stParam)
 {
     string sErrMsg;
 
@@ -347,7 +340,7 @@ int TupBase::handleTarsRequest(shared_ptr<HandleParam> stParam)
             TLOG_ERROR("parseTupRequest error"
                       << ", type:" << stParam->proxyType
                       << ",ret:" << ret
-                      << ",length:" << stParam->length
+                      << ",length:" << stParam->buffer.size()
                       << ",sGUID:" << stParam->sGUID
                       << endl);
 
@@ -417,7 +410,8 @@ int TupBase::handleTarsRequest(shared_ptr<HandleParam> stParam)
             }
             if (pei.verifyInfo.verifyBody)
             {
-                vReq.body.assign(stParam->buffer, stParam->buffer + stParam->length);
+//                vReq.body.assign(stParam->buffer, stParam->buffer + stParam->length);
+				vReq.body = stParam->buffer;
             }
             
             try
@@ -459,11 +453,11 @@ int TupBase::handleTarsRequest(shared_ptr<HandleParam> stParam)
     return -99;
 }
 
-int TupBase::parseJsonRequest(shared_ptr<HandleParam> stParam, shared_ptr<RequestPacket> tupRequest)
+int TupBase::parseJsonRequest(const shared_ptr<HandleParam> &stParam, const shared_ptr<RequestPacket> &tupRequest)
 {
     try
     {
-        string buff(stParam->buffer, stParam->buffer + stParam->length);
+//        string buff(stParam->buffer, stParam->buffer + stParam->length);
 
         tupRequest->iVersion = JSONVERSION;
         tupRequest->cPacketType = tars::TARSNORMAL;
@@ -480,16 +474,17 @@ int TupBase::parseJsonRequest(shared_ptr<HandleParam> stParam, shared_ptr<Reques
             tupRequest->iRequestId = 99;
             tupRequest->sServantName = TC_Common::trim(vs[1]);
             tupRequest->sFuncName = TC_Common::trim(vs[2]);
-            tupRequest->sBuffer.resize(buff.length());
-            tupRequest->sBuffer.assign(buff.begin(), buff.end());
+            tupRequest->sBuffer = stParam->buffer;
+//            tupRequest->sBuffer.resize(buff.length());
+//            tupRequest->sBuffer.assign(buff.begin(), buff.end());
             stParam->isRestful = true;
         }
         else
         {
 
-            TLOG_DEBUG("buff:" << buff << endl);
+//            TLOG_DEBUG("buff:" << buff << endl);
 
-            tars::JsonValuePtr p = tars::TC_Json::getValue(buff);
+            tars::JsonValuePtr p = tars::TC_Json::getValue(stParam->buffer);
             tars::JsonValueObjPtr pObj = tars::JsonValueObjPtr::dynamicCast(p);
             tars::JsonInput::readJson(tupRequest->iMessageType, pObj->value["msgtype"], false);
             tars::JsonInput::readJson(tupRequest->iRequestId, pObj->value["reqid"], false);
@@ -522,31 +517,31 @@ int TupBase::parseJsonRequest(shared_ptr<HandleParam> stParam, shared_ptr<Reques
     return -1;
 }
 
-int TupBase::parseTupRequest(shared_ptr<HandleParam> stParam, shared_ptr<RequestPacket> tupRequest)
+int TupBase::parseTupRequest(const shared_ptr<HandleParam> &stParam, const shared_ptr<RequestPacket> &tupRequest)
 {
-    const char *buffer = stParam->buffer;
-    size_t length = stParam->length;
+//    const char *buffer = stParam->buffer;
+//    size_t length = stParam->length;
     //长度保护
-    if (length < sizeof(uint32_t))
+    if (stParam->buffer.size() < sizeof(uint32_t))
     {
-        TLOG_ERROR("tup error: tup packet length < 4, length:" << length << endl);
+    	TLOG_ERROR("tup error: tup packet length < 4, length:" << stParam->buffer.size() << endl);
         return -1;
     }
 
     uint32_t l = 0;
-    memcpy(&l, buffer, sizeof(uint32_t));
+    memcpy(&l, stParam->buffer.data(), sizeof(uint32_t));
     l = ntohl(l);
 
     //长度保护
-    if (l > length)
+    if (l > stParam->buffer.size())
     {
-        TLOG_ERROR("tup error: " << l << " > " << length << endl);
+    	TLOG_ERROR("tup error: " << l << " > " << stParam->buffer.size() << endl);
         return -2;
     }
 
     if (l <= 4)
     {
-        TLOG_ERROR("tup error: l:" << l << " <= 4, length:" << length << endl);
+    	TLOG_ERROR("tup error: l:" << l << " <= 4, length:" << stParam->buffer.size() << endl);
         return -3;
     }
 
@@ -554,7 +549,7 @@ int TupBase::parseTupRequest(shared_ptr<HandleParam> stParam, shared_ptr<Request
     {
         tars::TarsInputStream<BufferReader> is;
 
-        is.setBuffer(buffer + 4, l - 4);
+        is.setBuffer(stParam->buffer.data() + 4, l - 4);
 
         tupRequest->readFrom(is);
 
@@ -564,26 +559,25 @@ int TupBase::parseTupRequest(shared_ptr<HandleParam> stParam, shared_ptr<Request
     }
     catch(const std::exception& e)
     {
-        TLOGERROR("parseTupRequest:" << e.what() << ", req buffer len:" << length << ", tarslen:" << l << endl);
+    	TLOGERROR("parseTupRequest:" << e.what() << ", req buffer len:" << stParam->buffer.size() << ", tarslen:" << l << endl);
     }
     return -1;
 }
 
-void TupBase::callServer(ServantPrx proxy, shared_ptr<HandleParam> stParam, shared_ptr<RequestPacket> tupRequest, const THashInfo& hi)
+void TupBase::callServer(ServantPrx proxy, const shared_ptr<HandleParam> &stParam, const shared_ptr<RequestPacket> &tupRequest, const THashInfo& hi)
 {
     //构造异步回调对象
     shared_ptr<TupCallbackParam> stCbParam = make_shared<TupCallbackParam>();
     stCbParam->iTime = TC_Common::now2ms();
     stCbParam->pairAcceptZip = stParam->pairAcceptZip;
     stCbParam->pairAcceptEpt = stParam->pairAcceptEpt;
-    //stCbParam->iPortType = stParam->iPortType;
     stCbParam->iEptType = stParam->iEptType;
     stCbParam->iZipType = stParam->iZipType;
     stCbParam->sReqGuid = stParam->sGUID;
     stCbParam->sReqXua = stParam->sXUA;
     stCbParam->sReqIP = stParam->sIP;
     stCbParam->sEncryptKey = stParam->sEncryptKey;
-    stCbParam->iReqBufferSize = stParam->length;
+    stCbParam->iReqBufferSize = stParam->buffer.size();
 
     stCbParam->iRequestId = tupRequest->iRequestId;
     stCbParam->sServantName = tupRequest->sServantName;
@@ -614,9 +608,7 @@ void TupBase::callServer(ServantPrx proxy, shared_ptr<HandleParam> stParam, shar
                     << stParam->iEptType << "|"
                     << stParam->iZipType << "|"
                     << proxy->tars_name() << "|"
-                    //<< stParam->iPortType << "|"
-                    //                << stParam->iOrgReqLen << "|"
-                    << stParam->length << "|"
+                    << stParam->buffer.size() << "|"
                     << endl;
 
     string sHttpHeaderValue;
@@ -631,18 +623,14 @@ void TupBase::callServer(ServantPrx proxy, shared_ptr<HandleParam> stParam, shar
     tupAsyncCall(tupRequest, proxy, cb, hi.type, sHttpHeaderValue);
 }
 
-void TupBase::tupAsyncCall(shared_ptr<RequestPacket> tup, ServantPrx proxy, TupCallbackPtr cb, THashInfo::E_HASH_TYPE ht, const string &sHttpHeaderValue)
+void TupBase::tupAsyncCall(const shared_ptr<RequestPacket> &tup, ServantPrx proxy, TupCallbackPtr cb, THashInfo::E_HASH_TYPE ht, const string &sHttpHeaderValue)
 {
-
     //用自己的requestid, 回来的时候好匹配
     int requestId = (++g_requestId);
 
     try
     {
         //后续需要修改requestid的值, 因此赋值一个tup
-
-        //BasePacket newTup = tup;
-
         //设置新的tup requestid
         int oldReqID = tup->iRequestId;
         tup->iRequestId = requestId;

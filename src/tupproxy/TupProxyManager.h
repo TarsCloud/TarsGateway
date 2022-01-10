@@ -58,11 +58,9 @@ class TupProxyManager : public TC_Singleton<TupProxyManager>, public TC_ThreadLo
 
     map<string, string> _nameMap;
 
-    //map<string, ServantPrx> _proxyMap;
     map<string, pair<ServantPrx, THashInfo>> _proxyMap;
     map<string, VerifyInfo>     _proxyVerify;
     set<string>                 _noVerify;
-    //map<string, ServantPrx> _jsonProxy;
 
     set<string> _realnameSet;
 
@@ -73,11 +71,7 @@ class TupProxyManager : public TC_Singleton<TupProxyManager>, public TC_ThreadLo
     time_t _lastUpdateTime;
     int _lastUpdateTotalNum;
 
-    //bool                    _terminate;
-
     bool _autoProxy;
-
-    //string sGUID;
 };
 
 /////////////////////////////////////////////////////

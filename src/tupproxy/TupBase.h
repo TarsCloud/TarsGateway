@@ -75,33 +75,34 @@ public:
     
     int setRspEncodingToHeader(const TC_HttpRequest& httpRequest, pair<string, string>& pairAcceptZip, pair<string, string>& pairAcceptEpt);
 
-   static void callServer(ServantPrx proxy, shared_ptr<HandleParam> stParam, shared_ptr<RequestPacket> tupRequest, const THashInfo& hi);
+   static void callServer(ServantPrx proxy, const shared_ptr<HandleParam> &stParam, const shared_ptr<RequestPacket> &tupRequest, const THashInfo& hi);
 
 protected:
 
     static string genTraceID(const string& servantName, const string& funcName, const string& host, int reqID);
 
-    void getFilter(shared_ptr<HandleParam> stParam);
-  /**
+    void getFilter(const shared_ptr<HandleParam> &stParam);
+
+  	/**
      * 从HTTP POST Data或者GET参数中取出Tup数据
      * 
      */
-  int getDataFromHTTPRequest(const TC_HttpRequest &httpRequest, vector<char> &buffer); //, size_t& iOrgReqLen );
+  	int getDataFromHTTPRequest(const TC_HttpRequest &httpRequest, vector<char> &buffer); //, size_t& iOrgReqLen );
 
-  /**
+  	/**
      * 解压，解密数据
      * 
      */
-  int getRealDataByDecode(vector<char> &sRealTupData, shared_ptr<HandleParam> stParam);
+  	int getRealDataByDecode(const shared_ptr<HandleParam> &stParam);
 
-  /**
+  	/**
      * TUP包具体处理
      * 
      * @param stParam 
      */
-  int handleTarsRequest(shared_ptr<HandleParam> stParam);
+  	int handleTarsRequest(const shared_ptr<HandleParam> &stParam);
 
-  /**
+  	/**
      * 解析TUP包
      * 
      * @param buffer 
@@ -109,9 +110,9 @@ protected:
      * @param tupRequest
      * @return int
      */
-  int parseTupRequest(shared_ptr<HandleParam> stParam, shared_ptr<RequestPacket> tupRequest);
+  	int parseTupRequest(const shared_ptr<HandleParam> &stParam, const shared_ptr<RequestPacket> &tupRequest);
 
-  /**
+  	/**
      * 解析JSON包
      * 
      * @param buffer 
@@ -119,31 +120,22 @@ protected:
      * @param tupRequest
      * @return int
      */
-  int parseJsonRequest(shared_ptr<HandleParam> stParam, shared_ptr<RequestPacket> tupRequest);
+  	int parseJsonRequest(const shared_ptr<HandleParam> &stParam, const shared_ptr<RequestPacket> &tupRequest);
 
-  /**
-     * 解析所有的代理
-     * 
-     * @param mTupRequest 
-     * @param map<int32_t, ServantPrx> 
-     * @return int
-     */
-  //ServantPrx parseTupProxy(const BasePacket &tupRequest, HandleParam &stParam);
-
-  /**
+  	/**
      * 异步发送
      * 
      * @param tup 
      * @param proxy 
      */
-  static void tupAsyncCall(shared_ptr<RequestPacket> tup, ServantPrx proxy, TupCallbackPtr cb, THashInfo::E_HASH_TYPE ht, const string &sHttpHeaderValue);
+  	static void tupAsyncCall(const shared_ptr<RequestPacket> &tup, ServantPrx proxy, TupCallbackPtr cb, THashInfo::E_HASH_TYPE ht, const string &sHttpHeaderValue);
 
 protected:
     // 参数类
    static int              _setConnectionTag;
 
-   static string				_sEncryptKey;
-   static string				_sEncryptKeyV2;
+   static string			_sEncryptKey;
+   static string			_sEncryptKeyV2;
    static int              _iMinCompressLen;
 
 protected:

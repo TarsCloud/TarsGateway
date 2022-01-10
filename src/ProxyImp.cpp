@@ -54,24 +54,20 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
         const vector<char> &request = current->getRequestBuffer();
         ReportHelper::reportProperty("TupTotalReqNum");
 
-        //string sReqContent(&request[0], request.size());
-
         stParam->current = current;
-        stParam->buffer = NULL;
-        stParam->length = 0;
+//        stParam->buffer = NULL;
+//        stParam->length = 0;
         stParam->iEptType = 0;
         stParam->iZipType = 0;
 
         stParam->httpRequest.decode(&request[0], request.size());
 
-        TLOG_DEBUG("method:" << stParam->httpRequest.getMethod() << "\r\n, request header:\r\n"
+        TLOG_DEBUG("method:" << stParam->httpRequest.getMethod() << "\r\n"
                   << stParam->httpRequest.genHeader() << endl);
 
-
-        string sRemoteIp; //= stParam->httpRequest.getHeader("X-Forwarded-For-Pound");
+        string sRemoteIp;
 
         // 优先从http头中获取透传的ip。
-        // if (sRemoteIp.empty())
         if (stParam->httpRequest.hasHeader("X-Forwarded-For-Pound"))
         {
             sRemoteIp = stParam->httpRequest.getHeader("X-Forwarded-For");
@@ -111,12 +107,8 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
         }
 
         stParam->sIP = sRemoteIp;
-        //stParam->filterHeader["REMOTE_IP"] = sRemoteIp;
-        //stParam->filterHeader["X-Forwarded-For-Host"] = sRemoteIp + ":" + TC_Common::tostr(current->getPort());
-        // 相关头信息提取
         stParam->sGUID = TC_Common::lower(stParam->httpRequest.getHeader("X-GUID"));
         stParam->sXUA = stParam->httpRequest.getHeader("X-XUA");
-        //stParam->filterHeader["X-GUID"] = stParam->sGUID;
 
         //如果服务器返回的响应头信息中包含Expect: 100-continue，则表示 Server 愿意接受数据，这时才 POST 真正数据给 Server；
         //因为http异步不支行长连接,所以在收到upstream返回http/1.1 100后会断开连接，upstream接收不到真正的数据。
@@ -125,7 +117,6 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
         {
             stParam->httpRequest.eraseHeader("Expect");
         }
-
 
         // 统一设置不自动回包
         current->setResponse(false);
@@ -139,13 +130,12 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
         }
         else if (EPT_HTTP_PROXY == stParam->proxyType)
         {
-            shared_ptr<AccessLog> aLog(new AccessLog());
+            shared_ptr<AccessLog> aLog = std::make_shared<AccessLog>();
             aLog->accessTime = TC_Common::now2str();
             aLog->clientIp = sRemoteIp;
             aLog->host = stParam->httpRequest.getHost();
-            aLog->httpMethod = stParam->httpRequest.getMethod(); //isGET() ? "GET" : (stParam->httpRequest.isPOST() ? "POST" : (stParam->httpRequest.isOPTIONS() ? "OPTIONS" : "OTHER"));
+            aLog->httpMethod = stParam->httpRequest.getMethod();
             aLog->referer = stParam->httpRequest.getHeader("Referer");
-            //aLog->reqUrl = stParam->httpRequest.
             aLog->reqSize = stParam->httpRequest.getContentLength();
             aLog->ua = stParam->httpRequest.getHeader("User-Agent");
             return handleHttpRequest(stParam, aLog);
@@ -170,8 +160,7 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
             setRspEncodingToHeader(stParam->httpRequest, stParam->pairAcceptZip, stParam->pairAcceptEpt);
 
             /// 从HTTP POST Data或者GET参数中取出Tup数据
-            vector<char> sTupData;
-            if (getDataFromHTTPRequest(stParam->httpRequest, sTupData) != 0)
+			if (getDataFromHTTPRequest(stParam->httpRequest, stParam->buffer) != 0)
             {
                 TLOG_ERROR("getDataFromHTTPRequest failed"
                           << ",sGUID:" << stParam->sGUID << endl);
@@ -181,7 +170,7 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
             }
 
             /// 解压，解密数据
-            if (getRealDataByDecode(sTupData, stParam) != 0)
+            if (getRealDataByDecode(stParam) != 0)
             {
                 TLOG_ERROR("getRealDataByDecode failed"
                           << ",sGUID:" << stParam->sGUID << endl);
@@ -189,8 +178,8 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
                 return 0;
             }
 
-            stParam->buffer = &sTupData[0];
-            stParam->length = sTupData.size();
+//            stParam->buffer = &sTupData[0];
+//            stParam->length = sTupData.size();
 
             return handleTarsRequest(stParam);
         }

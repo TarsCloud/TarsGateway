@@ -140,7 +140,7 @@ typedef TC_AutoPtr<TupCallback> TupCallbackPtr;
 class VerifyCallback: public VerifyPrxCallback
 {
 public:
-    VerifyCallback(ServantPrx proxy, shared_ptr<RequestPacket> request, shared_ptr<HandleParam> param, const THashInfo& hi, const string& token)
+    VerifyCallback(ServantPrx proxy, const shared_ptr<RequestPacket> &request, const shared_ptr<HandleParam> &param, const THashInfo& hi, const string& token)
         :_proxy(proxy), _request(request), _param(param), _hashInfo(hi), _token(token) 
     {}
 

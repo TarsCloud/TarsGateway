@@ -28,8 +28,9 @@ enum E_HTTP_RESLUT
 struct HandleParam
 {
     tars::TarsCurrentPtr       current;
-    const char *             buffer;
-    size_t                   length;
+    vector<char>		     buffer;
+//    const char *             buffer;
+//    size_t                   length;
     map<string,string>       filterHeader;
     TC_HttpRequest           httpRequest;
     pair<string, string>     pairAcceptZip;

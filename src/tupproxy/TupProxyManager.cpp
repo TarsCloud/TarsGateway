@@ -285,8 +285,6 @@ ServantPrx TupProxyManager::getProxy(const string &sServantName, const string &s
 {
     string name = sServantName;
 
-    //    string sGUID = TC_Common::lower(httpRequest.getHeader("Q-GUID"));
-
     TC_LockT<TC_ThreadMutex> lock(_mutex);
 
     //先查找头部有没有特殊转发的地址
@@ -309,7 +307,6 @@ ServantPrx TupProxyManager::getProxy(const string &sServantName, const string &s
 
     //查找内部的实际Servant名称
     ServantPrx proxy;
-    //THashInfo thi;
     string realServantName;
 
     {
@@ -326,7 +323,7 @@ ServantPrx TupProxyManager::getProxy(const string &sServantName, const string &s
         if (itName != _nameMap.end()) //在配置里面找到了name，则找出对应的realServantname
         {
             realServantName = itName->second;
-            name = nameFunc; //
+            name = nameFunc;
             TLOG_DEBUG("nameFunc|name:" << name << ", sServantName:" << sServantName << ", sFuncName:" << sFuncName << ", " << realServantName << endl);
         }
         else
