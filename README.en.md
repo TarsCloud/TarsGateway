@@ -123,7 +123,7 @@ A post request type is required, with a  /json path and the body content a json 
 General HTTP protocol proxy, similar to the reverse proxy function of nginx, has the following main functions: request forwarding according to domain and url, back-end load balancing, fault tolerance, blacklist shielding, flow control and others.
 
 * **Routing strategy**
-First, match server_name and the path, and then forward according to the proxy_pass path. The specific rules are as follows:
+First, match server_name and the location, and then forward according to the proxy_pass path. The specific rules are as follows:
 
 ```
 server_name matching logic：
@@ -135,7 +135,7 @@ server_name matching logic：
   5. If server_name is empty, all will match by default
 }
 
-path matching logic：
+location matching logic：
 {
   1. = Full match: /login
   2. ^~ uri starts with a regular string: ^~ /static/ (Once the match is successful, it will not be matched further)
