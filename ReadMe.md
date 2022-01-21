@@ -150,7 +150,7 @@ TARS-JSON 协议代理，支持两种类型的接口。
 
 - **路由策略**
 
-先匹配 server_name,再匹配 path,然后根据 proxy_pass 路径进行转发,具体规则如下：
+先匹配 server_name,再匹配 location,然后根据 proxy_pass 路径进行转发,具体规则如下：
 
 ```
 server_name 匹配逻辑：
@@ -162,7 +162,7 @@ server_name 匹配逻辑：
 	5、如果server_name为空， 则默认都匹配
 }
 
-path 匹配逻辑：
+location 匹配逻辑：
 {
 	1、= 全匹配：  /login
 	2、^~ uri以某个常规字符串开头： ^~ /static/   （一旦匹配成功， 不再往后面匹配）
