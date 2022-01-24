@@ -47,7 +47,7 @@ hostIPC: false
 hostPorts: []
 repo:
   id:
-  image: docker.tarsyun.com/tars/gatewayserver
+  image: docker.tarsyun.com/base/gatewayserver
   secret: cloud-image-secret
 config:
   - name: GatewayServer.conf
