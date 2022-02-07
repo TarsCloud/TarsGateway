@@ -48,7 +48,7 @@ hostPorts: []
 repo:
   id:
   image: docker.tarsyun.com/base/gatewayserver
-  secret: cloud-image-secret
+  secret: cloud-market-secret
 config:
   - name: GatewayServer.conf
     content: |
