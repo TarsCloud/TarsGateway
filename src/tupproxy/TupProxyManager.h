@@ -59,6 +59,7 @@ class TupProxyManager : public TC_Singleton<TupProxyManager>, public TC_ThreadLo
     map<string, string> _nameMap;
 
     map<string, pair<ServantPrx, THashInfo>> _proxyMap;
+    set<string> _interfaceBlackList;
     map<string, VerifyInfo>     _proxyVerify;
     set<string>                 _noVerify;
 

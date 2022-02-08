@@ -81,10 +81,24 @@ TarsGateway 是根据请求 host+url 判断当前请求是什么类型的请求�
 TARS-tup 协议代理，必须为 post 请求类型，路径为/tup，body 内容为 RequestPacket 包 tars 序列化的内容。TarsGateway 收到包后，去反序列化 body 的内容解析出 RequestPacket 包，然后根据其中的 sServantName 在配置中查找真是的 tars 服务的 obj。如果配置 auto_proxy=1，那么客户端调用时 sServantName 可以填真实的 obj 地址。这里建议：直接对 C 外网暴露的 TarsGateway，建议配置 auto_proxy=0，避免内网的服务都直接对外暴露。另外，proxy 的配置还可以支持 sServerName:sFuncName 的配置，会优先根据, 这种类型配置优先级高于只配置 sServerName 类型的配置。 proxy 配置如下：
 
 ```
+<main>
     <proxy>
         hello = TestApp.HelloServer.HelloObj
         hello:sayhello = TestApp.Hello2Server.HelloObj
     </proxy>
+</main>
+```
+
+proxy配置支持接口黑名单策略，即在proxy配置的情况下，可以通过接口黑名单排除servant下指定的接口列表，配置如下：
+```
+<main>
+    <proxy_interface_blacklist>
+        #proxy 接口黑名单
+        #servant:func1|func2|....
+        hello:func1|func2
+        login:func1
+    </proxy_interface_blacklist>   
+</main>     
 ```
 
 经过 TarsGateway 调用后端服务，客户端请求的 http 头，可以通过配置采用 tars 的 context 进行 http 头的透传，默认情况下，REMOTE_IP （客户端 ip）都会透传给后端。配置为 filterheaders，可以是多个，比如：

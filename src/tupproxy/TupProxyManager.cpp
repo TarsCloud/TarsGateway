@@ -58,6 +58,24 @@ string TupProxyManager::loadProxy(const TC_Config &conf)
             }
         }
 
+        set<string> interfaceBlackList;
+        vector<string> bl;
+        bl = conf.getDomainLine("/main/proxy_interface_blacklist");
+        for (auto it = bl.begin(); it != bl.end(); ++it)
+        {
+            vector<string> vs = TC_Common::sepstr<string>(*it, ":");
+            if (vs.size() == 2)
+            {
+                string obj = TC_Common::trim(vs[0]);
+                vector<string> funcList = TC_Common::sepstr<string>(vs[1], "|");
+                for (size_t i = 0; i < funcList.size(); i++)
+                {
+                    interfaceBlackList.insert(obj + ":" + TC_Common::trim(funcList[i]));
+                }               
+            }
+        }
+        _interfaceBlackList.swap(interfaceBlackList);   
+
         for (auto it = _nameMap.begin(); it != _nameMap.end(); ++it)
         {
             string k = it->first;
@@ -289,6 +307,13 @@ ServantPrx TupProxyManager::getProxy(const string &sServantName, const string &s
     string name = sServantName;
 
     TC_LockT<TC_ThreadMutex> lock(_mutex);
+
+    // 先判断是否在接口黑名单中
+    if (_interfaceBlackList.find(name + ":" + sFuncName) != _interfaceBlackList.end())
+    {
+        TLOG_ERROR(sServantName << ":" << sFuncName << ", is in interface BlackList!" << endl);
+        return NULL;
+    }
 
     //先查找头部有没有特殊转发的地址
     set<string>::iterator it = _httpHeaderForProxy.begin();
