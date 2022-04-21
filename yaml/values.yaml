@@ -78,7 +78,7 @@ config:
             onoff=1
             # 调用链采样间隔(ms), 针对同一个服务, 同一个接口
             default_interval=100
-            # 调用链输出标示(https://doc.tarsyun.com/#/gateway/README.md)
+            # 调用链输出标示(https://doc.tarsyun.com/#/dev/tars-trace.md)
             default_trace_type=15
           </trace>
           <proxy>
