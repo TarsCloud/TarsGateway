@@ -18,6 +18,7 @@ cloud:
   readme_cn: README.md
   protocols: 
     - src/Verify.tars
+    - yaml/db_base.sql
   assets: 
     - images
 app: Base
@@ -59,6 +60,7 @@ config:
           auto_proxy=1
           # 流控统计obj, 改成和当前服务部署地址匹配
           flow_report_obj=Base.GatewayServer.FlowControlObj
+
           <base>
               # tup 回包大小限制
               rspsize=5242880
@@ -71,6 +73,14 @@ config:
               monitor_url=/monitor/monitor.html
           </base>
           
+          <trace>
+            # 是否开启调用链
+            onoff=1
+            # 调用链采样间隔(ms), 针对同一个服务, 同一个接口
+            default_interval=100
+            # 调用链输出标示(https://doc.tarsyun.com/#/gateway/README.md)
+            default_trace_type=15
+          </trace>
           <proxy>
               # servant = server_full_obj [ hash_type | http header key ]
               # hash_type: 0, 轮训; 1: requestid, 2: http头, 3: client ip
