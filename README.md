@@ -18,9 +18,40 @@ TarsGateway 是基于 tars 框架开发的一套通用 api 网关，请求为 ht
 
 ## 安装
 
-请使用最新版本 Tars 框架(tarscloud/framework:v3.0.7), 直接通过服务市场来安装服务!
+在安装之前, 请注意网关服务依赖于 mysql, 相关的库和表[请参考 db_base.sql](./yaml/db_base.sql)
+
+在 Tars 上安装网关有两种模式:
+
+- 通过市场安装
+
+请使用最新版本 Tars 框架(tarscloud/framework:v3.0.7 or K8SFramework >= v1.2.5), 直接通过服务市场来安装服务!
+
+市场从 tarsweb 顶部 tab, 点击服务市场进入, 然后选择左边目录树上的`base/gatewayserver`, 右边选择对应的版本, 然后点击安装!
+
+注意通过市场安装, 你需要使用`db_base.sql`(服务市场上可以下载)自己手工创建数据库表, 然后安装时, 配置文件`GatewayServer.conf` 中编辑 db 的地址
+
+```
+<main>
+    #省略内容
+    .....
+
+    # 注意修改配置, 指向你创建的db地址
+    <db>
+        charset=utf8
+        dbhost =db.tars.com
+        dbname =db_base
+        dbpass =taf2015
+        dbport =3306
+        dbuser =tars
+    </db>
+</main>
+```
+
+- 通过源码安装
 
 如果你希望源码安装, [请参考](./INSTALL_SOURCE.md)
+
+注意通过源码安装会一键创建 db, 无须提前创建 db 了.
 
 ## 功能介绍
 
