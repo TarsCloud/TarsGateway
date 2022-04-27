@@ -102,18 +102,14 @@ function build_webconf()
     cd $WORKDIR
 
     LOG_INFO "===>install GatewayServer server:\n";
-    rm -f install/server-tmp.json;
-    cp install/server.json install/server-tmp.json;
-    sed -i "s/host_ip/$GATEWAYSERVER_IP/g" install/server-tmp.json
+    sed "s/host_ip/$GATEWAYSERVER_IP/g" install/server.json > install/server-tmp.json
     curl -s -X POST -H "Content-Type: application/json" ${TARS_WEB_HOST}/api/deploy_server?ticket=${TARS_WEB_TOKEN} -d@install/server-tmp.json
 
     LOG_INFO "===>add GatewayServer.conf:\n";
-    rm -f install/config-tmp.json;
-    cp install/config.json install/config-tmp.json;
-    sed -i "s/db_host/$TARS_DB_HOST/g" install/config-tmp.json
-    sed -i "s/db_port/$TARS_DB_PORT/g" install/config-tmp.json
-    sed -i "s/db_user/$TARS_DB_USER/g" install/config-tmp.json
-    sed -i "s/db_pwd/$TARS_DB_PWD/g" install/config-tmp.json
+    sed "s/db_host/$TARS_DB_HOST/g" install/config.json > install/config-tmp1.json
+    sed "s/db_port/$TARS_DB_PORT/g" install/config-tmp1.json > install/config-tmp2.json
+    sed "s/db_user/$TARS_DB_USER/g" install/config-tmp2.json > install/config-tmp3.json
+    sed "s/db_pwd/$TARS_DB_PWD/g" install/config-tmp3.json > install/config-tmp.json
 
     curl -s -X POST -H "Content-Type: application/json" ${TARS_WEB_HOST}/api/add_config_file?ticket=${TARS_WEB_TOKEN} -d@install/config-tmp.json
     
@@ -124,7 +120,7 @@ function build_webconf()
     curl -s -X POST -H "Content-Type: application/json" ${TARS_WEB_HOST}/api/add_config_file?ticket=${TARS_WEB_TOKEN} -d@install/httpheaderconfig-tmp.json
 
     rm -f install/server-tmp.json;
-    rm -f install/config-tmp.json;
+    rm -f install/config-tmp*.json;
     rm -f install/httpheaderconfig-tmp.json;
 
     LOG_INFO "====> build_webconf finish!\n";
