@@ -21,6 +21,7 @@ cloud:
     - yaml/db_base.sql
   assets: 
     - images
+    - doc 
 app: Base
 server: GatewayServer
 template: tars.cpp

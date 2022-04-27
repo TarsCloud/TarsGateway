@@ -6,7 +6,7 @@
 
 TarsGateway 是基于 tars 框架开发的一套通用 api 网关，请求为 http 协议，后端同时支持 tars-tup&tars-tars 协议、tars-json 协议、http 协议。 除了协议转发之外，还支持流量控制，黑白名单等功能。 详细使用文档参考[Tars 文档](https://tarscloud.github.io/TarsDocs/)
 
-更多文档可以参考：[Tars网关配置使用说明](./doc/operate.md), [服务配置项说明](./doc/config.md)
+更多文档可以参考：[Tars 网关配置使用说明](./doc/operate.md), [服务配置项说明](./doc/config.md)
 
 ## 支持版本说明
 
@@ -49,7 +49,7 @@ TarsGateway 是基于 tars 框架开发的一套通用 api 网关，请求为 ht
 
 - 通过源码安装
 
-如果你希望源码安装, [请参考](./INSTALL_SOURCE.md)
+如果你希望源码安装, [请参考](doc/INSTALL_SOURCE.md)
 
 注意通过源码安装会一键创建 db, 无须提前创建 db 了.
 
