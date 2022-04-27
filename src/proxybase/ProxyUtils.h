@@ -18,33 +18,27 @@ public:
         if (400 == statusCode)
         {
             info = "Bad Request";
-            content = "<html> <head><title>400 Bad Request</title></head> <body> <center><h1>400 Bad Request</h1></center> </body> </html>";
+            content = "<html> <head><title>400 Bad Request</title></head> <body> <center><h1>[400 WUP Bad Request] " + rspInfo + "</h1></center> </body> </html>";
         }
         else if (401 == statusCode)
         {
             info = "Unauthorized";
-            if (!rspInfo.empty())
-            {
-                content = "<html> <head><title>401 Unauthorized</title></head> <body> <center><h1>" + rspInfo + "</h1></center> </body> </html>"; 
-            }
-            else
-            {
-                content = "<html> <head><title>401 Unauthorized</title></head> <body> <center><h1>401 Unauthorized</h1></center> </body> </html>"; 
-            }           }
+            content = "<html> <head><title>401 Unauthorized</title></head> <body> <center><h1>[401 Unauthorized]" + rspInfo + "</h1></center> </body> </html>"; 
+        }
         else if (403 == statusCode)
         {
             info = "Forbidden";
-            content = "<html> <head><title>403 Forbidden</title></head> <body> <center><h1>403 Forbidden</h1></center> </body> </html>"; 
+            content = "<html> <head><title>403 Forbidden</title></head> <body> <center><h1>[403 WUP Forbidden]" + rspInfo + "</h1></center> </body> </html>"; 
         }
         else if (404 == statusCode)
         {
             info = "Not Found";
-            content = "<html> <head><title>404 Not Found</title></head> <body> <center><h1>404 Not Found</h1></center> </body> </html>";
+            content = "<html> <head><title>404 Not Found</title></head> <body> <center><h1>[404 Not Found]" + rspInfo + "</h1></center> </body> </html>";
         }
         else if (429 == statusCode)
         {
             info = "Too Many Request";
-            content = "<html> <head><title>429 Too Many Request</title></head> <body> <center><h1>429 Too Many Request</h1></center> </body> </html>";
+            content = "<html> <head><title>429 Too Many Request</title></head> <body> <center><h1>[429 WUP Too Many Request]" + rspInfo + "</h1></center> </body> </html>";
         }
         else if (500 == statusCode)
         {
@@ -59,7 +53,7 @@ public:
         else if (502 == statusCode)
         {
             info = "Bad Gateway";
-            content = "<html> <head><title>502 Bad Gateway</title></head> <body> <center><h1>502 Bad Gateway</h1></center> </body> </html>";
+            content = "<html> <head><title>502 Bad Gateway</title></head> <body> <center><h1>[502 WUP Bad Gateway]" + rspInfo + "</h1></center> </body> </html>";
         }
         else if(503 == statusCode)
         {

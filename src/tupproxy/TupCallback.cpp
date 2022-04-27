@@ -20,6 +20,22 @@ using namespace tup;
 
 //////////////////////////////////////////////////////
 
+map<int, string> g_errorInfo = {
+    {-1, "server-decode-error"},
+    {-2, "server-encode-error"},
+    {-3, "server-no-function"},
+    {-4, "server-no-servant"},
+    {-5, "invoke-by-invalidset"},
+    {-6, "server-queue-timeout"},
+    {-7, "async-call-timeout"},
+    {-8, "invoke-timeout"},
+    {-9, "proxy-connect-error"},
+    {-10, "server-overload"},
+    {-11, "adapter-null"},
+    {-12, "send-request-error"},
+    {-99, "server-unknown-error"}
+};
+
 TupCallback::~TupCallback()
 {
     handleResponse();
@@ -274,11 +290,16 @@ void TupCallback::doResponseException(int ret, const vector<char> &buffer)
         
         if (ret == -7)
         {
-            ProxyUtils::doErrorRsp(504, _current, EPT_TUP_PROXY, _stParam->httpKeepAlive);
+            ProxyUtils::doErrorRsp(504, _current, EPT_TUP_PROXY, _stParam->httpKeepAlive, "invoke " + _stParam->sServantName + ":" + _stParam->sFuncName + " timeout!");
         }
         else
         {
-            ProxyUtils::doErrorRsp(502, _current, EPT_TUP_PROXY, _stParam->httpKeepAlive);
+            string errMsg = "unknow error";
+            if (g_errorInfo.find(ret) != g_errorInfo.end())
+            {
+                errMsg = g_errorInfo[ret];
+            }
+            ProxyUtils::doErrorRsp(502, _current, EPT_TUP_PROXY, _stParam->httpKeepAlive, "invoke " + _stParam->sServantName + ":" + _stParam->sFuncName + " exception:" + TC_Common::tostr(ret) + ", " + errMsg);
         }
 
         ReportHelper::reportStat(g_app.getLocalServerName(), "RequestMonitor", "doResponseException", 0);
@@ -402,34 +423,6 @@ void TupCallback::handleResponse()
 
     _rspBuffer.clear();
 }
-
-/*
-void VerifyCallback::callback_verify(tars::Int32 ret,  const Base::VerifyRsp& rsp)
-{
-    if (0 != ret || rsp.ret != EVC_SUCC)
-    {
-        TLOG_ERROR("verify ret error:" << ret << "|verify code:" << rsp.ret << "|" << _request->sServantName << ":" << _request->sFuncName << endl);
-        ProxyUtils::doErrorRsp(401,  _param->current, _param->proxyType, _param->httpKeepAlive, "Unauthorized: veirfy fail, ret=" + TC_Common::tostr(rsp.ret));
-        return;
-    }
-    else
-    {
-        TLOG_DEBUG(_request->sServantName << ":" << _request->sFuncName << "|async_verify succ:" << rsp.ret << ", " << rsp.uid << ", " << rsp.context << endl);
-    }
-
-    _request->context["X-Verify-UID"] = rsp.uid;
-    _request->context["X-Verify-Data"] = rsp.context;
-    _request->context["X-Verify-Token"] = _token;
-
-    TupBase::callServer(_proxy, _param, _request, _hashInfo);
-}
-
-void VerifyCallback::callback_verify_exception(tars::Int32 ret)
-{
-    TLOG_ERROR("async_verify ret error:" << ret << "|" << _request->sServantName << ":" << _request->sFuncName << endl);
-    ProxyUtils::doErrorRsp(401, _param->current, _param->proxyType, _param->httpKeepAlive, "Unauthorized: verify exception, ret:" + TC_Common::tostr(ret));
-}
-*/
 
 int VerifyCallbackEx::onDispatch(ReqMessagePtr msg)
 {

@@ -94,7 +94,7 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
         if (STATIONMNG->isInBlackList("", sRemoteIp))
         {
             TLOG_ERROR(sRemoteIp << " is in Global black list, url:" << stParam->httpRequest.getRequestUrl() << endl);
-            ProxyUtils::doErrorRsp(403,  stParam->current, stParam->proxyType, stParam->httpKeepAlive);
+            ProxyUtils::doErrorRsp(403,  stParam->current, stParam->proxyType, stParam->httpKeepAlive, "In Global-BlackList:" + stParam->sIP);
             return -1;
         }
 
@@ -165,7 +165,7 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
                 TLOG_ERROR("getDataFromHTTPRequest failed"
                           << ",sGUID:" << stParam->sGUID << endl);
                 current->setResponse(false);
-                ProxyUtils::doErrorRsp(400, current, stParam->proxyType, stParam->httpKeepAlive);
+                ProxyUtils::doErrorRsp(400, current, stParam->proxyType, stParam->httpKeepAlive, "getDataFromHTTPRequest failed");
                 return 0;
             }
 
@@ -174,7 +174,7 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
             {
                 TLOG_ERROR("getRealDataByDecode failed"
                           << ",sGUID:" << stParam->sGUID << endl);
-                ProxyUtils::doErrorRsp(400, stParam->current, stParam->proxyType, stParam->httpKeepAlive);
+                ProxyUtils::doErrorRsp(400, stParam->current, stParam->proxyType, stParam->httpKeepAlive, "getRealDataByDecode failed");
                 return 0;
             }
 
@@ -193,7 +193,7 @@ int ProxyImp::doRequest(tars::TarsCurrentPtr current, vector<char> &response)
         TLOG_ERROR("exception: unknow exception, sGUID:" << stParam->sGUID << endl);
     }
 
-    ProxyUtils::doErrorRsp(500,  current, stParam->proxyType, stParam->httpKeepAlive);
+    ProxyUtils::doErrorRsp(500,  current, stParam->proxyType, stParam->httpKeepAlive, "doRequest Exception");
     ReportHelper::reportStat(g_app.getLocalServerName(), "RequestMonitor", "Exception1Num", -1);
 
     return 0;

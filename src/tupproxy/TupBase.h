@@ -110,7 +110,7 @@ protected:
      * @param tupRequest
      * @return int
      */
-  	int parseTupRequest(const shared_ptr<HandleParam> &stParam, const shared_ptr<RequestPacket> &tupRequest);
+  	int parseTupRequest(const shared_ptr<HandleParam> &stParam, const shared_ptr<RequestPacket> &tupRequest, string& info);
 
   	/**
      * 解析JSON包
@@ -120,7 +120,7 @@ protected:
      * @param tupRequest
      * @return int
      */
-  	int parseJsonRequest(const shared_ptr<HandleParam> &stParam, const shared_ptr<RequestPacket> &tupRequest);
+  	int parseJsonRequest(const shared_ptr<HandleParam> &stParam, const shared_ptr<RequestPacket> &tupRequest, string& info);
 
    /**
      * 手动组包发verify请求

@@ -326,13 +326,14 @@ int TupBase::handleTarsRequest(const shared_ptr<HandleParam> &stParam)
         shared_ptr<RequestPacket> tupRequest = make_shared<RequestPacket>();
 
         int ret = -1;
+        string errInfo;
         if (EPT_JSON_PROXY == stParam->proxyType)
         {
-            ret = parseJsonRequest(stParam, tupRequest);
+            ret = parseJsonRequest(stParam, tupRequest, errInfo);
         }
         else if (EPT_TUP_PROXY == stParam->proxyType)
         {
-            ret = parseTupRequest(stParam, tupRequest);
+            ret = parseTupRequest(stParam, tupRequest, errInfo);
         }
 
         if (ret != 0)
@@ -345,7 +346,7 @@ int TupBase::handleTarsRequest(const shared_ptr<HandleParam> &stParam)
                       << endl);
 
             ReportHelper::reportStat(g_app.getLocalServerName(), "RequestMonitor", "ParseTupBodyErr", -1);
-            ProxyUtils::doErrorRsp(400,  stParam->current, stParam->proxyType, stParam->httpKeepAlive);
+            ProxyUtils::doErrorRsp(400,  stParam->current, stParam->proxyType, stParam->httpKeepAlive, errInfo);
             return 0;
         }
 
@@ -364,7 +365,7 @@ int TupBase::handleTarsRequest(const shared_ptr<HandleParam> &stParam)
             TLOG_ERROR("parseTupProxy error, sGUID:" << stParam->sGUID << endl);
 
             ReportHelper::reportStat(g_app.getLocalServerName(), "RequestMonitor", "GetProxyErr", -1);
-            ProxyUtils::doErrorRsp(404,  stParam->current, stParam->proxyType, stParam->httpKeepAlive);
+            ProxyUtils::doErrorRsp(404,  stParam->current, stParam->proxyType, stParam->httpKeepAlive, "no match proxy error:" + tupRequest->sServantName + ":" + tupRequest->sFuncName);
             return 0;
         }
         else
@@ -375,19 +376,19 @@ int TupBase::handleTarsRequest(const shared_ptr<HandleParam> &stParam)
         if (!STATIONMNG->checkWhiteList(proxy->tars_name(), stParam->sIP))
         {
             TLOG_ERROR(stParam->sIP << " is not in " << proxy->tars_name() << " 's white list, obj:" << tupRequest->sServantName << ":" << tupRequest->sFuncName << endl);
-            ProxyUtils::doErrorRsp(403,  stParam->current, stParam->proxyType, stParam->httpKeepAlive);
+            ProxyUtils::doErrorRsp(403,  stParam->current, stParam->proxyType, stParam->httpKeepAlive, "checkWhiteList fail:" + stParam->sIP);
             return 0;
         }
         else if (STATIONMNG->isInBlackList(proxy->tars_name(), stParam->sIP))
         {
             TLOG_ERROR(stParam->sIP << " is in " << proxy->tars_name() << " 's black list, obj:" << tupRequest->sServantName << ":" << tupRequest->sFuncName << endl);
-            ProxyUtils::doErrorRsp(403,  stParam->current, stParam->proxyType, stParam->httpKeepAlive);
+            ProxyUtils::doErrorRsp(403,  stParam->current, stParam->proxyType, stParam->httpKeepAlive, "In BlackList:" + stParam->sIP);
             return 0;
         }
         else if (!FlowControlManager::getInstance()->check(proxy->tars_name()))
         {
             TLOG_ERROR("tars request:" << proxy->tars_name() << " flowcontrol false!!!" << endl);
-            ProxyUtils::doErrorRsp(429, stParam->current, stParam->proxyType, stParam->httpKeepAlive);
+            ProxyUtils::doErrorRsp(429, stParam->current, stParam->proxyType, stParam->httpKeepAlive, "flowcontrol limit");
             return 0;
         }
 
@@ -414,7 +415,7 @@ int TupBase::handleTarsRequest(const shared_ptr<HandleParam> &stParam)
         sErrMsg = "unknown error";
     }
 
-    ProxyUtils::doErrorRsp(400, stParam->current, stParam->proxyType, stParam->httpKeepAlive);
+    ProxyUtils::doErrorRsp(400, stParam->current, stParam->proxyType, stParam->httpKeepAlive, sErrMsg);
 
     TLOG_ERROR("exception: " << sErrMsg << ",sGUID:" << stParam->sGUID << endl);
 
@@ -478,7 +479,7 @@ int TupBase::doVerifyAsync(ServantPrx proxy, shared_ptr<HandleParam> stParam, sh
     return 0;
 }
 
-int TupBase::parseJsonRequest(const shared_ptr<HandleParam> &stParam, const shared_ptr<RequestPacket> &tupRequest)
+int TupBase::parseJsonRequest(const shared_ptr<HandleParam> &stParam, const shared_ptr<RequestPacket> &tupRequest, string& info)
 {
     try
     {
@@ -493,6 +494,7 @@ int TupBase::parseJsonRequest(const shared_ptr<HandleParam> &stParam, const shar
             if (vs.size() < 3)
             {
                 TLOG_ERROR("parse json url fail:" << stParam->httpRequest.getRequestUrl() << endl);
+                info = "parse json url fail: " + stParam->httpRequest.getRequestUrl();
                 return -1;
             }
 
@@ -525,6 +527,7 @@ int TupBase::parseJsonRequest(const shared_ptr<HandleParam> &stParam, const shar
             if (data.empty())
             {
                 TLOG_ERROR("parseJsonRequest error, data is empty!!!" << endl);
+                info = "parseJsonRequest error, data is empty.";
                 return -1;
             }
             tupRequest->sBuffer.resize(data.length());
@@ -542,7 +545,7 @@ int TupBase::parseJsonRequest(const shared_ptr<HandleParam> &stParam, const shar
     return -1;
 }
 
-int TupBase::parseTupRequest(const shared_ptr<HandleParam> &stParam, const shared_ptr<RequestPacket> &tupRequest)
+int TupBase::parseTupRequest(const shared_ptr<HandleParam> &stParam, const shared_ptr<RequestPacket> &tupRequest, string& info)
 {
 //    const char *buffer = stParam->buffer;
 //    size_t length = stParam->length;
@@ -550,6 +553,7 @@ int TupBase::parseTupRequest(const shared_ptr<HandleParam> &stParam, const share
     if (stParam->buffer.size() < sizeof(uint32_t))
     {
     	TLOG_ERROR("tup error: tup packet length < 4, length:" << stParam->buffer.size() << endl);
+        info = "tup error: tup packet length < 4, length=" + TC_Common::tostr(stParam->buffer.size());
         return -1;
     }
 
@@ -561,12 +565,14 @@ int TupBase::parseTupRequest(const shared_ptr<HandleParam> &stParam, const share
     if (l > stParam->buffer.size())
     {
     	TLOG_ERROR("tup error: " << l << " > " << stParam->buffer.size() << endl);
+        info = "tup error: tup packet length=" + TC_Common::tostr(l) + ", buffer size:" + TC_Common::tostr(stParam->buffer.size());
         return -2;
     }
 
     if (l <= 4)
     {
     	TLOG_ERROR("tup error: l:" << l << " <= 4, length:" << stParam->buffer.size() << endl);
+        info = "tup error: tup packet length:" + TC_Common::tostr(l) + " < 4, buffer size:" + TC_Common::tostr(stParam->buffer.size());
         return -3;
     }
 

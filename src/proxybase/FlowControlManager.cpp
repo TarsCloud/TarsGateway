@@ -7,6 +7,7 @@ FlowControlManager::FlowControlManager()
     _maxFlowID = 0;
     _onoff = false;
     //_index = 0;
+    _terminate = false;
 }
 
 bool FlowControlManager::init(TC_Config &conf)
