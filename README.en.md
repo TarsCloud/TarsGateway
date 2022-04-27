@@ -44,7 +44,7 @@ Note that you need to use `db_base.sql` (available for download in the service m
 
 - Install from source
 
-If you want to install the source code, [please refer to](./INSTALL_SOURCE_en.md)
+If you want to install the source code, [please refer to](doc/INSTALL_SOURCE_en.md)
 
 Note that DB will be created with one click through the source code installation, and there is no need to create dB in advance
 
