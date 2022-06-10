@@ -316,6 +316,11 @@ void TupCallback::doResponseException(int ret, const vector<char> &buffer)
 
 void TupCallback::handleResponse()
 {
+	if (_rspBuffer.size() == 0)
+    {
+        return;
+    }
+
 	TLOG_DEBUG("rsp size:" << _rspBuffer.size() <<", " << _stParam->sServantName << "::" << _stParam->sFuncName << endl);
 
     bool bGzipOk = !_stParam->pairAcceptZip.first.empty();
