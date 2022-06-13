@@ -4,7 +4,7 @@
 
 TarsGateway system is a set of general API gateway developed based on tar framework. It consists of two services:
 
-- Base/GatewayServer: Actual gateway service. For details [please refer to the documentation](./README.md)
+- Base/GatewayServer: Actual gateway service. For details [please refer to the documentation](./README.en.md)
 - Base/GatewayWebServer: The gateway corresponds to the management platform, which belongs to the extended service of tarsweb. Note >= TarsFramework:v3.0.10 & TarsWeb:v3.0.2 can be used
 
 ## Supported
