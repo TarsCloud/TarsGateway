@@ -1,0 +1,20 @@
+cloud:
+  group: base 
+  name: gateway-system
+  type: product
+  logo: logo.png
+  version: latest
+  readme: README.md
+  readme_cn: README.zh.md
+  description: >-
+    TarsGateway is a general API gateway based on the TARS development framework, including gateway service and web management platform.
+  description_cn:
+    TarsGateway 是基于 tars 框架开发的一套通用 api 网关，包括网关和对应的管理平台
+  collaborators:
+    - ruanshudong@qq.com
+    - shevqko@qq.com
+  changelist: Changelist.md
+  repository: https://github.com/TarsCloud/TarsGateway.git
+  servers:
+    - base/GatewayServer
+    - base/GatewayWebServer
