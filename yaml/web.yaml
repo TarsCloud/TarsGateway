@@ -42,25 +42,25 @@ repo:
   image: docker.tarsyun.com/base/gatewaywebserver
   secret: cloud-market-secret
 config:
-  name: config.json
-  content: |
-    {
-        "webConf": {
-            "port": 10500,
-            "defaultLanguage": "cn",
-            "alter": true,
-        },
-        "dbConf": {
-            "host": "127.0.0.1",
-            "port": "3306",
-            "user": "tarsAdmin",
-            "password": "Tars@2019",
-            "charset": "utf8",
-            "pool": {
-                "max": 10,
-                "min": 0,
-                "idle": 10000
-            }
-        },
-        "path": "/plugins/base/gateway"
-    }
+  - name: config.json
+    content: |
+      {
+          "webConf": {
+              "port": 10500,
+              "defaultLanguage": "cn",
+              "alter": true,
+          },
+          "dbConf": {
+              "host": "127.0.0.1",
+              "port": "3306",
+              "user": "tarsAdmin",
+              "password": "Tars@2019",
+              "charset": "utf8",
+              "pool": {
+                  "max": 10,
+                  "min": 0,
+                  "idle": 10000
+              }
+          },
+          "path": "/plugins/base/gateway"
+      }
