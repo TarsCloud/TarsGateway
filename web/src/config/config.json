@@ -3,8 +3,7 @@
         "host": "localip.tars.com",
         "port": 6000,
         "defaultLanguage": "cn",
-        "alter": true,
-        "tarsWeb": "http://127.0.0.1:3000"
+        "alter": true
     },
     "dbConf": {
         "host": "127.0.0.1",
