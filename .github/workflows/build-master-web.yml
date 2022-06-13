@@ -4,7 +4,9 @@ on:
   push:
     branches:
       - gateway-system
-
+    paths:
+      - "web/*"
+      - "yaml/*"
 jobs:
   build:
     container: tarscloud/base-compiler-stretch:master
@@ -17,15 +19,7 @@ jobs:
           registry: docker.tarsyun.com
           username: ${{ secrets.name }}
           password: ${{ secrets.pass }}
-      - name: make gateway web
-        run: mkdir -p build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release && make -j8
-      - name: build gateway docker
-        run: |
-          exec-build-cloud.sh tarscloud/tars.cppbase cpp build/bin/GatewayServer yaml/values.yaml latest true
       - name: build gateway web docker
         run: |
           cd web/src; npm install; cd ../..
           exec-build-cloud.sh tarscloud/tars.nodejsbase nodejs web yaml/web.yaml latest true          
-      - name: build gateway system
-        run: |
-          exec-build-cloud-product.sh yaml/gateway.yaml latest

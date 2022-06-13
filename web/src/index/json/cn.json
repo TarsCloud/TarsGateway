@@ -28,7 +28,7 @@
         "enable": "启用",
         "disable": "不启用",
         "alert": "提示",
-        "message": "信息",
+        "message": "信息"
     },
     "operate": {
         "update": "编辑",

@@ -1,0 +1,26 @@
+name: build-gateway-master
+
+on:
+  push:
+    branches:
+      - gateway-system
+    paths:
+      - "*.md"
+      - "doc/*"
+      - "yaml/*"
+
+jobs:
+  build:
+    container: tarscloud/base-compiler-stretch:master
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          registry: docker.tarsyun.com
+          username: ${{ secrets.name }}
+          password: ${{ secrets.pass }}
+      - name: build gateway system
+        run: |
+          exec-build-cloud-product.sh yaml/gateway.yaml latest
