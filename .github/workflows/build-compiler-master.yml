@@ -1,6 +1,5 @@
 name: build-gateway-master
 
-
 on:
   push:
     branches:
@@ -18,8 +17,15 @@ jobs:
           registry: docker.tarsyun.com
           username: ${{ secrets.name }}
           password: ${{ secrets.pass }}
-      - name: make
+      - name: make gateway web
         run: mkdir -p build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release && make -j8
-      - name: build docker
-        run: exec-build-cloud.sh tarscloud/tars.cppbase cpp build/bin/GatewayServer yaml/values.yaml latest true
-
+      - name: build gateway docker
+        run: |
+          exec-build-cloud.sh tarscloud/tars.cppbase cpp build/bin/GatewayServer yaml/values.yaml latest true
+      - name: build gateway web docker
+        run: |
+          cd web/src; npm install;
+          exec-build-cloud.sh tarscloud/tars.cppbase nodejs . ../yaml/web.yaml latest true          
+      - name: build gateway system
+        run: |
+          exec-build-cloud-product.sh yaml/gateway.yaml latest

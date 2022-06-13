@@ -1,0 +1,22 @@
+{
+    "webConf": {
+        "host": "localip.tars.com",
+        "port": 6000,
+        "defaultLanguage": "cn",
+        "alter": true,
+        "tarsWeb": "http://127.0.0.1:3000"
+    },
+    "dbConf": {
+        "host": "127.0.0.1",
+        "port": "3306",
+        "user": "tarsAdmin",
+        "password": "Tars@2019",
+        "charset": "utf8",
+        "pool": {
+            "max": 10,
+            "min": 0,
+            "idle": 10000
+        }
+    },
+    "path": "/plugins/base/gateway"
+}

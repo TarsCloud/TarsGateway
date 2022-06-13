@@ -1,4 +1,4 @@
-- [英文文档](README.en.md)
+- [English](README.en.md)
 
 # TarsGateway
 
