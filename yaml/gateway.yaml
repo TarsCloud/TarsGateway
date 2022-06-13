@@ -1,23 +1,234 @@
+
 cloud:
-  group: base 
-  name: gateway-system
-  type: product
+  group: Base
+  name: gatewayserver
   logo: logo.png
   version: latest
-  readme: Gateway.en.md
-  readme_cn: Gateway.md
+  changelist: Changelist.md
+  lang: cpp
   description: >-
-    TarsGateway is a general API gateway based on the TARS development framework, including gateway service and web management platform.
+    TarsGateway is a general API gateway based on the TARS development framework, supporting the HTTP protocol for requests and tars-tup&tars-tars protocol, tars-json protocol, and HTTP protocol for the backend. In addition to protocol forwarding, it also supports flow control, black and white lists and other functions. 
   description_cn:
-    TarsGateway 是基于 tars 框架开发的一套通用 api 网关，包括网关和对应的管理平台
+    TarsGateway 是基于 tars 框架开发的一套通用 api 网关，请求为 http 协议，后端同时支持 tars-tup&tars-tars 协议、tars-json 协议、http 协议。 除了协议转发之外，还支持流量控制，黑白名单等功能.
   collaborators:
     - ruanshudong@qq.com
     - shevqko@qq.com
-  changelist: Changelist.md
+  repository: https://github.com/TarsCloud/TarsGateway.git
+  readme: README.en.md
+  readme_cn: README.md
+  protocols: 
+    - src/Verify.tars
+    - yaml/db_base.sql
   assets: 
     - images
     - doc 
-  repository: https://github.com/TarsCloud/TarsGateway.git
-  servers:
-    - base/GatewayServer
-    - base/GatewayWebServer
+app: Base
+server: GatewayServer
+template: tars.cpp
+profile: ""
+servants:
+  - name: FlowControlObj
+    port: 10000
+    isTars: true
+    isTcp: true
+    thread: 2
+    capacity: 100000
+    connection: 10000
+    timeout: 30000
+  - name: ProxyObj
+    port: 20000
+    isTars: false 
+    isTcp: true
+    thread: 5
+    capacity: 100000
+    connection: 100000
+    timeout: 60000
+replicas: 3
+hostNetwork: false
+hostIPC: false
+hostPorts: []
+repo:
+  id:
+  image: docker.tarsyun.com/base/gatewayserver
+  secret: cloud-market-secret
+config:
+  - name: GatewayServer.conf
+    content: |
+      <main>
+          #传到后面tars服务的http头, 多个头以,分隔
+          filterheaders = X-GUID|X-XUA|Host
+          # 是否打开通过主控发现代理，1打开, 0 关闭
+          auto_proxy=1
+          # 流控统计obj, 改成和当前服务部署地址匹配
+          flow_report_obj=Base.GatewayServer.FlowControlObj
+
+          <base>
+              # tup 回包大小限制
+              rspsize=5242880
+              #tup_host 如果不配置，那么所有host开头的，且没有path或者path为 /, 也判断为 tup 请求， 例如: prx.tup.demo.com|127.0.0.1|192.168.2.123
+              tup_host=
+              # http _ tup请求的路径
+              tup_path=/tup
+              # http + json请求的路径
+              json_path=/json
+              monitor_url=/monitor/monitor.html
+          </base>
+          
+          <trace>
+            # 是否开启调用链
+            onoff=1
+            # 调用链采样间隔(ms), 针对同一个服务, 同一个接口
+            default_interval=100
+            # 调用链输出标示(https://doc.tarsyun.com/#/dev/tars-trace.md)
+            default_trace_type=15
+          </trace>
+          <proxy>
+              # servant = server_full_obj [ hash_type | http header key ]
+              # hash_type: 0, 轮训; 1: requestid, 2: http头, 3: client ip
+              # Hello=TestApp.HelloServer.HelloObj | 1
+              # Hello=TestApp.HelloServer.HelloObj | 2 | X-GUID
+              # Hello=TestApp.HelloServer.HelloObj | 3
+
+              hello = TestApp.HelloServer.HelloObj
+
+              # 指定某个域, 后面配置中, 可以指定某些http头转发到这个域下面的服务
+              <test>
+                  Hello = Test.HelloServer.HelloObj@tcp -h 127.0.0.1 -p 22346 | 2 | X-GUID
+              </test>
+
+              <dogfood>
+                  Hello = Test.HelloServer.HelloObj@tcp -h 127.0.0.1 -p 22346
+              </dogfood>
+          </proxy>
+
+          # http头:值, 转到proxy某个服务
+          <httpheader>
+              X-GUID:344bfdf1afb146ffa68b2bd69a57f193 = test
+          </httpheader>
+
+          <http_retcode>
+              # 定义哪些tars返回码做超时容错处理，哪些返回码做出错容灾处理
+              inactive=2|6
+              timeout=1|3
+          </http_retcode>
+
+          <http_router>
+              # 本机绑定host 来测试以下用例
+              # 192.168.2.131 x.tup.cn
+              # <station1>
+              #     server_name=127.0.0.1
+              #     location=/testhost/
+              #     proxy_pass=http://127.0.0.1:8999
+              # </station1>
+          </http_router>
+
+          <db>
+              charset=utf8mb4
+              dbhost =db.tars.com
+              dbname =db_base
+              dbpass =taf2015
+              dbport =3306
+              dbuser =tars
+          </db>
+      </main>
+  - name: httpheader.conf
+    content: |
+      <httprsp_headers>
+
+        # 协议定义, 和网关服务里面的定义对应
+        <protocol_map>
+          2=tup
+          3=json
+          4=http
+        </protocol_map>
+
+        #tup协议代理，定制回包http头
+        <tup>
+          # default_headers 为该协议默认加的 http 头
+          <default_headers>
+            #Content-Type=application/octet-stream
+          </default_headers>
+
+          # special_headers 为其他需要特殊配置的列表
+          <special_headers>
+            # 下面可以有多组不同的列表， 每组可以有多个servant
+            <special_1>
+              # servant_station_list 列表，对tup或者json来说，为servant， 对http来说，则为station， 多个之间用 | 分割
+              servant_station_list=test1|broker
+              # headers 为需要添加的http头
+              <headers>
+                #Content-Type=application/data
+              </headers>
+            </special_1>
+
+            <special_2>
+              servant_station_list=xx|xx2
+              <headers>
+                #Content-Type=application/json
+              </headers>
+            </special_2>
+          </special_headers>
+        </tup>
+
+        # http+json协议代理，定制回包http头
+        <json>
+          # default_headers 为该协议默认加的 http 头
+          <default_headers>
+            #Content-Type=application/json
+                  #test-header=ttttttt
+            Access-Control-Allow-Origin=*
+            Access-Control-Allow-Methods=POST, GET, OPTIONS
+            Access-Control-Max-Age=86400
+            Access-Control-Allow-Headers=Content-Type,X-Requested-With,X-Token
+          </default_headers>
+
+          # special_headers 为其他需要特殊配置的列表
+          <special_headers>
+            # 下面可以有多组不同的列表， 每组可以有多个servant
+            <for_h5_call>
+              # servant_station_list 列表，对tup或者json来说，为servant， 对http来说，则为station， 多个之间用 | 分割
+              servant_station_list=tafalarm
+              # headers 为需要添加的http头
+              <headers>
+                Access-Control-Allow-Origin=*
+                Access-Control-Allow-Methods=POST, GET, OPTIONS
+                Access-Control-Max-Age=86400
+                Access-Control-Allow-Headers=Content-Type,X-Requested-With,X-Token
+
+              </headers>
+            </for_h5_call>
+
+            
+          </special_headers>
+        </json>
+
+        #http+tup协议代理，定制回包http头
+        <http>
+          # default_headers 为该协议默认加的 http 头
+          <default_headers>
+            Server=TARS-Proxy-Server
+          </default_headers>
+
+          # special_headers 为其他需要特殊配置的列表
+          <special_headers>
+            # 下面可以有多组不同的列表， 每组可以有多个servant
+            <special_1>
+              # servant_station_list 列表，对tup或者json来说，为servant， 对http来说，则为station， 多个之间用 | 分割
+              servant_station_list=test1|broker
+              # headers 为需要添加的http头
+              <headers>
+                
+              </headers>
+            </special_1>
+
+            <special_2>
+              servant_station_list=xx|xx2
+              <headers>
+                
+              </headers>
+            </special_2>
+          </special_headers>
+        </http>
+
+      </httprsp_headers>
+

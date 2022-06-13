@@ -21,11 +21,11 @@ jobs:
         run: mkdir -p build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release && make -j8
       - name: build gateway docker
         run: |
-          exec-build-cloud.sh tarscloud/tars.cppbase cpp build/bin/GatewayServer yaml/values.yaml latest true
+          exec-build-cloud.sh tarscloud/tars.cppbase cpp build/bin/GatewayServer yaml/gateway.yaml latest true
       - name: build gateway web docker
         run: |
           cd web/src; npm install; cd ..
           exec-build-cloud.sh tarscloud/tars.nodejsbase nodejs . ../yaml/web.yaml latest true         
       - name: build gateway system
         run: |
-          exec-build-cloud-product.sh yaml/gateway.yaml latest
+          exec-build-cloud-product.sh yaml/system.yaml latest
