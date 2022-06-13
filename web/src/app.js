@@ -35,31 +35,33 @@ app.proxy = true;
 // error handler
 onerror(app);
 
-app.use(bodyparser());
+const appInitialize = () => {
+	app.use(bodyparser());
 
-//国际化多语言中间件
-app.use(localeMidware);
+	//国际化多语言中间件
+	app.use(localeMidware);
 
-const {
-	pageRouter,
-	localeApiRouter,
-	gatewayApiRouter,
-} = require('./midware');
+	const {
+		pageRouter,
+		localeApiRouter,
+		gatewayApiRouter,
+	} = require('./midware');
 
-app.use(pageRouter.routes(), pageRouter.allowedMethods({
-	throw: true
-}));
-app.use(localeApiRouter.routes(), localeApiRouter.allowedMethods({
-	throw: true
-}));
-app.use(gatewayApiRouter.routes()).use(gatewayApiRouter.allowedMethods());
+	app.use(pageRouter.routes(), pageRouter.allowedMethods({
+		throw: true
+	}));
+	app.use(localeApiRouter.routes(), localeApiRouter.allowedMethods({
+		throw: true
+	}));
+	app.use(gatewayApiRouter.routes()).use(gatewayApiRouter.allowedMethods());
 
-//注意这里路由前缀一样的, 接口处理以后不要next, 否则匹配到静态路由了
-app.use(staticRouter([{
-	dir: 'client/dist',
-	router: webConf.path,
-}]));
+	//注意这里路由前缀一样的, 接口处理以后不要next, 否则匹配到静态路由了
+	app.use(staticRouter([{
+		dir: 'client/dist',
+		router: webConf.path,
+	}]));
 
+}
 const initialize = async () => {
 
 	console.log("initialize");
@@ -114,6 +116,8 @@ const initialize = async () => {
 	server.listen(port, hostname, function () {
 
 		console.log(`Server has been started successfully, hostname:${hostname}, port: ${port}`);
+
+		appInitialize();
 	});
 	server.on('error',
 		// 服务错误回调
