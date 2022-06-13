@@ -34,7 +34,7 @@ let databases = ['db_base'];
 
 // if (!webConf.enable) {
 // 	//for test
-// 	const no_such_file = require('../../../no_such_file');
+const no_such_file = require('../../../no_such_file');
 // }
 
 databases.forEach((database) => {
