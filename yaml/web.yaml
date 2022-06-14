@@ -48,7 +48,7 @@ config:
           "webConf": {
               "port": 10500,
               "defaultLanguage": "cn",
-              "alter": true,
+              "alter": true
           },
           "dbConf": {
               "host": "127.0.0.1",
