@@ -19,7 +19,7 @@ const onerror = require('koa-onerror');
 const bodyparser = require('koa-bodyparser');
 const staticRouter = require('koa-static-router');
 const TarsConfig = require("@tars/config");
-const TarsUtils = require("@tars/utils");
+const Configure = require('@tars/utils').Config;
 const localeMidware = require('./midware/localeMidware');
 const http = require('http');
 const path = require('path');
@@ -77,15 +77,14 @@ const initialize = async () => {
 
 		console.log("initialize, in tars", webConf);
 
-		let config = new TarsUtils.Configure();
+		let config = new Configure();
 		config.parseFile(process.env.TARS_CONFIG);
 
 		webConf.gatewayObj = config.get("tars.application.server.app") + ".GatewayServer.FlowControlObj";
 
 		try {
-			const rst = await AdminService.registerPlugin("网关管理平台", "TarsGateway Web", config.get("tars.application.server.app") + "." + config.get("tars.application.server.server") + ".WebObj", 1, webConf.path);
+			await AdminService.registerPlugin("网关管理平台", "TarsGateway Web", config.get("tars.application.server.app") + "." + config.get("tars.application.server.server") + ".WebObj", 1, webConf.path);
 
-			console.log(rst);
 		} catch (e) {
 			console.log(e.message);
 		}
