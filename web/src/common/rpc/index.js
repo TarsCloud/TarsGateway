@@ -20,7 +20,7 @@ const {
     RPCClientPrx
 } = require('./service');
 
-client.setProperty("locator", "tars.tarsregistry.QueryObj@tcp -h 127.0.0.1 -p 17890");
+// client.setProperty("locator", "tars.tarsregistry.QueryObj@tcp -h 127.0.0.1 -p 17890");
 
 module.exports = {
 
