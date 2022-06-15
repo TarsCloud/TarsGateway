@@ -77,8 +77,6 @@ AdminService.registerPlugin = async (name, name_en, obj, type, path) => {
 
     let ret = await adminRegPrx.registerPlugin(conf);
 
-    console.log(ret);
-
     if (ret.__return == 0) {
         return 0;
     } else {
@@ -93,7 +91,7 @@ AdminService.hasDevAuth = async (application, server_name, uid) => {
     let ret = await adminRegPrx.hasDevAuth(application, server_name, uid);
 
     if (ret.__return == 0) {
-        return ret.response.arguments.has;
+        return ret.has;
     } else {
         logger.error(`hasDevAuth error`);
         console.log(`hasDevAuth error`);
@@ -106,7 +104,7 @@ AdminService.hasOpeAuth = async (application, server_name, uid) => {
     let ret = await adminRegPrx.hasOpeAuth(application, server_name, uid);
 
     if (ret.__return == 0) {
-        return ret.response.arguments.has;
+        return ret.has;
     } else {
         logger.error(`hasDevAuth error`);
         console.log(`hasDevAuth error`);
@@ -119,7 +117,7 @@ AdminService.hasAdminAuth = async (uid) => {
     let ret = await adminRegPrx.hasAdminAuth(uid);
 
     if (ret.__return == 0) {
-        return ret.response.arguments.has;
+        return ret.has;
     } else {
         logger.error(`hasAdminAuth error`);
         console.log(`hasAdminAuth error`);
@@ -132,10 +130,9 @@ AdminService.checkTicket = async (ticket) => {
     let ret = await adminRegPrx.checkTicket(ticket);
 
     if (ret.__return == 0) {
-        return ret.response.arguments.uid;
+        return ret.uid;
     } else {
         logger.error(`checkTicket error`);
-        console.log(`checkTicket error`);
         return '';
     }
 };
