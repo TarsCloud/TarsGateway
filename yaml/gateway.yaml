@@ -14,8 +14,8 @@ cloud:
     - ruanshudong@qq.com
     - shevqko@qq.com
   repository: https://github.com/TarsCloud/TarsGateway.git
-  readme: README.en.md
-  readme_cn: README.md
+  readme: Gateway.en.md
+  readme_cn: Gateway.md
   protocols: 
     - src/Verify.tars
     - yaml/db_base.sql

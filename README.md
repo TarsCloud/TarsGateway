@@ -1,9 +1,8 @@
-- [English](README.en.md)
-
-# TarsGateway
+- [English](Gateway.en.md)
 
 ## 简介
 
+<<<<<<< HEAD
 TarsGateway 是基于 tars 框架开发的一套通用 api 网关，请求为 http 协议，后端同时支持 tars-tup&tars-tars 协议、tars-json 协议、http 协议。 除了协议转发之外，还支持流量控制，黑白名单等功能。 详细使用文档参考[Tars 文档](https://tarscloud.github.io/TarsDocs/)
 
 更多文档可以参考：[Tars 网关配置使用说明](./doc/operate.md), [服务配置项说明](./doc/config.md)
@@ -413,52 +412,36 @@ module Base
 
 在作为 TARS-tup 或 TARS-JSON 协议代理时，可以通过 http 头中值，指定到不通的 proxy 子配置域中。
 默认是直接使用 proxy 下面的配置，如果配置了 env_httpheader，且当前请求中有该 http 头，并且 http 头的 value 为配置中的内容，那么则优先选择 proxy 下面的 env 子域对应的转发规则。比如如下配置，表示 http 请求头中 X-GUID=12345678123456781234567812345678 的用户，则优先选用 test 环境中配置，即：用户请求 servant 为 hello 时，那么真实服务 obj 选择 TestApp.HelloServer.HelloObj@tcp -h 192.168.2.101 -p 10029 , 但是如果用户请求 servant 为 world 时，由于 test 环境中并没有配置 world 对应的转发规则，那么还是用 proxy 下面默认的规则，及真实 obj 为 Test.HelloworldServer.HelloworldObj，配置如下：
+=======
+TarsGateway 系统是基于 tars 框架开发的一套通用 api 网关, 它有两个服务组成:
+>>>>>>> Update README
 
-```
-    <proxy>
-        hello = TestApp.HelloServer.HelloObj
-        hello:sayhello = TestApp.Hello2Server.HelloObj
-        world= Test.HelloworldServer.HelloworldObj
+- Base/GatewayServer: 实际的网关服务, 具体[请参考说明文档](./README.md)
+- Base/GatewayWebServer: 网关对应管理平台, 它属于 TarsWeb 的扩展服务, 注意 >= TarsFramework:v3.1.0 & TarsWeb:v3.1.0 才可以使用
 
-        # test 环境转发规则
-        <test>
-             hello = TestApp.HelloServer.HelloObj@tcp -h 192.168.2.101 -p 10029
-        </test>
-    </proxy>
+整个系统会依赖 mysql, 主要用于存储网关路由信息(http 转发), GatewayWebServer 启动时会自动创建相关表.
 
-    #http头:值, 转到proxy某个服务
-    <env_httpheader>
-       # httpheader-key:httpheader-value = env
-        X-GUID:12345678123456781234567812345678 = test
-    </env_httpheader>
-```
+注意安装时, 两个服务必须安装在同一个应用名下!
 
-### 10. 返回码说明
+## 支持说明
 
-- 200: OK 正常响应
-- 400: Bad Request 1.解客户端请求包错误。
-- 401: Unauthorized 1.统一鉴权失败。
-- 403: Forbidden 1.客户端 ip 命中黑名单。
-- 404: Not Found 1.tup 或 json 协议找不到对应 servant 代理；2. Http 找不到后端站点；
-- 429: Too Many Request 1.流控超过限制策略；
-- 500: Server Interval Error 1.http 后端没有配置目标地；
-- 502: Bad Gateway 1.调用后端 tars 服务或者 http 服务异常；
-- 504：Gateway Timeout 1.调用后端 tars 服务或者 http 服务超时;
+在< TarsWeb:v3.1.0 之前, 网关管理平台(GatewayWebServer)被内置在 TarsWeb 中, 之后版本为了提供 TarsWeb 的扩展性, TarsWeb 支持了服务插件化, 即你可以实现独立的 web 服务和 TarsWeb 整合到一起, 从而当各个子模块升级时无须升级 TarsWeb, 具体方式请参考 TarsWeb 相关的文档.
 
-### 11. 日志格式说明
+## 安装方式
 
-TARS-tup & TARS-JSON 协议代理请求响应日志格式说明：
+推荐使用新版本 > TarsFramework:v3.1.0 时, 直接从云市场安装网关服务, 建议以容器方式启动网关, 这样不依赖操作系统 stdc++.so 的版本.
 
-**正常回包 response 日志:**
+[容器方式启动业务方式请参考](https://doc.tarsyun.com/#/installation/service-docker.md)
 
-日志时间 | 客户端 ip | 客户端 GUID | 客户端 XUA | servantName | funcName | 请求加密类型 | 请求压缩类型 | 响应是否加密 | 响应是否压缩 | 耗时(ms) | 响应包大小
+## mysql 配置说明
 
-**异常请求 tupcall_exception 日志：**
+在安装网关系统时, 需要依赖 mysql, 因此在安装注意配置依赖的 mysql 地址
 
-日志时间 | 客户端 ip |servantName | funcName | 客户端 GUID | 客户端 XUA | 请求加密类型 | 请求压缩类型 | 耗时(ms) | 后端 rpc 返回码
+- GatewayServer 请修改`GatewayServer.conf`
+- GatewayWebServer 请修改`config.json`
 
-普通 HTTP 协议代理日志格式说明：
+数据库请使用同一个, 注意: 数据库`db_base以及相关的表`会被 GatewayWebServer 自动创建出来
 
-**Http access 日志：**
+## 网关功能说明
 
-客户端 ip | 访问时间 | host | referer | 请求 url | 请求包大小 | http 方法 | 站点 ID | 后端地址 | http 返回状态码 | 响应时间 | 耗时(ms) | 响应包大小 | UA | 出错信息
+实际的网关服务的功能和配置(GatewayServer), [请参考说明文档](./Gateway.md)
