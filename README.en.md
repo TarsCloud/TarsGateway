@@ -4,7 +4,7 @@
 
 TarsGateway system is a set of general API gateway developed based on tar framework. It consists of two services:
 
-- Base/GatewayServer: Actual gateway service. For details [please refer to the documentation](./README.en.md)
+- Base/GatewayServer: Actual gateway service.
 - Base/GatewayWebServer: The gateway corresponds to the management platform, which belongs to the extended service of tarsweb. Note >= TarsFramework:v3.1.0 & TarsWeb:v3.1.0 can be used
 
 ## Supported
@@ -15,10 +15,10 @@ Before < tarsframework:v3.1.0 and < tarsweb:v3.1.0, the gateway management platf
 
 When installing the gateway system, you need to rely on MySQL. Therefore, pay attention to configuring the dependent MySQL address during installation
 
-- Gatewayserver, please modify `gatewayserver conf`
+- Gatewayserver, please modify `GatewayServer conf`
 - Gatewaywebserver, please modify `config json`
 
-Please use the same database. Note: database `db_base and related tables` will be automatically created by the gatewaywebserver
+Please use the same database. Note: database `db_base` and related tables will be automatically created by the gatewaywebserver
 
 ## Gateway function description
 

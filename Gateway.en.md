@@ -1,4 +1,4 @@
-- [中文文档](README.md)
+- [中文文档](Gateway.md)
 
 # Introduction
 

@@ -1,4 +1,4 @@
-- [English](README.en.md)
+- [English](Gateway.en.md)
 
 # TarsGateway
 
@@ -46,6 +46,8 @@ TarsGateway 是基于 tars 框架开发的一套通用 api 网关，请求为 ht
     </db>
 </main>
 ```
+
+如果是>framework:v3.1.0, 则不再需要自己创建 db 了, 通过市场安装后, GatewayWebServer 会自动创建数据库表.
 
 - 通过源码安装
 
