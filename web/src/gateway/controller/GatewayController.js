@@ -97,23 +97,6 @@ async function getFilterUid(ctx) {
 
 const GatewayController = {};
 
-//新增gatewayObj
-// GatewayController.addGatewayObj = async (ctx) => {
-// 	//此接口必须附带gatewayObj，中间件中会判断obj是否合法，合法则写入db，请求到达此处时已经新增成功
-// 	ctx.makeResObj(200, '')
-// }
-// //获取gatewayObj list
-// GatewayController.getGatewayObjList = async (ctx) => {
-// 	let objs = await gatewayObjManager.getGatewayObjList()
-// 	ctx.makeResObj(200, '', objs)
-// }
-// //删除gatewayObj
-// GatewayController.deleteGatewayObj = async (ctx) => {
-// 	console.log("deleteGatewayObj");
-// 	// let objs = await gatewayObjManager.deleteGatewayObj(ctx.uid, ctx.paramsObj.gatewayObj)
-// 	ctx.makeResObj(200, '', {})
-// }
-
 GatewayController.getStationList = async (ctx) => {
 	try {
 		let f_station_id = ctx.paramsObj.f_station_id || '';
@@ -129,7 +112,7 @@ GatewayController.getStationList = async (ctx) => {
 		ret.rows = util.viewFilter(ret.rows, stationStruct);
 		ctx.makeResObj(200, '', ret);
 	} catch (e) {
-		logger.error('[getStationList]', e, ctx);
+		logger.error('[getStationList]', e.message);
 		ctx.makeErrResObj();
 	}
 };
@@ -159,7 +142,7 @@ GatewayController.updateStation = async (ctx) => {
 		await GatewayService.updateStation(params);
 		ctx.makeResObj(200, '', util.viewFilter(await GatewayService.getStationById(params.f_id), stationStruct));
 	} catch (e) {
-		logger.error('[updateStation]', e, ctx);
+		logger.error('[updateStation]', e.message);
 		ctx.makeErrResObj();
 	}
 };
@@ -171,7 +154,7 @@ GatewayController.deleteStation = async (ctx) => {
 		await GatewayService.deleteStation(f_id, filter_uid);
 		ctx.makeResObj(200, '', [f_id]);
 	} catch (e) {
-		// logger.error('[deleteStation]', e);
+		logger.error('[deleteStation]', e.message);
 		ctx.makeErrResObj();
 	}
 };
@@ -186,7 +169,7 @@ GatewayController.getUpstreamList = async (ctx) => {
 		ret.rows = util.viewFilter(ret.rows, upstreamStruct)
 		ctx.makeResObj(200, '', ret);
 	} catch (e) {
-		logger.error('[getUpstreamList]', e, ctx);
+		logger.error('[getUpstreamList]', e.message);
 		ctx.makeErrResObj();
 	}
 };
@@ -197,7 +180,7 @@ GatewayController.addUpstream = async (ctx) => {
 		params.uid = ctx.uid
 		ctx.makeResObj(200, '', util.viewFilter(await GatewayService.addUpstream(params), upstreamStruct));
 	} catch (e) {
-		logger.error('[addUpstream]', e, ctx);
+		logger.error('[addUpstream]', e.message);
 		ctx.makeErrResObj();
 	}
 };
@@ -211,7 +194,7 @@ GatewayController.updateUpstream = async (ctx) => {
 		await GatewayService.updateUpstream(params);
 		ctx.makeResObj(200, '', util.viewFilter(await GatewayService.getUpstreamById(params.f_id), upstreamStruct));
 	} catch (e) {
-		logger.error('[updateUpstream]', e, ctx);
+		logger.error('[updateUpstream]', e.message);
 		ctx.makeErrResObj();
 	}
 };
@@ -227,7 +210,7 @@ GatewayController.deleteUpstream = async (ctx) => {
 			ctx.makeResObj(400, '#gateway.delete.deleteUpstreamErrorTip#', [f_id]);
 		}
 	} catch (e) {
-		logger.error('[deleteUpstream]', e, ctx);
+		logger.error('[deleteUpstream]', e.message);
 		ctx.makeErrResObj();
 	}
 };
@@ -238,7 +221,7 @@ GatewayController.getHttpRouterList = async (ctx) => {
 		let filter_uid = await getFilterUid(ctx)
 		ctx.makeResObj(200, '', util.viewFilter(await GatewayService.getHttpRouterList(f_station_id, filter_uid), httpRouterStruct));
 	} catch (e) {
-		logger.error('[getHttpRouterList]', e, ctx);
+		logger.error('[getHttpRouterList]', e.message);
 		ctx.makeErrResObj();
 	}
 };
@@ -251,7 +234,7 @@ GatewayController.addHttpRouter = async (ctx) => {
 		params.filter_uid = filter_uid
 		ctx.makeResObj(200, '', util.viewFilter(await GatewayService.addHttpRouter(params), httpRouterStruct));
 	} catch (e) {
-		logger.error('[addHttpRouter]', e, ctx);
+		logger.error('[addHttpRouter]', e.message);
 		if (e.name == "SequelizeUniqueConstraintError") {
 			ctx.makeResObj(400, "#common.mustUnique#");
 		} else {
@@ -269,7 +252,7 @@ GatewayController.updateHttpRouter = async (ctx) => {
 		await GatewayService.updateHttpRouter(params);
 		ctx.makeResObj(200, '', util.viewFilter(await GatewayService.getHttpRouterById(params.f_id), httpRouterStruct));
 	} catch (e) {
-		logger.error('[updateHttpRouter]', e, ctx);
+		logger.error('[updateHttpRouter]', e.message);
 		ctx.makeErrResObj();
 	}
 };
@@ -281,7 +264,7 @@ GatewayController.deleteHttpRouter = async (ctx) => {
 		await GatewayService.deleteHttpRouter(f_id, filter_uid);
 		ctx.makeResObj(200, '', [f_id]);
 	} catch (e) {
-		logger.error('[deleteHttpRouter]', e, ctx);
+		logger.error('[deleteHttpRouter]', e.message);
 		ctx.makeErrResObj();
 	}
 };
@@ -295,7 +278,7 @@ GatewayController.addBWList = async (ctx) => {
 		params.filter_uid = filter_uid
 		ctx.makeResObj(200, '', util.viewFilter(await GatewayService.addBWList(params, params.type), bwListStruct));
 	} catch (e) {
-		logger.error('[addBWList]', e, ctx);
+		logger.error('[addBWList]', e.message);
 		if (e.name == "SequelizeUniqueConstraintError") {
 			ctx.makeResObj(400, "#common.mustUnique#");
 		} else {
@@ -311,7 +294,7 @@ GatewayController.getBWList = async (ctx) => {
 		let filter_uid = await getFilterUid(ctx)
 		ctx.makeResObj(200, '', util.viewFilter(await GatewayService.getBWList(f_station_id, type, filter_uid), bwListStruct));
 	} catch (e) {
-		logger.error('[getBWList]', e, ctx);
+		logger.error('[getBWList]', e.message);
 		ctx.makeErrResObj();
 	}
 };
@@ -324,7 +307,7 @@ GatewayController.deleteBWList = async (ctx) => {
 		await GatewayService.deleteBWList(f_id, type, filter_uid);
 		ctx.makeResObj(200, '', [f_id]);
 	} catch (e) {
-		logger.error('[deleteBWList]', e, ctx);
+		logger.error('[deleteBWList]', e.message);
 		ctx.makeErrResObj();
 	}
 };
@@ -335,7 +318,7 @@ GatewayController.getFlowControl = async (ctx) => {
 		let filter_uid = await getFilterUid(ctx)
 		ctx.makeResObj(200, '', util.viewFilter(await GatewayService.getFlowControl(f_station_id, filter_uid), flowControlStruct));
 	} catch (e) {
-		logger.error('[getFlowControl]', e, ctx);
+		logger.error('[getFlowControl]', e.message);
 		ctx.makeErrResObj();
 	}
 };
@@ -348,7 +331,7 @@ GatewayController.upsertFlowControl = async (ctx) => {
 		params.filter_uid = filter_uid
 		ctx.makeResObj(200, '', util.viewFilter(await GatewayService.upsertFlowControl(params), flowControlStruct));
 	} catch (e) {
-		logger.error('[upsertFlowControl]', e, ctx);
+		logger.error('[upsertFlowControl]', e.message);
 		ctx.makeErrResObj();
 	}
 };
@@ -386,7 +369,7 @@ GatewayController.loadAll = async (ctx) => {
 			ctx.makeErrResObj();
 		}
 	} catch (e) {
-		logger.error('[loadAll]', e, ctx);
+		logger.error('[loadAll]', e.message);
 		ctx.makeErrResObj();
 	}
 }

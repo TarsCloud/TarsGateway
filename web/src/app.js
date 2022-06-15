@@ -17,7 +17,12 @@
 const Koa = require('koa');
 const onerror = require('koa-onerror');
 const bodyparser = require('koa-bodyparser');
-const staticRouter = require('koa-static-router');
+// const staticRouter = require('koa-static-router');
+const {
+	Serve
+} = require("static-koa-router");
+const KoaRouter = require("koa-router");
+
 const TarsConfig = require("@tars/config");
 const Configure = require('@tars/utils').Config;
 const localeMidware = require('./midware/localeMidware');
@@ -56,10 +61,18 @@ const appInitialize = () => {
 	app.use(gatewayApiRouter.routes()).use(gatewayApiRouter.allowedMethods());
 
 	//注意这里路由前缀一样的, 接口处理以后不要next, 否则匹配到静态路由了
-	app.use(staticRouter([{
-		dir: 'client/dist',
-		router: webConf.path,
-	}]));
+	const staticRouter = new KoaRouter({
+		prefix: webConf.path
+	});
+
+	Serve(path.join(__dirname, '../client/dist'), staticRouter);
+
+	app.use(staticRouter.routes());
+
+	// app.use(staticRouter([{
+	// 	dir: path.join(__dirname, '../client/dist'),
+	// 	router: webConf.path,
+	// }]));
 
 }
 
