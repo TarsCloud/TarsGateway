@@ -4,8 +4,8 @@ cloud:
   type: product
   logo: logo.png
   version: latest
-  readme: Gateway.en.md
-  readme_cn: Gateway.md
+  readme: README.en.md
+  readme_cn: README.md
   description: >-
     TarsGateway is a general API gateway based on the TARS development framework, including gateway service and web management platform.
   description_cn:
