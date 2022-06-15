@@ -4,7 +4,7 @@
 
 TarsGateway 系统是基于 tars 框架开发的一套通用 api 网关, 它有两个服务组成:
 
-- Base/GatewayServer: 实际的网关服务, 具体[请参考说明文档](./README.md)
+- Base/GatewayServer: 实际的网关服务
 - Base/GatewayWebServer: 网关对应管理平台, 它属于 TarsWeb 的扩展服务, 注意 >= TarsFramework:v3.1.0 & TarsWeb:v3.1.0 才可以使用
 
 整个系统会依赖 mysql, 主要用于存储网关路由信息(http 转发), GatewayWebServer 启动时会自动创建相关表.
