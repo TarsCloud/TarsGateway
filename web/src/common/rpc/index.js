@@ -16,12 +16,14 @@
 
 const client = require("@tars/rpc/protal.js").client;
 const AdminRegProxy = require("./proxy/AdminRegProxy");
+
 const {
     RPCClientPrx
 } = require('./service');
 
-// client.setProperty("locator", "tars.tarsregistry.QueryObj@tcp -h 127.0.0.1 -p 17890");
-
+if (!process.env.TARS_CONFIG) {
+    client.setProperty("locator", "tars.tarsregistry.QueryObj@tcp -h 127.0.0.1 -p 17890");
+}
 module.exports = {
 
     adminRegPrx: RPCClientPrx(client, AdminRegProxy, 'tars', 'AdminReg', 'tars.tarsAdminRegistry.AdminRegObj'),
