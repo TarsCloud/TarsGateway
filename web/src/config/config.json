@@ -1,8 +1,6 @@
 {
     "webConf": {
-        "host": "localip.tars.com",
         "port": 6000,
-        "defaultLanguage": "cn",
         "alter": true
     },
     "dbConf": {

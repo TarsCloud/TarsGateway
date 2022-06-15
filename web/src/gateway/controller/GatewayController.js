@@ -18,7 +18,7 @@ const logger = require('../../logger');
 const GatewayService = require('../service/GatewayService');
 
 const AdminService = require("../../common/AdminService");
-// const AuthService = require('../../common/AuthService');
+const WebConf = require('../../config/webConf');
 
 const _ = require('lodash');
 const util = require('../../tools/util');
@@ -339,7 +339,6 @@ GatewayController.upsertFlowControl = async (ctx) => {
 //加载配置文件
 GatewayController.loadAll = async (ctx) => {
 	try {
-		// let gatewayObj = ctx.paramsObj.gatewayObj;
 		let command = ctx.paramsObj.command;
 		//通过网关控制服务Obj获取对应服务ID
 
@@ -348,24 +347,25 @@ GatewayController.loadAll = async (ctx) => {
 
 		const registry = new EndpointManager(client.getProperty('locator')).getQueryPrx();
 
-		let rst = await registry.findObjectById4Any(webConf.gatewayObj);
-
-		console.log(obj, rst.response.arguments);
+		let rst = await registry.findObjectById4Any(WebConf.gatewayObj);
 
 		activeList = rst.response.arguments.activeEp;
 
-		if (!activeList.length > 0) {
-			let list = activeList.map(item => {
-				return {
-					application: item.application,
-					serverName: item.server_name,
-					nodeName: item.node_name
-				}
+		if (activeList.length > 0) {
+			let application = WebConf.gatewayObj.split(".")[0];
+			let server_name = WebConf.gatewayObj.split(".")[1];
+			let list = [];
+			activeList.forEach(item => {
+				list.push({
+					application: application,
+					serverName: server_name,
+					nodeName: item.host
+				});
 			})
 			let ret = await AdminService.doCommand(list, command);
 			ctx.makeResObj(200, '', ret);
 		} else {
-			logger.error('[sendCommand]:', 'query id=' + params.server_ids + ' no alive servers', ctx);
+			logger.error('[sendCommand]:', 'query no alive servers:' + WebConf.gatewayObj);
 			ctx.makeErrResObj();
 		}
 	} catch (e) {

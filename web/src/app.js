@@ -68,12 +68,6 @@ const appInitialize = () => {
 	Serve(path.join(__dirname, '../client/dist'), staticRouter);
 
 	app.use(staticRouter.routes());
-
-	// app.use(staticRouter([{
-	// 	dir: path.join(__dirname, '../client/dist'),
-	// 	router: webConf.path,
-	// }]));
-
 }
 
 const registerPlugin = async () => {
