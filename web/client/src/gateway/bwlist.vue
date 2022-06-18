@@ -15,7 +15,6 @@
             required
             :required-tip="$t('gateway.bwlist.ipTip')"
             pattern="^(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|[1-9]|\*)\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d|\*)\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d|\*)\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d|\*)$"
-            :pattern-tip="$t('gateway.bwlist.ipTip')"
           ></let-input>
         </let-form-item>
         <let-form-item>

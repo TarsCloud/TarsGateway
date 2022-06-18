@@ -15,6 +15,7 @@
         </let-form-item>
       </let-form>
       <div>
+        <el-link type="info">{{ $t("gateway.help") }}</el-link>
         <i class="el-icon-refresh-right" @click="fetchData()"></i>
         &nbsp;&nbsp;&nbsp;
         <let-button size="small" theme="primary" @click="addItem">{{
@@ -141,14 +142,18 @@
           ? this.$t('gateway.add.title')
           : this.$t('gateway.update.title')
       "
-      width="800px"
+      width="1000px"
       @on-confirm="saveItem"
       @on-cancel="closeDetailModal"
     >
       <let-form ref="detailForm" v-if="detailModal.model" itemWidth="700px">
         <let-form-item :label="$t('gateway.stationId')" required>
-          <let-radio v-model="stationMode" label="http">http</let-radio>
-          <let-radio v-model="stationMode" label="tars">tars</let-radio>
+          <let-radio v-model="stationMode" label="http"
+            >http {{ $t("gateway.http") }}</let-radio
+          >
+          <let-radio v-model="stationMode" label="tars"
+            >tars {{ $t("gateway.tars") }}</let-radio
+          >
           <let-input
             size="small"
             v-if="stationMode == 'http'"
@@ -157,7 +162,6 @@
             required
             :required-tip="$t('gateway.add.idFormatTips')"
             pattern="^[a-zA-Z](([a-zA-Z_0-9](?<!obj|Obj))+)?$"
-            :pattern-tip="$t('gateway.add.idFormatTips')"
           ></let-input>
           <ServantSelector
             v-if="stationMode == 'tars'"
@@ -171,7 +175,6 @@
             :placeholder="$t('gateway.add.stationNameTips')"
             required
             :required-tip="$t('gateway.add.stationNameTips')"
-            :pattern-tip="$t('gateway.add.stationNameTips')"
           ></let-input>
         </let-form-item>
         <let-form-item :label="$t('gateway.monitorUrl')">
@@ -179,7 +182,6 @@
             size="small"
             v-model="detailModal.model.f_monitor_url"
             :placeholder="$t('gateway.add.monitorUrlTips')"
-            :pattern-tip="$t('gateway.add.monitorUrlTips')"
           ></let-input>
         </let-form-item>
       </let-form>

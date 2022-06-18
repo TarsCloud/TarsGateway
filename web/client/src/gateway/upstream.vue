@@ -12,6 +12,7 @@
         </let-form-item>
       </let-form>
       <div>
+        <el-alert :title="$t('gateway.upstreamInfo')" type="info"> </el-alert>
         <i class="el-icon-refresh-right" @click="fetchData()"></i>
         &nbsp;&nbsp;&nbsp;
         <let-button size="small" theme="primary" @click="addItem">{{
