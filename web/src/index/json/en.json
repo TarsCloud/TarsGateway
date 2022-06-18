@@ -50,7 +50,7 @@
         "globalblack": "Global Black List",
         "stationId": "Station ID",
         "stationName": "Station Name",
-        "monitorUrl": "Monitor Url",
+        "monitorUrl": "Monitor Url(HTTP return code 200 indicates success. If it is not configured, Unable to connect will be deemed as failure)",
         "serverName": "Server Name",
         "pathRule": "Path Rule",
         "proxyPass": "ProxyPass",
@@ -62,6 +62,10 @@
         "lastUpdate": "Update Time",
         "gatewayObj": "GatewayFlowControlObj",
         "switchGateway": "Switch Gateway",
+        "help": "Gateway documentation",
+        "http": "Forward to HTTP protocol service",
+        "tars": "Forward to TARS protocol service ",
+        "upstreamInfo": "Configuring multiple upstreams with same name will automatically disaster recovery and load balancing",
         "btn": {
             "addGateway": "Add Gateway",
             "addUpstream": "Add Upstream",
@@ -70,7 +74,7 @@
         },
         "add": {
             "stationNameTips": "please input station name",
-            "idFormatTips": "station id can only contain letters, numbers, dots, underscores, start with a letter, and cannot end with Obj",
+            "idFormatTips": "station id, is Unique identification, can only contain letters, numbers, dots, underscores, start with a letter, and cannot end with Obj",
             "monitorUrlTips": "please input monitor tips",
             "upstreamFormatTips": "upstream can only contain letters, numbers, underscores, start with a letter, and cannot end with Obj",
             "addrFormatTips": "please input ip:port",

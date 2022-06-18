@@ -104,12 +104,21 @@ export default {
       }
     },
     getCascadeSelectServer(params, prefix = this.$t("common.error")) {
-      return this.$tars
-        .getJSON("/server/api/cascade_select_server", params)
-        .then((data) => data)
-        .catch((err) => {
-          this.$tip.error(`${prefix}: ${err.message || err.err_msg}`);
-        });
+      if (this.k8s) {
+        return this.$tars
+          .getJSON("/k8s/api/cascade_select_server", params)
+          .then((data) => data)
+          .catch((err) => {
+            this.$tip.error(`${prefix}: ${err.message || err.err_msg}`);
+          });
+      } else {
+        return this.$tars
+          .getJSON("/server/api/cascade_select_server", params)
+          .then((data) => data)
+          .catch((err) => {
+            this.$tip.error(`${prefix}: ${err.message || err.err_msg}`);
+          });
+      }
     },
     initData() {
       if (this.servant && /^[^.]+.[^.]+.[^.]+obj$/i.test(this.servant)) {

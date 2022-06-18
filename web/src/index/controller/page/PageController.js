@@ -18,8 +18,8 @@ const PageController = {}
 const WebConf = require("../../../config/webConf");
 
 PageController.index = async (ctx) => {
-
-    let redirect = `${WebConf.path}/index.html`;
+    let redirect = `${WebConf.path}/index.html` + ctx.request.url.substring(ctx.request.url.indexOf("?"));
+    // let redirect = `${WebConf.path}/index.html`;
 
     await ctx.redirect(redirect);
 };
