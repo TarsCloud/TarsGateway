@@ -47,7 +47,7 @@
         "globalblack": "全局黑名单配置",
         "stationId": "站点ID",
         "stationName": "站点名",
-        "monitorUrl": "监控URL(http返回码200为成功, 如不配置则连接不上认为失败)",
+        "monitorUrl": "监控URL",
         "serverName": "服务名",
         "pathRule": "路径规则",
         "proxyPass": "ProxyPass",
@@ -60,8 +60,8 @@
         "gatewayObj": "网关控制服务Obj",
         "switchGateway": "切换网关",
         "help": "网关说明文档",
-        "http": "转发到HTTP协议服务",
-        "tars": "转发到TARS协议服务",
+        "http": "(转发到HTTP协议服务)",
+        "tars": "(转发到TARS协议服务)",
         "upstreamInfo": "配置多个同名upstream, 会自动容灾且负载均衡",
         "btn": {
             "addGateway": "新增站点",
@@ -72,7 +72,7 @@
         "add": {
             "stationNameTips": "请输入站点名",
             "idFormatTips": "唯一标示站点ID, 只能包含英文字母、数字、点、下划线，并以字母开头，不能以Obj结尾",
-            "monitorUrlTips": "请输入监控URL",
+            "monitorUrlTips": "请输入监控URL(http返回码200为成功, 如不配置则连接不上认为失败)",
             "upstreamFormatTips": "upstream只能包含英文字母、数字、下划线，以字母开头，不能以Obj结尾",
             "addrFormatTips": "请输入ip:port",
             "weightFormatTips": "请输入权重值",

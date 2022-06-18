@@ -15,7 +15,14 @@
         </let-form-item>
       </let-form>
       <div>
-        <el-link type="info">{{ $t("gateway.help") }}</el-link>
+        <el-link
+          type="info"
+          href="http://doc.tarsyun.com/#/gateway/README.md"
+          target="_blank"
+          >{{ $t("gateway.help") }}</el-link
+        >
+      </div>
+      <div>
         <i class="el-icon-refresh-right" @click="fetchData()"></i>
         &nbsp;&nbsp;&nbsp;
         <let-button size="small" theme="primary" @click="addItem">{{
