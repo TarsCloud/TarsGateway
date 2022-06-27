@@ -1,6 +1,5 @@
 name: build-gateway-tag
 
-
 on:
   push:
     tags:
@@ -8,7 +7,6 @@ on:
 
 jobs:
   build:
-    container: tarscloud/base-compiler-stretch:master
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -21,8 +19,31 @@ jobs:
       - name: Get version
         id: get_version
         run: echo "::set-output name=VERSION::${GITHUB_REF#refs/tags/}"
-      - name: make
-        run: mkdir -p build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release && make -j8
-      - name: build docker
-        run: exec-build-cloud.sh tarscloud/tars.cppbase cpp build/bin/GatewayServer yaml/gateway.yaml ${{ steps.get_version.outputs.VERSION }} true
+      - name: Create Build
+        run: |
+          docker run --rm --privileged tonistiigi/binfmt:latest --install all
+          docker buildx create --name k8s-framework-builder --use
+          docker buildx inspect --bootstrap --builder k8s-framework-builder
+      - name: Buildx Gateway
+        run: |
+          docker run -v `pwd`:/data --entrypoint "" tarscloud/base-deploy sh -c "cd /data && /usr/bin/create-buildx-dockerfile.sh cpp yaml/values.yaml ${{ steps.get_version.outputs.VERSION }} Dockerfile.cpp"
+      - name: Create Gateway Docker
+        run: |
+          ./docker-buildx-cloud.sh
+      - name: Buildx Web
+        run: |
+          docker run -v `pwd`:/data --entrypoint "" tarscloud/base-deploy sh -c "cd /data && /usr/bin/create-buildx-dockerfile.sh cpp yaml/values.yaml ${{ steps.get_version.outputs.VERSION }} Dockerfile.nodejs"
+      - name: Create web Docker
+        run: |
+          ./docker-buildx-cloud.sh
+      - name: Buildx Product
+        run: |
+          docker run -v `pwd`:/data --entrypoint "" tarscloud/base-deploy sh -c "cd /data && /usr/bin/create-buildx-dockerfile-product.sh yaml/values.yaml ${{ steps.get_version.outputs.VERSION }}"
+      - name: Create web Docker
+        run: |
+          ./docker-buildx-cloud-product.sh
 
+      # - name: make
+      #   run: mkdir -p build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release && make -j8
+      # - name: build docker
+      #   run: exec-build-cloud.sh tarscloud/tars.cppbase cpp build/bin/GatewayServer yaml/gateway.yaml ${{ steps.get_version.outputs.VERSION }} true

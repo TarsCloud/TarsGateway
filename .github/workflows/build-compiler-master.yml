@@ -7,7 +7,6 @@ on:
 
 jobs:
   build:
-    container: tarscloud/base-compiler-stretch:master
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -17,15 +16,26 @@ jobs:
           registry: docker.tarsyun.com
           username: ${{ secrets.name }}
           password: ${{ secrets.pass }}
-      - name: make gateway web
-        run: mkdir -p build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release && make -j8
-      - name: build gateway docker
+      - name: Create Build
         run: |
-          exec-build-cloud.sh tarscloud/tars.cppbase cpp build/bin/GatewayServer yaml/gateway.yaml latest true
-      - name: build gateway web docker
+          docker run --rm --privileged tonistiigi/binfmt:latest --install all
+          docker buildx create --name k8s-framework-builder --use
+          docker buildx inspect --bootstrap --builder k8s-framework-builder
+      - name: Buildx Gateway
         run: |
-          cd web/src; npm install; cd ..
-          exec-build-cloud.sh tarscloud/tars.nodejsbase nodejs . ../yaml/web.yaml latest true         
-      - name: build gateway system
+          docker run -v `pwd`:/data --entrypoint "" tarscloud/base-deploy sh -c "cd /data && /usr/bin/create-buildx-dockerfile.sh cpp yaml/values.yaml latest Dockerfile.cpp"
+      - name: Create Gateway Docker
         run: |
-          exec-build-cloud-product.sh yaml/system.yaml latest
+          ./docker-buildx-cloud.sh
+      - name: Buildx Web
+        run: |
+          docker run -v `pwd`:/data --entrypoint "" tarscloud/base-deploy sh -c "cd /data && /usr/bin/create-buildx-dockerfile.sh cpp yaml/values.yaml latest Dockerfile.nodejs"
+      - name: Create web Docker
+        run: |
+          ./docker-buildx-cloud.sh
+      - name: Buildx Product
+        run: |
+          docker run -v `pwd`:/data --entrypoint "" tarscloud/base-deploy sh -c "cd /data && /usr/bin/create-buildx-dockerfile-product.sh yaml/values.yaml latest"
+      - name: Create web Docker
+        run: |
+          ./docker-buildx-cloud-product.sh
