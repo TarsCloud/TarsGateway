@@ -5,7 +5,7 @@
 TarsGateway 系统是基于 tars 框架开发的一套通用 api 网关, 它有两个服务组成:
 
 - Base/GatewayServer: 实际的网关服务
-- Base/GatewayWebServer: 网关对应管理平台, 它属于 TarsWeb 的扩展服务, 注意 >= TarsFramework:v3.1.0 & TarsWeb:v3.1.0 才可以使用
+- Base/GatewayWebServer: 网关对应管理平台, 它属于 TarsWeb 的扩展服务, 注意 >= TarsFramework:v3.0.9 & TarsWeb:v3.0.3 才可以使用
 
 整个系统会依赖 mysql, 主要用于存储网关路由信息(http 转发), GatewayWebServer 启动时会自动创建相关表.
 
@@ -13,11 +13,11 @@ TarsGateway 系统是基于 tars 框架开发的一套通用 api 网关, 它有�
 
 ## 支持说明
 
-在< TarsWeb:v3.1.0 之前, 网关管理平台(GatewayWebServer)被内置在 TarsWeb 中, 之后版本为了提供 TarsWeb 的扩展性, TarsWeb 支持了服务插件化, 即你可以实现独立的 web 服务和 TarsWeb 整合到一起, 从而当各个子模块升级时无须升级 TarsWeb, 具体方式请参考 TarsWeb 相关的文档.
+在< TarsWeb:v3.0.3 之前, 网关管理平台(GatewayWebServer)被内置在 TarsWeb 中, 之后版本为了提供 TarsWeb 的扩展性, TarsWeb 支持了服务插件化, 即你可以实现独立的 web 服务和 TarsWeb 整合到一起, 从而当各个子模块升级时无须升级 TarsWeb, 具体方式请参考 TarsWeb 相关的文档.
 
 ## 安装方式
 
-推荐使用新版本 > TarsFramework:v3.1.0 时, 直接从云市场安装网关服务, 建议以容器方式启动网关, 这样不依赖操作系统 stdc++.so 的版本.
+推荐使用新版本 > TarsFramework:v3.0.9 时, 直接从云市场安装网关服务, 建议以容器方式启动网关, 这样不依赖操作系统 stdc++.so 的版本.
 
 [容器方式启动业务方式请参考](https://doc.tarsyun.com/#/installation/service-docker.md)
 

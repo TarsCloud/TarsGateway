@@ -23,19 +23,19 @@ jobs:
           docker buildx inspect --bootstrap --builder k8s-framework-builder
       - name: Buildx Gateway
         run: |
-          docker run -v `pwd`:/data --entrypoint "" tarscloud/base-deploy sh -c "cd /data && /usr/bin/create-buildx-dockerfile.sh cpp yaml/values.yaml latest Dockerfile.cpp"
+          docker run -v `pwd`:/data --entrypoint "" tarscloud/base-deploy sh -c "cd /data && /usr/bin/create-buildx-dockerfile.sh cpp yaml/gateway.yaml latest Dockerfile.cpp"
       - name: Create Gateway Docker
         run: |
           ./docker-buildx-cloud.sh
       - name: Buildx Web
         run: |
-          docker run -v `pwd`:/data --entrypoint "" tarscloud/base-deploy sh -c "cd /data && /usr/bin/create-buildx-dockerfile.sh cpp yaml/values.yaml latest Dockerfile.nodejs"
+          docker run -v `pwd`:/data --entrypoint "" tarscloud/base-deploy sh -c "cd /data && /usr/bin/create-buildx-dockerfile.sh cpp yaml/web.yaml latest Dockerfile.nodejs"
       - name: Create web Docker
         run: |
           ./docker-buildx-cloud.sh
       - name: Buildx Product
         run: |
-          docker run -v `pwd`:/data --entrypoint "" tarscloud/base-deploy sh -c "cd /data && /usr/bin/create-buildx-dockerfile-product.sh yaml/values.yaml latest"
+          docker run -v `pwd`:/data --entrypoint "" tarscloud/base-deploy sh -c "cd /data && /usr/bin/create-buildx-dockerfile-product.sh yaml/system.yaml latest"
       - name: Create web Docker
         run: |
           ./docker-buildx-cloud-product.sh
