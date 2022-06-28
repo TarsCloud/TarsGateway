@@ -6,7 +6,7 @@
 
 TarsGateway 是基于 tars 框架开发的一套通用 api 网关，请求为 http 协议，后端同时支持 tars-tup&tars-tars 协议、tars-json 协议、http 协议。 除了协议转发之外，还支持流量控制，黑白名单等功能。 详细使用文档参考[Tars 文档](https://tarscloud.github.io/TarsDocs/)
 
-更多文档可以参考：[Tars 网关配置使用说明](./doc/operate.md), [服务配置项说明](./doc/config.md)
+更多文档可以参考：[Tars 网关配置使用说明](./operate.md), [服务配置项说明](./config.md)
 
 ## 支持版本说明
 
@@ -18,13 +18,13 @@ TarsGateway 是基于 tars 框架开发的一套通用 api 网关，请求为 ht
 
 ## 安装
 
-在安装之前, 请注意网关服务依赖于 mysql, 相关的库和表[请参考 db_base.sql](./yaml/db_base.sql)
+在安装之前, 请注意网关服务依赖于 mysql, 相关的库和表[请参考 db_base.sql](../yaml/db_base.sql)
 
 在 Tars 上安装网关有两种模式:
 
 - 通过市场安装
 
-请使用最新版本 Tars 框架(tarscloud/framework:v3.0.7 or K8SFramework >= v1.2.5), 直接通过服务市场来安装服务!
+请使用最新版本 Tars 框架( >=tarscloud/framework:v3.0.10 or >=K8SFramework:v1.2.5), 直接通过服务市场来安装服务!
 
 市场从 tarsweb 顶部 tab, 点击服务市场进入, 然后选择左边目录树上的`base/gatewayserver`, 右边选择对应的版本, 然后点击安装!
 
@@ -47,13 +47,15 @@ TarsGateway 是基于 tars 框架开发的一套通用 api 网关，请求为 ht
 </main>
 ```
 
-如果是>framework:v3.1.0, 则不再需要自己创建 db 了, 通过市场安装后, GatewayWebServer 会自动创建数据库表.
+通过市场安装后, GatewayWebServer 会自动创建数据库表.
 
 - 通过源码安装
 
-如果你希望源码安装, [请参考](doc/INSTALL_SOURCE.md)
+如果你希望源码安装, [请参考](INSTALL_SOURCE.md)
 
 注意通过源码安装会一键创建 db, 无须提前创建 db 了.
+
+**建议框架升级到新版本, 且通过市场一键安装!因为源码安装没有发布web管理平台**
 
 ## 功能介绍
 
@@ -84,7 +86,11 @@ TarsGateway 是根据请求 host+url 判断当前请求是什么类型的请求�
 
 ### 2. TARS-tup && TARS-tars 协议代理
 
-TARS-tup 协议代理，必须为 post 请求类型，路径为/tup，body 内容为 RequestPacket 包 tars 序列化的内容。TarsGateway 收到包后，去反序列化 body 的内容解析出 RequestPacket 包，然后根据其中的 sServantName 在配置中查找真是的 tars 服务的 obj。如果配置 auto_proxy=1，那么客户端调用时 sServantName 可以填真实的 obj 地址。这里建议：直接对 C 外网暴露的 TarsGateway，建议配置 auto_proxy=0，避免内网的服务都直接对外暴露。另外，proxy 的配置还可以支持 sServerName:sFuncName 的配置，会优先根据, 这种类型配置优先级高于只配置 sServerName 类型的配置。 proxy 配置如下：
+关键点如下: 
+- TARS-tup 协议代理，必须为 post 请求类型，路径为/tup，body 内容为 RequestPacket 包 tars 序列化的内容。
+- TarsGateway 收到包后，去反序列化 body 的内容解析出 RequestPacket 包，然后根据其中的 sServantName 在配置中查找真是的 tars 服务的 obj。
+- 如果配置 auto_proxy=1，那么客户端调用时 sServantName 可以填真实的 obj 地址。这里建议：直接对外网暴露的 TarsGateway，建议配置 auto_proxy=0，避免内网的服务都直接对外暴露。
+- proxy 的配置还可以支持 sServerName:sFuncName 的配置，会优先根据, 这种类型配置优先级高于只配置 sServerName 类型的配置。 proxy 配置如下：
 
 ```
 <main>
@@ -114,7 +120,10 @@ proxy 配置支持接口黑名单策略，即在 proxy 配置的情况下，可�
     filterheaders = X-GUID|X-XUA
 ```
 
-调用后端 tars 服务时，TarsGateway 默认采用 tars 自己的缺省轮训负载均衡策略（robin 轮训），也可以通过配置自定义 hash 策略，hash_type 为 1 时，根据客户端请求 id 进行 tarshash 调用; hash_type 为 2 时，根据指定 http 头(配种中的 httpheader)进行 tarshash 调用，比如 http 头中的 X-GUID，注意这里选择 httpheader 需要合理，避免过于集中某个值导致负载均衡过于不均匀的现象； hash_type 为 3 时，则根据客户端的 ip 进行 tarshash 调用。 如果 obj 后面没有配置 hash_type，那么采用 tars 默认轮训调用。配置举例如下：
+调用后端 tars 服务时，TarsGateway 默认采用 tars 自己的缺省轮训负载均衡策略（robin 轮训），也可以通过配置自定义 hash 策略.
+- hash_type 为 1 时，根据客户端请求 id 进行 tarshash 调用; 
+- hash_type 为 2 时，根据指定 http 头(配种中的 httpheader)进行 tarshash 调用，比如 http 头中的 X-GUID，注意这里选择 httpheader 需要合理，避免过于集中某个值导致负载均衡过于不均匀的现象； 
+- hash_type 为 3 时，则根据客户端的 ip 进行 tarshash 调用。 如果 obj 后面没有配置 hash_type，那么采用 tars 默认轮训调用。配置举例如下：
 
 ```
     <proxy>
@@ -146,6 +155,8 @@ TARS-JSON 协议代理，支持两种类型的接口。
     { "rsp": { "otherMsg": [ "1 + 9900989 = 9900990" ], "msg": "succ.", "sum": 9900990, "ret": 0 }, "": 0 }
 ```
 
+**注意req, x, y, rsp, msg等名称和tars协议中定义的接口参与名称要匹配!!!**
+
 - **相关参数都在 http body 中指定：**
 
 必须为 post 请求类型，路径为/json，body 内容为 json 结构。其中必须有 reqid, obj, func, data 四个字段，分别表示请求 id、服务 servant、服务接口、接口参数，对应 RequestPacket 中的 reqid:iRequestId, obj:sServantName, func:sFuncName。data 内容为接口中的参数，key 为参数名，value 为参数内容。除了以上必选四个字段之外，context 为可选字段。回包内容包括 reqid 和 data， data 为接口出参内容，其中 "" 的 key 对应内容为函数返回值。 这里除了这里包格式不一样，其他后面的逻辑都和 TARS-tup 类型一样。请求参数举例如下：
@@ -164,6 +175,9 @@ TARS-JSON 协议代理，支持两种类型的接口。
         "reqid": 99999
     }
 ```
+
+**注意req, x, y, rsp, msg等名称和tars协议中定义的接口参与名称要匹配!!!**
+
 
 ### 4. 普通 HTTP 协议代理
 
@@ -239,7 +253,7 @@ IP 黑名单和流控策略， 同时支持 TarsGateway 的三种协议，所以
 ## 5. 身份鉴权
 
 支持调用后端服务时，在网关层先进行统一身份鉴权，如果鉴权失败，那么给客户端直接返回 401，客户端业务可以根据此情况跳转登陆等操作等。鉴权流程如下：
-![网关身份鉴权](images/pic_verify_01.png)
+![网关身份鉴权](../images/pic_verify_01.png)
 
 ### 网关鉴权配置
 

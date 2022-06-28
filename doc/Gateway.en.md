@@ -14,13 +14,13 @@ TarsGateway is a general API gateway based on the TARS development framework, su
 
 ## Installation
 
-Before installation, please note that the gateway service depends on MySQL, and the related database and tables[请参考 db_base.sql](./yaml/db_base.sql)
+Before installation, please note that the gateway service depends on MySQL, and the related database and tables[请参考 db_base.sql](../yaml/db_base.sql)
 
 There are two modes to install gateway on tars:
 
 - Install from service market
 
-Please use the latest version of tars framework (>=tarscloud/framework:v3.0.7 or >=K8SFramework:v1.2.5) to install services directly through the service market!
+Please use the latest version of tars framework (>=tarscloud/framework:v3.0.10 or >=K8SFramework:v1.2.5) to install services directly through the service market!
 
 From the top tab of tarsweb, click the service market to enter, then select `base/gatewayserver` in the directory tree on the left, select the corresponding version on the right, and then click Install!
 
@@ -44,7 +44,7 @@ Note that you need to use `db_base.sql` (available for download in the service m
 
 - Install from source
 
-If you want to install the source code, [please refer to](doc/INSTALL_SOURCE_en.md)
+If you want to install the source code, [please refer to](INSTALL_SOURCE_en.md)
 
 Note that DB will be created with one click through the source code installation, and there is no need to create dB in advance
 
