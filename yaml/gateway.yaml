@@ -14,6 +14,7 @@ cloud:
   repository: https://github.com/TarsCloud/TarsGateway.git
   readme: README.en.md
   readme_cn: README.md
+  container: tars.cppbase
   protocols:
     - src/Verify.tars
     - yaml/db_base.sql
