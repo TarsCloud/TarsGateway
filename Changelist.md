@@ -1,14 +1,18 @@
-## v1.3.0 (20220207)
+
+
+## v1.3.0 (20220706)
 
 ### en
 
 - use base-compiler-stretch
 - support tarscloud market
+- Gateway web platform independence
 
 ### cn
 
 - actions 使用 stretch 来编译
 - 支持 tarscloud 服务市场
+- 网关web平台独立 
 
 ## v1.2.1
 
