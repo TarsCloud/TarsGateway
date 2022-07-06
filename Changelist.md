@@ -1,6 +1,16 @@
 
+## v1.3.1 (20220706)
 
-## v1.3.0 (20220706)
+### en
+
+- Fix the web platform k8s parameter error
+- Fix GatewayServer _terminate not init bug
+### cn
+
+- 修复web平台k8s参数错误
+- 修复GatewayServer _terminate 未初始化的bug
+
+## v1.3.0 (20220207)
 
 ### en
 
