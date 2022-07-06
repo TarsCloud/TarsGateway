@@ -26,84 +26,84 @@ const logger = require('../../../logger');
 
 let Db = {};
 
-let databases = [webConf.dbConf.database];
+let databases = [webConf.dbConf.database || 'db_base'];
 
 databases.forEach((database) => {
 
-	let {
-		host,
-		port,
-		user,
-		password,
-		charset,
-		pool,
-	} = webConf.dbConf;
+    let {
+        host,
+        port,
+        user,
+        password,
+        charset,
+        pool,
+    } = webConf.dbConf;
 
-	const logging = process.env.NODE_ENV == "dev" ? (sqlText) => {
-		// console.log(sqlText);
-		// logger.sql(sqlText)
-	} : true
+    const logging = process.env.NODE_ENV == "dev" ? (sqlText) => {
+        // console.log(sqlText);
+        // logger.sql(sqlText)
+    } : true
 
-	//初始化sequelize
-	const sequelize = new Sequelize(database, user, password, {
-		host,
-		port,
-		dialect: 'mysql',
-		dialectOptions: {
-			charset: charset
-		},
-		define: {
-			charset: charset
-		},
-		logging,
-		pool: {
-			max: pool.max || 10,
-			min: pool.min || 0,
-			idle: pool.idle || 10000
-		},
-		timezone: (() => {
-			let offset = 0 - new Date().getTimezoneOffset();
-			return (offset >= 0 ? '+' : '-') + (Math.abs(parseInt(offset / 60)) + '').padStart(2, '0') + ':' + (offset % 60 + '').padStart(2, '0');
-		})() //获取当前时区并做转换
-	});
+    //初始化sequelize
+    const sequelize = new Sequelize(database, user, password, {
+        host,
+        port,
+        dialect: 'mysql',
+        dialectOptions: {
+            charset: charset
+        },
+        define: {
+            charset: charset
+        },
+        logging,
+        pool: {
+            max: pool.max || 10,
+            min: pool.min || 0,
+            idle: pool.idle || 10000
+        },
+        timezone: (() => {
+            let offset = 0 - new Date().getTimezoneOffset();
+            return (offset >= 0 ? '+' : '-') + (Math.abs(parseInt(offset / 60)) + '').padStart(2, '0') + ':' + (offset % 60 + '').padStart(2, '0');
+        })() //获取当前时区并做转换
+    });
 
-	// 测试是否连接成功
-	(async function () {
-		try {
-			let connect = await sequelize.authenticate();
-			// console.log('Mysql connection has been established successfully.');
+    // 测试是否连接成功
+    (async function () {
+        try {
+            let connect = await sequelize.authenticate();
+            // console.log('Mysql connection has been established successfully.');
 
-		} catch (err) {
-			console.error('Mysql connection err', err)
-		}
-	})();
+        } catch (err) {
+            console.error('Mysql connection err', err)
+        }
+    })();
 
-	let tableObj = {};
-	let dbModelsPath = __dirname + '/' + database + '_models';
-	let dbModels = fs.readdirSync(dbModelsPath);
+    let tableObj = {};
+    let dbModelsPath = __dirname + '/' + database + '_models';
+    let dbModels = fs.readdirSync(dbModelsPath);
 
-	dbModels.forEach(async function (dbModel) {
-		let tableName = dbModel.replace(/\.js$/g, '');
-		tableObj[_.camelCase(tableName)] = sequelize.import(dbModelsPath + '/' + tableName);
+    dbModels.forEach(async function (dbModel) {
+        let tableName = dbModel.replace(/\.js$/g, '');
+        tableObj[_.camelCase(tableName)] = sequelize.import(dbModelsPath + '/' + tableName);
 
-		if (webConf.webConf.alter) {
-			try {
+        if (webConf.webConf.alter) {
+            try {
 
-				await tableObj[_.camelCase(tableName)].sync({
-					alter: true
-				});
+                await tableObj[_.camelCase(tableName)].sync({
+                    alter: true
+                });
 
-				logger.info('database ' + database + '.' + tableName + ' sync succ');
+                logger.info('database ' + database + '.' + tableName + ' sync succ');
 
-			} catch (e) {
-				console.log('database ' + database + '.' + tableName + ' sync error:', e);
-				process.exit(-1);
-			}
-		}
-	});
+            } catch (e) {
+                console.log('database ' + database + '.' + tableName + ' sync error:', e);
+                process.exit(-1);
+            }
+        }
+    });
 
-	Db[database] = tableObj;
-	Db[database].sequelize = sequelize;
+    Db[database] = tableObj;
+    Db[database].sequelize = sequelize;
 
 
 });

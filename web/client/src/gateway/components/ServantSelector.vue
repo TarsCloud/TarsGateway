@@ -24,7 +24,7 @@
       size="small"
       @change="changeSelect('obj')"
       v-model="obj"
-      class="select_item  select_obj"
+      class="select_item select_obj"
     >
       <let-option v-for="d in objs" :key="d" :value="d"> {{ d }} </let-option>
     </let-select>
@@ -48,6 +48,7 @@ export default {
       application: "",
       server_name: "",
       obj: "",
+      k8s: false,
     };
   },
   methods: {
@@ -157,7 +158,7 @@ export default {
     },
   },
   mounted() {
-    this.k8s = this.getParam("k8s");
+    this.k8s = this.getParam("k8s") == "true";
     this.initData();
     this.getCascadeSelectServer({ level: 1 }, this.$t("common.error")).then(
       (data) => {
