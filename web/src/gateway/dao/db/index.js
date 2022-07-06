@@ -16,10 +16,6 @@
 
 const Sequelize = require('sequelize');
 
-// const Mysql = require('mysql');
-
-// const Update = require('./update');
-
 const fs = require('fs-extra');
 
 const _ = require('lodash');
@@ -30,12 +26,7 @@ const logger = require('../../../logger');
 
 let Db = {};
 
-let databases = ['db_base'];
-
-// if (!webConf.enable) {
-// 	//for test
-// const no_such_file = require('../../../no_such_file');
-// }
+let databases = [webConf.dbConf.database];
 
 databases.forEach((database) => {
 

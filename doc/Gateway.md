@@ -4,7 +4,7 @@
 
 ## 简介
 
-TarsGateway 是基于 tars 框架开发的一套通用 api 网关，请求为 http 协议，后端同时支持 tars-tup&tars-tars 协议、tars-json 协议、http 协议。 除了协议转发之外，还支持流量控制，黑白名单等功能。 详细使用文档参考[Tars 文档](https://tarscloud.github.io/TarsDocs/)
+TarsGateway 是基于 tars 框架开发的一套通用 api 网关，请求为 http 协议，后端同时支持 tars-tup&tars-tars 协议、tars-json 协议、http 协议。 除了协议转发之外，还支持流量控制，黑白名单等功能。
 
 更多文档可以参考：[Tars 网关配置使用说明](./operate.md), [服务配置项说明](./config.md)
 

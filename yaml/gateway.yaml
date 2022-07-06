@@ -27,7 +27,7 @@ template: tars.cpp
 profile: ""
 servants:
   - name: FlowControlObj
-    port: 10000
+    port: 10010
     isTars: true
     isTcp: true
     thread: 2
@@ -35,7 +35,7 @@ servants:
     connection: 10000
     timeout: 30000
   - name: ProxyObj
-    port: 20000
+    port: 8002
     isTars: false
     isTcp: true
     thread: 5
@@ -122,12 +122,12 @@ config:
           </http_router>
 
           <db>
-              charset=utf8mb4
-              dbhost =db.tars.com
-              dbname =db_base
-              dbpass =taf2015
-              dbport =3306
-              dbuser =tars
+              charset= utf8mb4
+              dbhost = 127.0.0.1
+              dbname = db_base
+              dbport = 3306
+              dbuser = tarsAdmin
+              dbpass = Tars@2019
           </db>
       </main>
   - name: httpheader.conf

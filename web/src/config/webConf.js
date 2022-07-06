@@ -24,6 +24,7 @@ let conf = {
     },
     dbConf: {
         host: 'db.tars.com', // 数据库地址
+        database: 'db_base',
         port: '3306', // 数据库端口
         user: 'tars', // 用户名
         password: 'tars2015', // 密码

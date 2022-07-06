@@ -45,16 +45,16 @@ config:
     content: |
       {
           "webConf": {
-              "port": 10500,
               "defaultLanguage": "cn",
               "alter": true
           },
           "dbConf": {
               "host": "127.0.0.1",
+              "database": "db_base",
               "port": "3306",
               "user": "tarsAdmin",
               "password": "Tars@2019",
-              "charset": "utf8",
+              "charset": "utf8mb4",
               "pool": {
                   "max": 10,
                   "min": 0,

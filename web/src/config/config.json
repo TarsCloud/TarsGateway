@@ -5,6 +5,7 @@
     },
     "dbConf": {
         "host": "127.0.0.1",
+        "database": "db_base",
         "port": "3306",
         "user": "tarsAdmin",
         "password": "Tars@2019",
