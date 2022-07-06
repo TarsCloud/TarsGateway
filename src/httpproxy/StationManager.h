@@ -65,7 +65,7 @@ protected:
     string genAddrVer(const vector<UpstreamInfo>& addrList);
 
   protected:
-    bool                _terminate;
+    bool                _terminate{false};
     TC_ThreadRWLocker   _rwLock;
     // station monitor check
     unordered_map<string, string> _stationMonitorUrl;
