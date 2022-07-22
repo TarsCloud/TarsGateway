@@ -15,6 +15,7 @@ cloud:
   readme: README.en.md
   readme_cn: README.md
   container: tars.cppbase
+  independent: false
   protocols:
     - src/Verify.tars
     - yaml/db_base.sql

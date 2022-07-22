@@ -11,6 +11,10 @@ TarsGateway 系统是基于 tars 框架开发的一套通用 api 网关, 它有�
 
 注意安装时, 两个服务必须安装在同一个应用名下!
 
+安装完成, 如果服务正常, 则可以如下图打开
+
+![网关服务](images/gateway.jpg)
+
 ## 支持说明
 
 在< TarsWeb:v3.0.3 之前, 网关管理平台(GatewayWebServer)被内置在 TarsWeb 中, 之后版本为了提供 TarsWeb 的扩展性, TarsWeb 支持了服务插件化, 即你可以实现独立的 web 服务和 TarsWeb 整合到一起, 从而当各个子模块升级时无须升级 TarsWeb, 具体方式请参考 TarsWeb 相关的文档.
