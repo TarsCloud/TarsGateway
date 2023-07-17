@@ -277,25 +277,34 @@ ServantPrx TupProxyManager::getProxy(const string& sServantName, const string& s
         TC_LockT<TC_ThreadMutex> lock(_mutex);
         string servant = string(prx->tars_name().substr(0, prx->tars_name().find("@")));
         string serverFunc = servant + ":" + sFuncName;
-        if (_noVerify.find(servant) != _noVerify.end() || _noVerify.find(serverFunc) != _noVerify.end())
+        string servantFunc = sServantName + ":" + sFuncName;
+        if (_noVerify.find(servant) != _noVerify.end() || _noVerify.find(serverFunc) != _noVerify.end() || _noVerify.find(sServantName) != _noVerify.end() || _noVerify.find(servantFunc) != _noVerify.end())
         {
-            return prx;
+            TLOG_DEBUG("find noVerify, " << sServantName << ", " << sFuncName << ", " << servant << endl);
         }
-        if (_proxyVerify.find(servant) != _proxyVerify.end())
+        else if (_proxyVerify.find(sServantName) != _proxyVerify.end())
+        {
+            pei.verifyInfo = _proxyVerify[sServantName];
+        }
+        else if (_proxyVerify.find(servantFunc) != _proxyVerify.end())
+        {
+            pei.verifyInfo = _proxyVerify[servantFunc];
+        }
+        else if (_proxyVerify.find(servant) != _proxyVerify.end())
         {
             pei.verifyInfo = _proxyVerify[servant];
-            return prx;
         }
-        if (_proxyVerify.find(serverFunc) != _proxyVerify.end())
+        else if (_proxyVerify.find(serverFunc) != _proxyVerify.end())
         {
-            pei.verifyInfo = _proxyVerify[servant];
-            return prx;
+            pei.verifyInfo = _proxyVerify[serverFunc];
         }
-        string app = servant.substr(0, servant.find(".")) + ".*";
-        if (_proxyVerify.find(app) != _proxyVerify.end())
+        else
         {
-            pei.verifyInfo = _proxyVerify[app];
-            return prx;
+            string app = servant.substr(0, servant.find(".")) + ".*";
+            if (_proxyVerify.find(app) != _proxyVerify.end())
+            {
+                pei.verifyInfo = _proxyVerify[app];
+            }
         }
     }
     return prx;
