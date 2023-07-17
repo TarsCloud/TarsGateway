@@ -1,3 +1,13 @@
+## v1.3.3 (20230717)
+
+### en
+
+- verify support proxy config servant
+
+### cn
+
+- 认证支持proxy配置中根据servant别名配置verify信息
+
 ## v1.3.2 (20220823)
 
 ### en
