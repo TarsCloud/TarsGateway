@@ -3,10 +3,12 @@
 ### en
 
 - verify support proxy config servant
+- merge pr， fix decrypt+decode bug
 
 ### cn
 
 - 认证支持proxy配置中根据servant别名配置verify信息
+- 合并 pr，解决 body 加解密问题
 
 ## v1.3.2 (20220823)
 
