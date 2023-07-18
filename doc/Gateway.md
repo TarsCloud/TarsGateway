@@ -274,7 +274,7 @@ IP 黑名单和流控策略， 同时支持 TarsGateway 的三种协议，所以
             auth_http_header=X-Token
             # 默认不鉴权，匹配上了才鉴权，在匹配上了之后，如果在exclude部分有配置，则不鉴权
             <auth_list>
-                # 支持应用级别、服务级别、接口级别
+                # 支持应用级别、服务级别、接口级别，其中服务可以是具体的 App.Server， 也可以是 proxy 中配置的servant别名
                 # 应用级别
                 Test1.*
                 # 服务obj级别
@@ -283,6 +283,10 @@ IP 黑名单和流控策略， 同时支持 TarsGateway 的三种协议，所以
                 Test3.TestServer.TestObj:func1|func2|funcn
                 Test3.HelloServer.HelloObj:test1
                 TestApp.HelloServer.HelloObj
+                # proxy 中配置的服务servant别名
+                hello
+                # obj 别名 + funcName
+                demo:callTest|getInfo
                 <exclude>
                     # 以下情况不需要鉴权
                     # 支持服务级别、接口级别
