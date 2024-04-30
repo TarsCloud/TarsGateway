@@ -100,7 +100,7 @@ int TupCallback::onDispatch(ReqMessagePtr msg)
             _trace_param_ = "{\"trace_param_over_max_len\":true, \"data_len\":" + TC_Common::tostr(msg->response->sBuffer.size()) + "}";
         }
         
-        TARS_TRACE(getTraceKey(), TRACE_ANNOTATION_TE, ServerConfig::Application + "." + ServerConfig::ServerName, _stParam->sServantName, _stParam->sFuncName, msg->response->iRet, _trace_param_, ""); 
+        TARS_TRACE(getTraceKey(), TRACE_ANNOTATION_TE, ServerConfig::Application + "." + ServerConfig::ServerName, _stParam->sServantName, _stParam->sFuncName.c_str(), msg->response->iRet, _trace_param_, ""); 
     }
 
     return 0;

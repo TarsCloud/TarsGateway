@@ -7,8 +7,8 @@ set(CMAKE_BUILD_TYPE "Debug")
 
 gen_server("Base" "GatewayServer")
 
-target_link_libraries(GatewayServer mysqlclient dl)
+# target_link_libraries(GatewayServer mysqlclient dl)
 
-# if(UNIX AND NOT APPLE)
-#     target_link_libraries(GatewayServer -static-libgcc -static-libstdc++)
+# if(LINUX)
+    # target_link_libraries(GatewayServer -static-libgcc -static-libstdc++)
 # endif()

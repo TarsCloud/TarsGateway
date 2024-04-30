@@ -18,7 +18,9 @@ endif()
 
 include_directories(/usr/local/tars/cpp/thirdparty/include)
 link_directories(/usr/local/tars/cpp/thirdparty/lib)
+if(LINUX)
 link_directories(/lib/x86_64-linux-gnu)
+endif()
 
 add_subdirectory(src)
 add_subdirectory(test)

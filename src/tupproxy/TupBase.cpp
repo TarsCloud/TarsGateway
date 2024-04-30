@@ -700,7 +700,7 @@ void TupBase::tupAsyncCall(const shared_ptr<RequestPacket> &tup, ServantPrx prox
                 _trace_param_ = "{\"trace_param_over_max_len\":true, \"data_len\":" + TC_Common::tostr(tup->sBuffer.size()) + "}";
             }
             
-            TARS_TRACE(traceKey, TRACE_ANNOTATION_TS, ServerConfig::Application + "." + ServerConfig::ServerName, tup->sServantName, tup->sFuncName, 0, _trace_param_, "");
+            TARS_TRACE(traceKey, TRACE_ANNOTATION_TS, ServerConfig::Application + "." + ServerConfig::ServerName, tup->sServantName, tup->sFuncName.c_str(), 0, _trace_param_, "");
             TLOG_DEBUG("trace===>" << traceKey << ", " << tup->sServantName << ":" << tup->sFuncName << endl);
 
             cb->setTraceKey(traceKey);
