@@ -100,12 +100,12 @@
         </auth>
 
         #http头:值, 转到proxy某个服务
-        <httpheader>
+        <env_httpheader>
             # b7392a2d60604eac81892f6f9c0232f7 转发到 test 环境
             X-GUID:b7392a2d60604eac81892f6f9c0232f7 = test
             # 344bfdf1afb146ffa68b2bd69a57f193 转发到 dogfood 环境
             X-GUID:344bfdf1afb146ffa68b2bd69a57f193 = dogfood 
-        </httpheader>
+        </env_httpheader>
 
         <http_retcode>
             # 定义哪些返回码做超时容错处理，哪些返回码做出错容灾处理， 这里一般不用改动
