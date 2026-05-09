@@ -99,6 +99,7 @@ int HttpBase::handleHttpRequest(shared_ptr<HandleParam> stParam, shared_ptr<Acce
     }
 
     stParam->httpRequest.setPath(rr.path.c_str());
+    stParam->httpRequest.setHeader("REMOTE_IP", stParam->sIP);
     TC_HttpAsync::RequestCallbackPtr cb = new AsyncHttpCallback(reqUrl, stParam->current, proxy, aLog, stParam->httpKeepAlive);
     _httpAsync.doAsyncRequest(stParam->httpRequest, cb, aLog->proxyAddr);
     TLOG_DEBUG("doAsyncHttpRequest, " << aLog->host << "/" << reqUrl << "=>" << aLog->proxyAddr << endl);
